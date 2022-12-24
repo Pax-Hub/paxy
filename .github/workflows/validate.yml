@@ -125,3 +125,70 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+
+  grcov:    
+    name: grcov Code Coverage
+    strategy:
+      matrix:
+        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin]
+        include:
+          - os: ubuntu-latest 
+            target: x86_64-unknown-linux-gnu            
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu                        
+          - os: windows-latest 
+            target: x86_64-pc-windows-msvc            
+          - os: macos-latest
+            target: x86_64-apple-darwin    
+    runs-on: ${{ matrix.os }}
+    steps:
+      - id: checkout_step
+        name: Checkout Git Repository
+        uses: actions/checkout@v2
+      - id: install_toolchain_step
+        name: Install Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly # Required for -Zprofile
+          override: true
+          target: ${{ matrix.target }}
+      - id: execute_tests_step
+        name: Execute tests
+        uses: actions-rs/cargo@v1    
+        env:
+          IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"            
+        with:
+          use-cross: ${{ env.IS_CROSS }}
+          command: test
+          args: --all      
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly  # Required for -Zprofile
+          override: true
+      - id: coverage_gather_step
+        name: Gather Coverage Data
+        uses: actions-rs/grcov@v0.1
+        with:
+          coveralls-token: ${{ secrets.COVERALLS_TOKEN }}
+      - id: coveralls_upload_step
+        name: Coveralls Upload
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel: true
+          path-to-lcov: ${{ steps.coverage.outputs.report }}
+
+  grcov_finalize:
+    name: Finalize grcov Code Coverage
+    runs-on: ubuntu-latest
+    needs: grcov
+    steps:
+      - id: coveralls_finalization_step 
+        name: Coveralls Finalization
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true          
