@@ -153,7 +153,7 @@ jobs:
           toolchain: nightly # Required for -Zprofile
           override: true
           target: ${{ matrix.target }}
-      - id: cross_installation_step
+      - id: cross_installation_step # Needs to be separate because the next step fails if cross is installed automatically when Z flags are enabled
         name: Install Cross
         uses: actions-rs/cargo@v1    
         env:
