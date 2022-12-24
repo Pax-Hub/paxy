@@ -92,7 +92,6 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true          
-          target: ${{ matrix.target }}
           components: fmt
       - id: cargo_fmt_step
         name: Cargo Fmt
@@ -115,7 +114,6 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true          
-          target: ${{ matrix.target }}   
           components: clippy       
       - id: clippy_step
         name: Clippy
