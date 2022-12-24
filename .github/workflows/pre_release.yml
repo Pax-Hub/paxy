@@ -84,4 +84,4 @@ jobs:
           tag_name: ${{ env.GIT_VERSION }}
           name: ${{ env.GIT_VERSION }}
           files: |
-            ${{ steps.download_binary_step.outputs.download-path }}/paxy*  
+            ${{ steps.download_binary_step.outputs.download-path }}/**paxy*  

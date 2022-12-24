@@ -86,4 +86,4 @@ jobs:
           tag_name: ${{ env.LATEST_TAG }}
           name: ${{ env.LATEST_TAG }}
           files: |
-            ${{ steps.download_binary_step.outputs.download-path }}/paxy* 
+            ${{ steps.download_binary_step.outputs.download-path }}/**paxy*
