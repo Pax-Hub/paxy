@@ -189,7 +189,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
-          path-to-lcov: ${{ steps.coverage.outputs.report }}
+          path-to-lcov: ${{ steps.coverage_gather_step.outputs.report }}
 
   grcov_finalize:
     name: Finalize grcov Code Coverage
