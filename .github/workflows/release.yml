@@ -72,7 +72,10 @@ jobs:
           path: output
       - id: generate_checksum_step
         name: Generate CheckSum
-        run: find ${{ steps.download_binary_step.outputs.download-path }} -type f -exec sh -c 'md5sum $0 > $0.md5sum' {} \;
+        run: |
+          apt-get install tree
+          tree ${{ steps.download_binary_step.outputs.download-path }}
+          find ${{ steps.download_binary_step.outputs.download-path }} -type f -exec sh -c 'md5sum $0 > $0.md5sum' {} \;
       - id: create_release_step
         name: Create Release        
         uses: softprops/action-gh-release@v1
