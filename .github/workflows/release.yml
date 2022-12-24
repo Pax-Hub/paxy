@@ -73,7 +73,8 @@ jobs:
       - id: generate_checksum_step
         name: Generate CheckSum
         run: |
-          apt-get install tree
+          ls -ltr ${{ steps.download_binary_step.outputs.download-path }}
+          sudo apt-get install tree
           tree ${{ steps.download_binary_step.outputs.download-path }}
           find ${{ steps.download_binary_step.outputs.download-path }} -type f -exec sh -c 'md5sum $0 > $0.md5sum' {} \;
       - id: create_release_step
