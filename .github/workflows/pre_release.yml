@@ -2,9 +2,7 @@ name: Pre-Release (Git)
 run-name: Pre-Release (Git) triggered by ${{ github.actor }}
 on:
   workflow_dispatch:
-    branches: [ main ]
   workflow_call:
-    branches: [ main ]
 
 jobs:
   build:
