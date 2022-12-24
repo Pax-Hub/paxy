@@ -14,16 +14,16 @@ jobs:
     name: Check
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin]
         include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest            
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest        
+          - os: ubuntu-latest 
+            target: x86_64-unknown-linux-gnu            
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu                        
+          - os: windows-latest 
+            target: x86_64-pc-windows-msvc            
+          - os: macos-latest
+            target: x86_64-apple-darwin                    
     runs-on: ${{ matrix.os }}
     steps:
       - id: checkout_step
@@ -40,24 +40,26 @@ jobs:
       - id: cargo_check_step
         name: Cargo Check
         uses: actions-rs/cargo@v1
+        env:
+          IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
         with:
-          use-cross: true
+          use-cross: ${{ env.IS_CROSS }}
           command: check          
 
   test:
     name: Test
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin]
         include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest            
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest    
+          - os: ubuntu-latest 
+            target: x86_64-unknown-linux-gnu            
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu                        
+          - os: windows-latest 
+            target: x86_64-pc-windows-msvc            
+          - os: macos-latest
+            target: x86_64-apple-darwin      
     runs-on: ${{ matrix.os }}
     steps:
       - id: checkout_step
@@ -74,8 +76,10 @@ jobs:
       - id: cargo_test_step
         name: Cargo Test
         uses: actions-rs/cargo@v1
+        env:
+          IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
         with:
-          use-cross: true
+          use-cross: ${{ env.IS_CROSS }}
           command: test
 
   fmt:
