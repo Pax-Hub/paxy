@@ -41,7 +41,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --target ${{ matrix.target }} --release --all-features    
+          args: --target ${{ matrix.target }} --release --all-features
       - id: upload_binary_step
         name: Upload Binary Artifact
         uses: actions/upload-artifact@v3
@@ -57,6 +57,15 @@ jobs:
     strategy:
       matrix:
         target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin] 
+        include:
+          - short_target: linux_x86_64 
+            target: x86_64-unknown-linux-gnu            
+          - short_target: linux_arm64
+            target: aarch64-unknown-linux-gnu                        
+          - short_target: windows_x86_64
+            target: x86_64-pc-windows-msvc            
+          - short_target: macos_x86_64
+            target: x86_64-apple-darwin
     runs-on: ubuntu-latest
     steps:
       - id: checkout_repository_step
@@ -89,7 +98,7 @@ jobs:
           generate_release_notes: false
           append_body: false
           body_path: CHANGELOG.md
-          tag_name: ${{ env.LATEST_TAG }}
-          name: ${{ matrix.target }} ${{ env.LATEST_TAG }}
+          tag_name: ${{ env.LATEST_TAG }}_${{ matrix.short_target }}
+          name: ${{ matrix.short_target }} ${{ env.LATEST_TAG }}
           files: |
             ${{ steps.download_binary_step.outputs.download-path }}/**paxy*
