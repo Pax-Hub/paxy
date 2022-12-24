@@ -96,7 +96,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true          
-          components: fmt
+          components: rustfmt
       - id: cargo_fmt_step
         name: Cargo Fmt
         uses: actions-rs/cargo@v1
