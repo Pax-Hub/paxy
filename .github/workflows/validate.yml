@@ -172,10 +172,12 @@ jobs:
           use-cross: ${{ env.IS_CROSS }}
           command: test
           args: --all --target ${{ matrix.target }}      
-      - uses: actions-rs/toolchain@v1
+      - id: preinstall_grcov_step
+        name: Pre-Installing grcov
+        uses: actions-rs/install@v0.1
         with:
-          toolchain: nightly  # Required for -Zprofile
-          override: true
+          crate: grcov
+          use-tool-cache: true
       - id: coverage_gather_step
         name: Gather Coverage Data
         uses: actions-rs/grcov@v0.1
