@@ -35,22 +35,25 @@ jobs:
       - id: cargo_build_step
         name: Cargo Build
         uses: actions-rs/cargo@v1
-        env:
-          IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
         with:
-          use-cross: ${{ env.IS_CROSS }}
+          use-cross: true
           command: build
-          args: --release --all-features    
+          args: --target ${{ matrix.target }} --release --all-features     
       - id: upload_binary_step
         name: Upload Binary Artifact
         uses: actions/upload-artifact@v3
         with: 
-          name: Unstable Binary
-          path: target/**/paxy*
+          name: ${{ matrix.target }} Unstable
+          path: |
+            target/${{ matrix.target }}/release/paxy
+            target/${{ matrix.target }}/release/paxy.exe
           if-no-files-found: error
   release:  
     needs: build        
     name: Pre-Release
+    strategy:
+      matrix:
+        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin] 
     runs-on: ubuntu-latest
     steps:
       - id: checkout_repository_step
@@ -67,11 +70,14 @@ jobs:
         name: Download Binary Artifact
         uses: actions/download-artifact@v3
         with:
-          name: Unstable Binary
+          name: ${{ matrix.target }} Unstable
           path: output
       - id: generate_checksum_step
         name: Generate CheckSum
-        run: find ${{ steps.download_binary_step.outputs.download-path }} -type f -exec sh -c 'md5sum $0 > $0.md5sum' {} \;
+        run: |
+          sudo apt-get install tree
+          tree ${{ steps.download_binary_step.outputs.download-path }}
+          find ${{ steps.download_binary_step.outputs.download-path }} -type f -exec sh -c 'md5sum $0 > $0.md5sum' {} \;
       - id: create_release_step
         name: Create Pre-Release        
         uses: softprops/action-gh-release@v1
@@ -82,6 +88,6 @@ jobs:
           generate_release_notes: true
           append_body: false
           tag_name: ${{ env.GIT_VERSION }}
-          name: ${{ env.GIT_VERSION }}
+          name: ${{ matrix.target }} ${{ env.GIT_VERSION }}
           files: |
-            ${{ steps.download_binary_step.outputs.download-path }}/**paxy*  
+            ${{ steps.download_binary_step.outputs.download-path }}/**paxy*
