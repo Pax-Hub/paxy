@@ -1,0 +1,87 @@
+name: Pre-Release (Git)
+run-name: Pre-Release (Git) triggered by ${{ github.actor }}
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build:
+    name: Build
+    strategy:
+      matrix:
+        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin]
+        include:
+          - os: ubuntu-latest 
+            target: x86_64-unknown-linux-gnu            
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu                        
+          - os: windows-latest 
+            target: x86_64-pc-windows-msvc            
+          - os: macos-latest
+            target: x86_64-apple-darwin                    
+    runs-on: ${{ matrix.os }}
+    steps:
+      - id: checkout_step
+        name: Checkout Git Repository
+        uses: actions/checkout@v2
+      - id: install_toolchain_step
+        name: Install Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: ${{ matrix.target }}
+      - id: cargo_check_step
+        name: Cargo Check
+        uses: actions-rs/cargo@v1
+        env:
+          IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
+        with:
+          use-cross: ${{ env.IS_CROSS }}
+          command: build
+          args: --release --all-features    
+      - id: upload_binary_step
+        name: Upload Binary Artifact
+        uses: actions/upload-artifact@v3
+        with: 
+          name: Unstable Binary
+          path: target/release/paxy*
+          if-no-files-found: error
+  release:  
+    needs: build        
+    name: Pre-Release
+    runs-on: ubuntu-latest
+    steps:
+      - id: checkout_repository_step
+        name: Checkout Git Repository
+        uses: actions/checkout@v3
+      - id: set_git_version
+        name: Determine Git Version
+        run: |
+          git fetch --prune --unshallow --tags
+          echo "LATEST_TAG=$(git tag | grep -v -P '^v([0-9]+)\.([0-9]+)\.([0-9]+).*\.' | sort --version-sort | tail -n1)" >> $GITHUB_ENV
+          GIT_VERSION="$(git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
+          echo "GIT_VERSION=$GIT_VERSION" >> $GITHUB_ENV 
+      - id: download_binary_step 
+        name: Download Binary Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Unstable Binary
+          path: output
+      - id: generate_checksum_step
+        name: Generate CheckSum
+        run: find ${{ steps.download_binary_step.outputs.download-path }} -type f -exec sh -c 'md5sum $0 > $0.md5sum' {} \;
+      - id: create_release_step
+        name: Create Pre-Release        
+        uses: softprops/action-gh-release@v1
+        with:          
+          draft: false
+          prerelease: true
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          append_body: false
+          tag_name: ${{ env.GIT_VERSION }}
+          name: ${{ env.GIT_VERSION }}
+          files: |
+            ${{ steps.download_binary_step.outputs.download-path }}/paxy*  
