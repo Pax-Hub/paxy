@@ -163,7 +163,7 @@ jobs:
         with:
           use-cross: ${{ env.IS_CROSS }}
           command: test
-          args: --all      
+          args: --all --target ${{ matrix.target }}      
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly  # Required for -Zprofile
