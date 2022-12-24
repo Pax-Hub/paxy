@@ -1,0 +1,2 @@
+# The `paxy` Binary Crate
+
