@@ -153,6 +153,14 @@ jobs:
           toolchain: nightly # Required for -Zprofile
           override: true
           target: ${{ matrix.target }}
+      - id: cross_installation_step
+        name: Install Cross
+        uses: actions-rs/cargo@v1    
+        env:
+          IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
+        with:
+          use-cross: ${{ env.IS_CROSS }}
+          command: check
       - id: execute_tests_step
         name: Execute tests
         uses: actions-rs/cargo@v1    
