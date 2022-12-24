@@ -2,10 +2,13 @@ name: Release
 run-name: Release triggered by ${{ github.actor }}
 on:
   workflow_dispatch:
+    branches: [ main ]
   workflow_call:
+    branches: [ main ]
   push:
       tags:
         - "v**"
+      branches: [ main ]
 
 jobs:
   build:
@@ -75,7 +78,7 @@ jobs:
         name: Determine Latest Tag
         run: |
           git fetch --prune --unshallow --tags
-          echo "LATEST_TAG=$(git tag | grep -v -P '^v([0-9]+)\.([0-9]+)\.([0-9]+).*\.' | sort --version-sort | tail -n1)" >> $GITHUB_ENV        
+          echo "LATEST_TAG=$(git tag | grep -v -P '^v([0-9]+)\.([0-9]+)\.([0-9]+).*\.' | grep -v -P '^v([0-9]+)\.([0-9]+)\.([0-9]+).*\_' | sort --version-sort | tail -n1)" >> $GITHUB_ENV        
       - id: download_binary_step 
         name: Download Binary Artifact
         uses: actions/download-artifact@v3
