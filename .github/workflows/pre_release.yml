@@ -3,22 +3,28 @@ run-name: Pre-Release (Git) triggered by ${{ github.actor }}
 on:
   workflow_dispatch:
   workflow_call:
-
 jobs:
   build:
     name: Build
     strategy:
       matrix:
-        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin]
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-unknown-linux-gnu
+          - aarch64-apple-darwin
         include:
-          - os: ubuntu-latest 
-            target: x86_64-unknown-linux-gnu            
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu                        
-          - os: windows-latest 
-            target: x86_64-pc-windows-msvc            
-          - os: macos-latest
-            target: x86_64-apple-darwin                    
+          - target: x86_64-unknown-linux-gnu            
+            os: ubuntu-latest 
+          - target: x86_64-pc-windows-msvc 
+            os: windows-latest           
+          - target: x86_64-apple-darwin
+            os: macos-latest             
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest           
     runs-on: ${{ matrix.os }}
     steps:
       - id: checkout_step
@@ -32,13 +38,20 @@ jobs:
           toolchain: stable
           override: true
           target: ${{ matrix.target }}
+      - id: setup_macos_aarch64_docker_step
+        name: Setup MacOS ARM Docker Image
+        if: ${{ matrix.target == 'aarch64-apple-darwin' }}
+        uses: actions-rs/cargo@v1
+        with:          
+          command: build-docker-image          
+          args: aarch64-apple-darwin-cross --tag local          
       - id: cargo_build_step
         name: Cargo Build
         uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
+        with:          
           command: build
-          args: --target ${{ matrix.target }} --release --all-features
+          use-cross: true
+          args: --all-features --workspace --release --target ${{ matrix.target }}
       - id: upload_binary_step
         name: Upload Binary Artifact
         uses: actions/upload-artifact@v3
@@ -53,16 +66,23 @@ jobs:
     name: Pre-Release
     strategy:
       matrix:
-        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin] 
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-unknown-linux-gnu
+          - aarch64-apple-darwin
         include:
-          - short_target: linux_x86_64 
-            target: x86_64-unknown-linux-gnu            
-          - short_target: linux_arm64
-            target: aarch64-unknown-linux-gnu                        
-          - short_target: windows_x86_64
-            target: x86_64-pc-windows-msvc            
-          - short_target: macos_x86_64
-            target: x86_64-apple-darwin
+          - target: x86_64-unknown-linux-gnu
+            short_target_name: linux_x86_64                                                          
+          - target: x86_64-pc-windows-msvc
+            short_target_name: windows_x86_64
+          - target: x86_64-apple-darwin
+            short_target_name: macos_x86_64
+          - target: aarch64-unknown-linux-gnu
+            short_target_name: linux_arm64  
+          - target: aarch64-apple-darwin
+            short_target_name: macos_arm64
     runs-on: ubuntu-latest
     steps:
       - id: checkout_repository_step
@@ -96,7 +116,7 @@ jobs:
           fail_on_unmatched_files: true
           generate_release_notes: true
           append_body: false
-          tag_name: ${{ env.GIT_VERSION }}_${{ matrix.short_target }}
-          name: ${{ matrix.short_target }} ${{ env.GIT_VERSION }}
+          tag_name: ${{ env.GIT_VERSION }}_${{ matrix.short_target_name }}
+          name: ${{ matrix.short_target_name }} ${{ env.GIT_VERSION }}
           files: |
             ${{ steps.download_binary_step.outputs.download-path }}/**paxy*

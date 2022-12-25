@@ -10,78 +10,6 @@ name: Validation
 
 jobs:
 
-  check:
-    name: Check
-    strategy:
-      matrix:
-        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin]
-        include:
-          - os: ubuntu-latest 
-            target: x86_64-unknown-linux-gnu            
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu                        
-          - os: windows-latest 
-            target: x86_64-pc-windows-msvc            
-          - os: macos-latest
-            target: x86_64-apple-darwin                    
-    runs-on: ${{ matrix.os }}
-    steps:
-      - id: checkout_step
-        name: Checkout Git Repository
-        uses: actions/checkout@v2
-      - id: install_toolchain_step
-        name: Install Rust Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: ${{ matrix.target }}
-      - id: cargo_check_step
-        name: Cargo Check
-        uses: actions-rs/cargo@v1
-        env:
-          IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
-        with:
-          use-cross: ${{ env.IS_CROSS }}
-          command: check          
-
-  test:
-    name: Test
-    strategy:
-      matrix:
-        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin]
-        include:
-          - os: ubuntu-latest 
-            target: x86_64-unknown-linux-gnu            
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu                        
-          - os: windows-latest 
-            target: x86_64-pc-windows-msvc            
-          - os: macos-latest
-            target: x86_64-apple-darwin      
-    runs-on: ${{ matrix.os }}
-    steps:
-      - id: checkout_step
-        name: Checkout Git Repository
-        uses: actions/checkout@v2
-      - id: install_toolchain_step
-        name: Install Rust Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: ${{ matrix.target }}
-      - id: cargo_test_step
-        name: Cargo Test
-        uses: actions-rs/cargo@v1
-        env:
-          IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
-        with:
-          use-cross: ${{ env.IS_CROSS }}
-          command: test
-
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
@@ -102,7 +30,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --workspace -- --check
 
   clippy:
     name: Clippy
@@ -124,23 +52,134 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings
+          args: --workspace -- -D warnings
 
-  grcov:    
+  check:
+    name: Check
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-unknown-linux-gnu
+          - aarch64-apple-darwin
+        include:
+          - target: x86_64-unknown-linux-gnu            
+            os: ubuntu-latest 
+          - target: x86_64-pc-windows-msvc 
+            os: windows-latest           
+          - target: x86_64-apple-darwin
+            os: macos-latest             
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest                   
+    runs-on: ${{ matrix.os }}
+    env:
+      IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
+    steps:
+      - id: checkout_step
+        name: Checkout Git Repository
+        uses: actions/checkout@v2
+      - id: install_toolchain_step
+        name: Install Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: ${{ matrix.target }}
+      - id: setup_macos_aarch64_docker_step
+        name: Setup MacOS ARM Docker Image
+        if: ${{ matrix.target == 'aarch64-apple-darwin' }}
+        uses: actions-rs/cargo@v1
+        with:          
+          command: build-docker-image          
+          args: aarch64-apple-darwin-cross --tag local
+      - id: cargo_check_step
+        name: Cargo Check
+        uses: actions-rs/cargo@v1
+        with:          
+          command: check
+          use-cross: ${{ env.IS_CROSS }}
+          args: --workspace --target ${{ matrix.target }}              
+
+  test:
+    name: Test
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-unknown-linux-gnu
+          - aarch64-apple-darwin
+        include:
+          - target: x86_64-unknown-linux-gnu            
+            os: ubuntu-latest 
+          - target: x86_64-pc-windows-msvc 
+            os: windows-latest           
+          - target: x86_64-apple-darwin
+            os: macos-latest             
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest                   
+    runs-on: ${{ matrix.os }}
+    env:
+      IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
+    steps:
+      - id: checkout_step
+        name: Checkout Git Repository
+        uses: actions/checkout@v2
+      - id: install_toolchain_step
+        name: Install Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: ${{ matrix.target }}
+      - id: setup_macos_aarch64_docker_step
+        name: Setup MacOS ARM Docker Image
+        if: ${{ matrix.target == 'aarch64-apple-darwin' }}
+        uses: actions-rs/cargo@v1
+        with:          
+          command: build-docker-image          
+          args: aarch64-apple-darwin-cross --tag local          
+      - id: cargo_test_step
+        name: Cargo Test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          use-cross: ${{ env.IS_CROSS }}
+          args: --workspace --target ${{ matrix.target }}
+
+  grcov:
     name: grcov Code Coverage
     strategy:
       matrix:
-        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, x86_64-pc-windows-msvc,  x86_64-apple-darwin]
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-unknown-linux-gnu
+          - aarch64-apple-darwin
         include:
-          - os: ubuntu-latest 
-            target: x86_64-unknown-linux-gnu            
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu                        
-          - os: windows-latest 
-            target: x86_64-pc-windows-msvc            
-          - os: macos-latest
-            target: x86_64-apple-darwin    
+          - target: x86_64-unknown-linux-gnu            
+            os: ubuntu-latest 
+          - target: x86_64-pc-windows-msvc 
+            os: windows-latest           
+          - target: x86_64-apple-darwin
+            os: macos-latest             
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest                   
     runs-on: ${{ matrix.os }}
+    env:
+      IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
     steps:
       - id: checkout_step
         name: Checkout Git Repository
@@ -153,25 +192,28 @@ jobs:
           toolchain: nightly # Required for -Zprofile
           override: true
           target: ${{ matrix.target }}
+      - id: setup_macos_aarch64_docker_step
+        name: Setup MacOS ARM Docker Image
+        if: ${{ matrix.target == 'aarch64-apple-darwin' }}
+        uses: actions-rs/cargo@v1
+        with:          
+          command: build-docker-image          
+          args: aarch64-apple-darwin-cross --tag local          
       - id: cross_installation_step # Needs to be separate because the next step fails if cross is installed automatically when Z flags are enabled
         name: Install Cross
         uses: actions-rs/cargo@v1    
-        env:
-          IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
         with:
           use-cross: ${{ env.IS_CROSS }}
-          command: check
       - id: execute_tests_step
         name: Execute tests
         uses: actions-rs/cargo@v1    
         env:
-          IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"            
-        with:
-          use-cross: ${{ env.IS_CROSS }}
+        with:          
           command: test
-          args: --all --target ${{ matrix.target }}      
+          use-cross: ${{ env.IS_CROSS }}
+          args: --workspace --target ${{ matrix.target }}
       - id: preinstall_grcov_step
         name: Pre-Installing grcov
         uses: actions-rs/install@v0.1
