@@ -1,0 +1,21 @@
+on:
+  workflow_dispatch:
+  workflow_call:
+  schedule:
+    - cron: '25 0 * * *'
+
+name: Security Audit
+
+jobs:
+  audit:
+    name: 🕵️‍♂️ Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🎟 Checkout Git Repository
+        id: checkout_repository_step
+        uses: actions/checkout@v2
+      - name: 🕵️‍♂️ Security Audit
+        id: audit_step
+        uses: actions-rs/audit-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
