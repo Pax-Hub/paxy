@@ -224,7 +224,9 @@ jobs:
         name: Install Cross
         uses: actions-rs/cargo@v1    
         with:
+          command: check
           use-cross: ${{ env.IS_CROSS }}
+          args: --target ${{ matrix.target }}
       - id: execute_tests_step
         name: Execute tests
         uses: actions-rs/cargo@v1    
