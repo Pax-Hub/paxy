@@ -1,10 +1,10 @@
 on:
   workflow_dispatch:
   workflow_call:
-  # push:
-  #   branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 name: Validation
 
@@ -12,6 +12,9 @@ jobs:
 
   fmt:
     name: 📑 Rustfmt
+    if: |
+      !startsWith(${{ github.event.head_commit.message }}, 'ci:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'ci(')    
     runs-on: ubuntu-latest
     steps:
       - name: 🎟 Checkout Git Repository
@@ -47,6 +50,11 @@ jobs:
 
   clippy:
     name: 📎 Clippy
+    if: |
+      !startsWith(${{ github.event.head_commit.message }}, 'ci:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'ci(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style(')      
     runs-on: ubuntu-latest
     steps:
       - name: 🎟 Checkout Git Repository
@@ -81,6 +89,13 @@ jobs:
 
   check:
     name: ✅ Check    
+    if: |
+      !startsWith(${{ github.event.head_commit.message }}, 'ci:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'ci(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'docs:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'docs(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style(')      
     strategy:
       fail-fast: false      
       matrix:
@@ -151,6 +166,13 @@ jobs:
 
   test:
     name: 🧪 Test
+    if: |
+      !startsWith(${{ github.event.head_commit.message }}, 'ci:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'ci(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'docs:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'docs(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style(')      
     strategy:
       fail-fast: false      
       matrix:
@@ -221,6 +243,13 @@ jobs:
 
   grcov:
     name: 🔎 grcov Code Coverage
+    if: |
+      !startsWith(${{ github.event.head_commit.message }}, 'ci:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'ci(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'docs:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'docs(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style(')      
     strategy:
       fail-fast: false      
       matrix:
@@ -319,6 +348,13 @@ jobs:
 
   grcov_finalize:
     name: ✔ Finalize grcov Code Coverage
+    if: |
+      !startsWith(${{ github.event.head_commit.message }}, 'ci:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'ci(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'docs:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'docs(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style(')      
     runs-on: ubuntu-latest
     needs: grcov
     steps:

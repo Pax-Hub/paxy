@@ -9,6 +9,11 @@ name: API Documentation
 jobs:
   build:
     name: 🛠 Build
+    if: |
+      !startsWith(${{ github.event.head_commit.message }}, 'ci:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'ci(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style(')      
     runs-on: ubuntu-latest
     steps:
       - name: 🎟 Checkout Git Repository
@@ -43,9 +48,6 @@ jobs:
         with:          
           command: doc
           args: --all-features --workspace --no-deps --document-private-items
-      - run: |
-          sudo apt-get install tree
-          tree .
       - name: ⬆ Upload Docs Artifact
         id: upload_docs_step        
         uses: actions/upload-pages-artifact@v1
@@ -53,6 +55,11 @@ jobs:
           path: target/doc
   deploy:
     name: ✈ Deploy
+    if: |
+      !startsWith(${{ github.event.head_commit.message }}, 'ci:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'ci(')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style:')
+      && !startsWith(${{ github.event.head_commit.message }}, 'style(')      
     needs: build
     runs-on: ubuntu-latest
     permissions:

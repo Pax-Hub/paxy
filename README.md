@@ -7,3 +7,5 @@
 [![Release](https://github.com/PaxyHub/Paxy/actions/workflows/release.yml/badge.svg)](https://github.com/PaxyHub/Paxy/actions/workflows/release.yml)
 [![Pre-Release (Git)](https://github.com/PaxyHub/Paxy/actions/workflows/pre_release.yml/badge.svg)](https://github.com/PaxyHub/Paxy/actions/workflows/pre_release.yml)
 [![Validation](https://github.com/PaxyHub/Paxy/actions/workflows/validate.yml/badge.svg)](https://github.com/PaxyHub/Paxy/actions/workflows/validate.yml)
+[![API Documentation](https://github.com/PaxyHub/Paxy/actions/workflows/docs.yml/badge.svg)](https://github.com/PaxyHub/Paxy/actions/workflows/docs.yml)
+[![Security Audit](https://github.com/PaxyHub/Paxy/actions/workflows/security_audit.yml/badge.svg)](https://github.com/PaxyHub/Paxy/actions/workflows/security_audit.yml)

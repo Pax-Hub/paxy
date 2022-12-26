@@ -7,6 +7,9 @@ on:
       tags:
         - "v**"
 jobs:
+  validate:
+    name: ✅ Validate
+    uses: ./.github/workflows/validate.yml
   build:
     name: 🏗 Build
     strategy:
