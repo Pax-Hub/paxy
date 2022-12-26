@@ -7,6 +7,7 @@ jobs:
   build:
     name: Build
     strategy:
+      fail-fast: false      
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -17,14 +18,20 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu            
             os: ubuntu-latest 
+            failable: false
           - target: x86_64-pc-windows-msvc 
-            os: windows-latest           
+            os: windows-latest 
+            failable: false          
           - target: x86_64-apple-darwin
-            os: macos-latest             
+            os: macos-latest  
+            failable: false           
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
+            failable: false
           - target: aarch64-apple-darwin
-            os: macos-latest           
+            os: macos-latest 
+            failable: true
+    continue-on-error: ${{ matrix.failable }}                              
     runs-on: ${{ matrix.os }}
     steps:
       - id: checkout_step
@@ -65,6 +72,7 @@ jobs:
     needs: build        
     name: Pre-Release
     strategy:
+      fail-fast: false
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -74,15 +82,21 @@ jobs:
           - aarch64-apple-darwin
         include:
           - target: x86_64-unknown-linux-gnu
-            short_target_name: linux_x86_64                                                          
+            short_target_name: linux_x86_64
+            failable: false                                                        
           - target: x86_64-pc-windows-msvc
             short_target_name: windows_x86_64
+            failable: false
           - target: x86_64-apple-darwin
             short_target_name: macos_x86_64
+            failable: false
           - target: aarch64-unknown-linux-gnu
-            short_target_name: linux_arm64  
+            short_target_name: linux_arm64
+            failable: false
           - target: aarch64-apple-darwin
             short_target_name: macos_arm64
+            failable: true
+    continue-on-error: ${{ matrix.failable }}            
     runs-on: ubuntu-latest
     steps:
       - id: checkout_repository_step
