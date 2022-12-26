@@ -25,6 +25,18 @@ jobs:
           toolchain: stable
           override: true          
           components: rustfmt
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/            
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
       - id: cargo_fmt_step
         name: Cargo Fmt
         uses: actions-rs/cargo@v1
@@ -46,7 +58,19 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true          
-          components: clippy       
+          components: clippy 
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/            
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
       - id: clippy_step
         name: Clippy
         uses: actions-rs/cargo@v1
@@ -104,6 +128,18 @@ jobs:
         with:          
           command: build-docker-image          
           args: aarch64-apple-darwin-cross --tag local
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/            
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
       - id: cargo_check_step
         name: Cargo Check
         uses: actions-rs/cargo@v1
@@ -161,7 +197,19 @@ jobs:
         uses: actions-rs/cargo@v1
         with:          
           command: build-docker-image          
-          args: aarch64-apple-darwin-cross --tag local          
+          args: aarch64-apple-darwin-cross --tag local   
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/            
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-                     
       - id: cargo_test_step
         name: Cargo Test
         uses: actions-rs/cargo@v1
@@ -219,7 +267,19 @@ jobs:
         uses: actions-rs/cargo@v1
         with:          
           command: build-docker-image          
-          args: aarch64-apple-darwin-cross --tag local          
+          args: aarch64-apple-darwin-cross --tag local    
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/            
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-                
       - id: cross_installation_step # Needs to be separate because the next step fails if cross is installed automatically when Z flags are enabled
         name: Install Cross
         uses: actions-rs/cargo@v1    
