@@ -36,7 +36,7 @@ paxy --help
 to see the various commandline options available.
 
 ### User Guide
-Please visit https://paxyhub.github.io/Paxy-Book for a detailed user guide.
+Please visit https://paxyhub.github.io/paxy-book for a detailed user guide.
 
 ## For Developers
 
