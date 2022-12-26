@@ -41,7 +41,7 @@ Please visit https://paxyhub.github.io/paxy-book for a detailed user guide.
 ## For Developers
 
 ### API Documentation
-Please visit https://paxyhub.github.io/Paxy the full API documentation.
+Please visit https://paxyhub.github.io/paxy the full API documentation.
 
 ### Cloning
 
