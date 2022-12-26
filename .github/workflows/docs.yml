@@ -1,0 +1,67 @@
+on:
+  workflow_dispatch:
+  workflow_call:
+  push:
+    branches: [ main ]
+
+name: API Documentation
+
+jobs:
+  build:
+    name: 🛠 Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🎟 Checkout Git Repository
+        id: checkout_repository_step
+        uses: actions/checkout@v2
+      - name: 🧰 Install Rust Toolchain
+        id: install_toolchain_step
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true          
+          components: rustdoc
+      - name: 🗂 Set up cargo cache
+        id: setup_cache_step
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/            
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - name: 📜 Cargo Doc
+        id: cargo_doc_step        
+        uses: actions-rs/cargo@v1
+        env:
+          RUSTDOCFLAGS: "--enable-index-page -Zunstable-options"
+        with:          
+          command: doc
+          args: --all-features --workspace --no-deps --document-private-items
+      - name: ⬆ Upload Docs Artifact
+        id: upload_docs_step        
+        uses: actions/upload-artifact@v3
+        with: 
+          name: github-pages
+          path: target/doc
+          if-no-files-found: error
+  deploy:
+    name: ✈ Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment_step.outputs.page_url }}
+    steps:
+      - name: ✈ Deploy to GitHub Pages
+        id: deployment_step
+        uses: actions/deploy-pages@v1
+          
