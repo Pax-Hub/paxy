@@ -10,10 +10,10 @@ jobs:
   build:
     name: 🛠 Build
     if: |
-      !startsWith(${{ github.event.head_commit.message }}, 'ci:')
-      && !startsWith(${{ github.event.head_commit.message }}, 'ci(')
-      && !startsWith(${{ github.event.head_commit.message }}, 'style:')
-      && !startsWith(${{ github.event.head_commit.message }}, 'style(')      
+      !startsWith(github.event.head_commit.message, 'ci:')
+      && !startsWith(github.event.head_commit.message, 'ci(')
+      && !startsWith(github.event.head_commit.message, 'style:')
+      && !startsWith(github.event.head_commit.message, 'style(')      
     runs-on: ubuntu-latest
     steps:
       - name: 🎟 Checkout Git Repository
@@ -56,10 +56,10 @@ jobs:
   deploy:
     name: ✈ Deploy
     if: |
-      !startsWith(${{ github.event.head_commit.message }}, 'ci:')
-      && !startsWith(${{ github.event.head_commit.message }}, 'ci(')
-      && !startsWith(${{ github.event.head_commit.message }}, 'style:')
-      && !startsWith(${{ github.event.head_commit.message }}, 'style(')      
+      !startsWith(github.event.head_commit.message, 'ci:')
+      && !startsWith(github.event.head_commit.message, 'ci(')
+      && !startsWith(github.event.head_commit.message, 'style:')
+      && !startsWith(github.event.head_commit.message, 'style(')      
     needs: build
     runs-on: ubuntu-latest
     permissions:
