@@ -21,7 +21,7 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true          
-          components: rustdoc
+          components: rust-docs
       - name: 🗂 Set up cargo cache
         id: setup_cache_step
         uses: actions/cache@v3
