@@ -12,13 +12,13 @@ pub trait CommandlineFlags {
     fn debug_flag(&self) -> bool;
     fn output_kind(&self) -> CommandlineOutputKind {
         if self.json_flag() {
-            return CommandlineOutputKind::Json;
+            CommandlineOutputKind::Json
         } else if self.plain_flag() {
-            return CommandlineOutputKind::Plain;
+            CommandlineOutputKind::Plain
         } else if self.debug_flag() {
-            return CommandlineOutputKind::Debug;
+            CommandlineOutputKind::Debug
         } else {
-            return CommandlineOutputKind::Regular;
+            CommandlineOutputKind::Regular
         }
     }
 }
@@ -147,15 +147,15 @@ pub mod cli_template {
 
     impl CommandlineFlags for GlobalArguments {
         fn json_flag(&self) -> bool {
-            return self.json_flag;
+            self.json_flag
         }
 
         fn plain_flag(&self) -> bool {
-            return self.plain_flag;
+            self.plain_flag
         }
 
         fn debug_flag(&self) -> bool {
-            return self.debug_flag;
+            self.debug_flag
         }
     }
 
