@@ -6,7 +6,7 @@
 mod cli;
 
 /// The main function where the program execution begins when `paxy` is run
-fn main() {    
+fn main() {
     let commandline_dispatcher: cli::CommandlineDispatcher = cli::CommandlineDispatcher::new();
     commandline_dispatcher.run();
 }

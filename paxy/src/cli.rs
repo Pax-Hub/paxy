@@ -41,9 +41,15 @@ impl CommandlineDispatcher {
     pub fn run(self) {
         let cli = Cli::parse();
 
-        println!("\nThe commandline argument structure is as below: \n{:#?}", cli);
+        println!(
+            "\nThe commandline argument structure is as below: \n{:#?}",
+            cli
+        );
 
-        println!("\nThe kind of output desired is: \n{:#?}\n", cli.global_arguments.output_kind());
+        println!(
+            "\nThe kind of output desired is: \n{:#?}\n",
+            cli.global_arguments.output_kind()
+        );
 
         // match cli.command {
         //     Some(ActionCommand::List(list_action_arguments)) => {
