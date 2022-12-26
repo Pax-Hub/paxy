@@ -50,7 +50,7 @@ jobs:
         id: upload_docs_step        
         uses: actions/upload-pages-artifact@v1
         with: 
-          path: target/doc/**
+          path: target/doc/*
   deploy:
     name: ✈ Deploy
     needs: build
