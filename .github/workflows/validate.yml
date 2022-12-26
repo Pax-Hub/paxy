@@ -193,7 +193,7 @@ jobs:
             failable: false           
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
-            failable: false
+            failable: true # Tests fail with cross, nightly toolchain, and the special commandline arguments used for grcov
           - target: aarch64-apple-darwin
             os: macos-latest 
             failable: true
