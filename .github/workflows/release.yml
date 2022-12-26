@@ -1,4 +1,4 @@
-name: Release
+name: 🎉 Release
 run-name: Release triggered by ${{ github.actor }}
 on:
   workflow_dispatch:
@@ -8,10 +8,11 @@ on:
         - "v**"
 jobs:
   validate:
-    name: ✅ Validate
+    name: ✔ Validate
     uses: ./.github/workflows/validate.yml
   build:
     name: 🏗 Build
+    needs: validate
     strategy:
       fail-fast: false      
       matrix:

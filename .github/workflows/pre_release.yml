@@ -1,4 +1,4 @@
-name: Pre-Release (Git)
+name: 🎊 Pre-Release (Git)
 run-name: Pre-Release (Git) triggered by ${{ github.actor }}
 on:
   workflow_dispatch:
