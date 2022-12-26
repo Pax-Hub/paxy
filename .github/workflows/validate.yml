@@ -17,11 +17,6 @@ jobs:
       && !startsWith(github.event.head_commit.message, 'ci(')    
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo ${{ github.event.head_commit.message }}
-          echo ${{ startsWith(github.event.head_commit.message, 'ci:') }}
-          echo ${{ !startsWith(github.event.head_commit.message, 'ci:') }}
-          echo ${{ !startsWith(github.event.head_commit.message, 'ci:') && !startsWith(github.event.head_commit.message, 'ci(')  }}
       - name: 🎟 Checkout Git Repository
         id: checkout_repository_step
         uses: actions/checkout@v2
