@@ -113,7 +113,7 @@ jobs:
         id: set_latest_tag        
         run: |
           git fetch --prune --unshallow --tags
-          echo "LATEST_TAG=$(git tag | grep -v -P '^v([0-9]+)\.([0-9]+)\.([0-9]+).*\.' | grep -v -P '^v([0-9]+)\.([0-9]+)\.([0-9]+).*\_' | grep -v -P '^v([0-9]+)\.([0-9]+)\.([0-9]+)_$' | sort --version-sort | tail -n1)" >> $GITHUB_ENV        
+          echo "LATEST_TAG=$(git tag | grep -v -P '^v([0-9]+)\.([0-9]+)\.([0-9]+).*\.' | grep -v -P '^v([0-9]+)\.([0-9]+)\.([0-9]+).*\_' | grep -v -P '^v([0-9]+)\.([0-9]+)\.([0-9]+)_$' | sort --version-sort | tail -n1)" >> $GITHUB_ENV          
       - name: ⬇ Download Binary Artifact
         id: download_binary_step
         uses: actions/download-artifact@v3
@@ -136,7 +136,7 @@ jobs:
           generate_release_notes: false
           append_body: false
           body_path: CHANGELOG.md
-          tag_name: ${{ env.LATEST_TAG }}_${{ matrix.short_target }}
-          name: ${{ matrix.short_target }} ${{ env.LATEST_TAG }}
+          tag_name: ${{ env.LATEST_TAG }}_${{ matrix.short_target_name }}
+          name: ${{ matrix.short_target_name }} ${{ env.LATEST_TAG }}
           files: |
             ${{ steps.download_binary_step.outputs.download-path }}/**paxy*
