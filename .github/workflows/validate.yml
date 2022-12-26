@@ -55,9 +55,9 @@ jobs:
           args: --workspace -- -D warnings
 
   check:
-    name: Check
+    name: Check    
     strategy:
-      fail-fast: false
+      fail-fast: false      
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -68,14 +68,20 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu            
             os: ubuntu-latest 
+            failable: false
           - target: x86_64-pc-windows-msvc 
-            os: windows-latest           
+            os: windows-latest 
+            failable: false          
           - target: x86_64-apple-darwin
-            os: macos-latest             
+            os: macos-latest  
+            failable: false           
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
+            failable: false
           - target: aarch64-apple-darwin
-            os: macos-latest                   
+            os: macos-latest 
+            failable: true
+    continue-on-error: ${{ matrix.failable }}                              
     runs-on: ${{ matrix.os }}
     env:
       IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
@@ -109,7 +115,7 @@ jobs:
   test:
     name: Test
     strategy:
-      fail-fast: false
+      fail-fast: false      
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -120,14 +126,20 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu            
             os: ubuntu-latest 
+            failable: false
           - target: x86_64-pc-windows-msvc 
-            os: windows-latest           
+            os: windows-latest 
+            failable: false          
           - target: x86_64-apple-darwin
-            os: macos-latest             
+            os: macos-latest  
+            failable: false           
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
+            failable: false
           - target: aarch64-apple-darwin
-            os: macos-latest                   
+            os: macos-latest 
+            failable: true
+    continue-on-error: ${{ matrix.failable }}                              
     runs-on: ${{ matrix.os }}
     env:
       IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
@@ -161,7 +173,7 @@ jobs:
   grcov:
     name: grcov Code Coverage
     strategy:
-      fail-fast: false
+      fail-fast: false      
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -172,14 +184,20 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu            
             os: ubuntu-latest 
+            failable: false
           - target: x86_64-pc-windows-msvc 
-            os: windows-latest           
+            os: windows-latest 
+            failable: false          
           - target: x86_64-apple-darwin
-            os: macos-latest             
+            os: macos-latest  
+            failable: false           
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
+            failable: false
           - target: aarch64-apple-darwin
-            os: macos-latest                   
+            os: macos-latest 
+            failable: true
+    continue-on-error: ${{ matrix.failable }}                              
     runs-on: ${{ matrix.os }}
     env:
       IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
