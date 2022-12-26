@@ -5,6 +5,7 @@ on:
     - cron: '25 0 * * *'
 
 name: Security Audit
+run-name: Security Audit triggered by ${{ github.actor }}
 
 jobs:
   audit:

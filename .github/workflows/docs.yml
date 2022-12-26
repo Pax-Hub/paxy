@@ -5,6 +5,7 @@ on:
     branches: [ main ]
 
 name: API Documentation
+run-name: API Documentation triggered by ${{ github.actor }}
 
 jobs:
   build:
@@ -45,10 +46,9 @@ jobs:
           args: --all-features --workspace --no-deps --document-private-items
       - name: ⬆ Upload Docs Artifact
         id: upload_docs_step        
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-pages-artifact@v1
         with: 
-          name: github-pages
-          path: target/doc
+          path: target/doc/**
           if-no-files-found: error
   deploy:
     name: ✈ Deploy
@@ -57,9 +57,12 @@ jobs:
     permissions:
       pages: write      # to deploy to Pages
       id-token: write   # to verify the deployment originates from an appropriate source
+    concurrency:
+      group: "pages"
+      cancel-in-progress: true
     environment:
       name: github-pages
-      url: ${{ steps.deployment_step.outputs.page_url }}
+      url: ${{ steps.deployment_step.outputs.page_url }}      
     steps:
       - name: ✈ Deploy to GitHub Pages
         id: deployment_step
