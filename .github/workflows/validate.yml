@@ -57,6 +57,7 @@ jobs:
   check:
     name: Check
     strategy:
+      fail-fast: false
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -108,6 +109,7 @@ jobs:
   test:
     name: Test
     strategy:
+      fail-fast: false
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -159,6 +161,7 @@ jobs:
   grcov:
     name: grcov Code Coverage
     strategy:
+      fail-fast: false
       matrix:
         target:
           - x86_64-unknown-linux-gnu
