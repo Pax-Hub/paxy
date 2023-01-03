@@ -425,5 +425,127 @@ pub mod cli_template {
                 }
             );
         }
+
+        #[test]
+        fn list_empty() {
+            let cli: Cli = Parser::parse_from(["paxy", "list"]);
+            assert_eq!(
+                cli,
+                Cli {
+                    global_arguments: GlobalArguments {
+                        json_flag: false,
+                        plain_flag: false,
+                        debug_flag: false,
+                        configuration_file: None
+                    },
+                    command: None,
+                    arguments: UpdateActionArguments {
+                        package_names: vec![],
+                    }
+                }
+            );
+        }
+
+        #[test]
+        fn search_empty() {
+            let cli: Cli = Parser::parse_from(["paxy", "search"]);
+            assert_eq!(
+                cli,
+                Cli {
+                    global_arguments: GlobalArguments {
+                        json_flag: false,
+                        plain_flag: false,
+                        debug_flag: false,
+                        configuration_file: None
+                    },
+                    command: None,
+                    arguments: UpdateActionArguments {
+                        package_names: vec![],
+                    }
+                }
+            );
+        }
+
+        #[test]
+        fn install_empty() {
+            let cli: Cli = Parser::parse_from(["paxy", "install"]);
+            assert_eq!(
+                cli,
+                Cli {
+                    global_arguments: GlobalArguments {
+                        json_flag: false,
+                        plain_flag: false,
+                        debug_flag: false,
+                        configuration_file: None
+                    },
+                    command: None,
+                    arguments: UpdateActionArguments {
+                        package_names: vec![],
+                    }
+                }
+            );
+        }
+
+        #[test]
+        fn update_empty() {
+            let cli: Cli = Parser::parse_from(["paxy", "update"]);
+            assert_eq!(
+                cli,
+                Cli {
+                    global_arguments: GlobalArguments {
+                        json_flag: false,
+                        plain_flag: false,
+                        debug_flag: false,
+                        configuration_file: None
+                    },
+                    command: Some(ActionCommand::Update(UpdateActionArguments {
+                        package_names: vec![]
+                    })),
+                    arguments: UpdateActionArguments {
+                        package_names: vec![],
+                    }
+                }
+            );
+        }
+
+        #[test]
+        fn remove_empty() {
+            let cli: Cli = Parser::parse_from(["paxy", "remove"]);
+            assert_eq!(
+                cli,
+                Cli {
+                    global_arguments: GlobalArguments {
+                        json_flag: false,
+                        plain_flag: false,
+                        debug_flag: false,
+                        configuration_file: None
+                    },
+                    command: None,
+                    arguments: UpdateActionArguments {
+                        package_names: vec![],
+                    }
+                }
+            );
+        }
+
+        #[test]
+        fn environment_empty() {
+            let cli: Cli = Parser::parse_from(["paxy", "env"]);
+            assert_eq!(
+                cli,
+                Cli {
+                    global_arguments: GlobalArguments {
+                        json_flag: false,
+                        plain_flag: false,
+                        debug_flag: false,
+                        configuration_file: None
+                    },
+                    command: None,
+                    arguments: UpdateActionArguments {
+                        package_names: vec![],
+                    }
+                }
+            );
+        }
     }
 }
