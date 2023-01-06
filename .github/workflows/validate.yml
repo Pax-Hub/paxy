@@ -118,7 +118,7 @@ jobs:
             os: ubuntu-latest
             failable: false
           - target: aarch64-apple-darwin
-            os: macos-latest
+            os: ubuntu-latest
             failable: true
     continue-on-error: ${{ matrix.failable }}
     runs-on: ${{ matrix.os }}
