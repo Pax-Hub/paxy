@@ -1,8 +1,9 @@
 ignore:
   - "/*"
-  - "C:/*"
+  - "C:\\*"
   - "../*"
   - "*/.cargo/*"
+  - "*github.com*"
 branch: true
 ignore-not-existing: true
 llvm: true
