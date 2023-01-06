@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [main]
 
+name: 🔎 Code Coverage
+
 jobs:
   grcov:
     name: 🔎 grcov Code Coverage
