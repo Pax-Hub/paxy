@@ -188,20 +188,12 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            failable: false
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            failable: false
           - target: x86_64-apple-darwin
             os: macos-latest
-            failable: false
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
-            failable: false
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            failable: true
-    continue-on-error: ${{ matrix.failable }}
     runs-on: ${{ matrix.os }}
     env:
       IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
