@@ -249,28 +249,14 @@ jobs:
           - x86_64-unknown-linux-gnu
           - x86_64-pc-windows-msvc
           - x86_64-apple-darwin
-          - aarch64-unknown-linux-gnu
-          - aarch64-apple-darwin
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            failable: false
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            failable: false
           - target: x86_64-apple-darwin
             os: macos-latest
-            failable: false
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-            failable: true # Tests fail with cross, nightly toolchain, and the special commandline arguments used for grcov
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            failable: true
-    continue-on-error: ${{ matrix.failable }}
     runs-on: ${{ matrix.os }}
-    env:
-      IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
     steps:
       - name: 🎟 Checkout Git Repository
         id: checkout_repository_step
@@ -283,13 +269,6 @@ jobs:
           toolchain: nightly # Required for -Zprofile
           override: true
           target: ${{ matrix.target }}
-      - name: 🍎💪🐋 Setup MacOS ARM Docker Image
-        id: setup_macos_aarch64_docker_step
-        if: ${{ matrix.target == 'aarch64-apple-darwin' }}
-        uses: actions-rs/cargo@v1
-        with:
-          command: build-docker-image
-          args: aarch64-apple-darwin-cross --tag local
       - name: 🗂 Set up cargo cache
         id: setup_cache_step
         uses: actions/cache@v3
@@ -302,13 +281,6 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
-      - name: 💿 Install Cross
-        id: cross_installation_step # Needs to be separate because the next step fails if cross is installed automatically when Z flags are enabled
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          use-cross: ${{ env.IS_CROSS }}
-          args: --target ${{ matrix.target }}
       - name: 🧪 Execute tests
         id: execute_tests_step
         uses: actions-rs/cargo@v1
@@ -317,7 +289,6 @@ jobs:
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
         with:
           command: test
-          use-cross: ${{ env.IS_CROSS }}
           args: --workspace --target ${{ matrix.target }}
       - name: 💽 Pre-Installing grcov
         id: preinstall_grcov_step
