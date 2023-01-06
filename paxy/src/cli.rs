@@ -98,10 +98,6 @@ pub mod cli_template {
         /// Any subcommand variant to perform an action with the program
         #[clap(subcommand)]
         pub command: Option<ActionCommand>,
-
-        /// When a subcommand is absent, update by default
-        #[clap(flatten)]
-        pub arguments: UpdateActionArguments,
     }
 
     /// The arguments that are available regardless of the subcommand used
@@ -210,17 +206,18 @@ pub mod cli_template {
     pub struct ListActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to search for, among the installed packages.",
-            num_args = 0..,
+            num_args = 1..,
             display_order = 19
         )]
-        pub package_names: Vec<String>, // This should always be the last argument
+        pub package_names: Option<Vec<String>>, // This should always be the last argument
     }
 
     #[derive(Debug, Args, PartialEq)]
     pub struct SearchActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to list, among available packages.",
-            num_args = 0..,
+            num_args = 1..,
+            required = true,
             display_order = 19
         )]
         pub package_names: Vec<String>, // This should always be the last argument
@@ -230,7 +227,8 @@ pub mod cli_template {
     pub struct InstallActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to *install*, among available packages.",
-            num_args = 0..,
+            num_args = 1..,
+            required = true,
             display_order = 19
         )]
         pub package_names: Vec<String>, // This should always be the last argument
@@ -240,17 +238,18 @@ pub mod cli_template {
     pub struct UpdateActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to *update*, among the installed packages.",
-            num_args = 0..,
+            num_args = 1..,
             display_order = 19
         )]
-        pub package_names: Vec<String>, // This should always be the last argument
+        pub package_names: Option<Vec<String>>, // This should always be the last argument
     }
 
     #[derive(Debug, Args, PartialEq)]
     pub struct RemoveActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to *remove*, among the installed packages.",
-            num_args = 0..,
+            num_args = 1..,
+            required = true,
             display_order = 19
         )]
         pub package_names: Vec<String>, // This should always be the last argument
@@ -260,7 +259,8 @@ pub mod cli_template {
     pub struct EnvironmentActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to create an environment from, among the available packages.",
-            num_args = 0..,
+            num_args = 1..,
+            required = true,
             display_order = 19
         )]
         pub package_names: Vec<String>, // This should always be the last argument
@@ -272,7 +272,7 @@ pub mod cli_template {
 
         #[test]
         fn list() {
-            let cli: Cli = Parser::parse_from(["paxy", "list", "foo", "bar", "baz"]);
+            let cli = Cli::parse_from(["paxy", "list", "foo", "bar", "baz"]);
             assert_eq!(
                 cli,
                 Cli {
@@ -283,22 +283,19 @@ pub mod cli_template {
                         configuration_file: None
                     },
                     command: Some(ActionCommand::List(ListActionArguments {
-                        package_names: vec![
+                        package_names: Some(vec![
                             "foo".to_string(),
                             "bar".to_string(),
                             "baz".to_string(),
-                        ]
+                        ])
                     })),
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
                 }
             );
         }
 
         #[test]
         fn search() {
-            let cli: Cli = Parser::parse_from(["paxy", "search", "foo", "bar", "baz"]);
+            let cli = Cli::parse_from(["paxy", "search", "foo", "bar", "baz"]);
             assert_eq!(
                 cli,
                 Cli {
@@ -315,16 +312,13 @@ pub mod cli_template {
                             "baz".to_string(),
                         ]
                     })),
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
                 }
             );
         }
 
         #[test]
         fn install() {
-            let cli: Cli = Parser::parse_from(["paxy", "install", "foo", "bar", "baz"]);
+            let cli = Cli::parse_from(["paxy", "install", "foo", "bar", "baz"]);
             assert_eq!(
                 cli,
                 Cli {
@@ -341,16 +335,13 @@ pub mod cli_template {
                             "baz".to_string(),
                         ]
                     })),
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
                 }
             );
         }
 
         #[test]
         fn update() {
-            let cli: Cli = Parser::parse_from(["paxy", "update", "foo", "bar", "baz"]);
+            let cli = Cli::parse_from(["paxy", "update", "foo", "bar", "baz"]);
             assert_eq!(
                 cli,
                 Cli {
@@ -361,22 +352,19 @@ pub mod cli_template {
                         configuration_file: None
                     },
                     command: Some(ActionCommand::Update(UpdateActionArguments {
-                        package_names: vec![
+                        package_names: Some(vec![
                             "foo".to_string(),
                             "bar".to_string(),
                             "baz".to_string(),
-                        ]
+                        ])
                     })),
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
                 }
             );
         }
 
         #[test]
         fn remove() {
-            let cli: Cli = Parser::parse_from(["paxy", "remove", "foo", "bar", "baz"]);
+            let cli = Cli::parse_from(["paxy", "remove", "foo", "bar", "baz"]);
             assert_eq!(
                 cli,
                 Cli {
@@ -393,16 +381,13 @@ pub mod cli_template {
                             "baz".to_string(),
                         ]
                     })),
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
                 }
             );
         }
 
         #[test]
         fn environment() {
-            let cli: Cli = Parser::parse_from(["paxy", "env", "foo", "bar", "baz"]);
+            let cli = Cli::parse_from(["paxy", "env", "foo", "bar", "baz"]);
             assert_eq!(
                 cli,
                 Cli {
@@ -419,16 +404,13 @@ pub mod cli_template {
                             "baz".to_string(),
                         ]
                     })),
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
                 }
             );
         }
 
         #[test]
         fn list_empty() {
-            let cli: Cli = Parser::parse_from(["paxy", "list"]);
+            let cli = Cli::parse_from(["paxy", "list"]);
             assert_eq!(
                 cli,
                 Cli {
@@ -438,57 +420,28 @@ pub mod cli_template {
                         debug_flag: false,
                         configuration_file: None
                     },
-                    command: None,
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
+                    command: Some(ActionCommand::List(ListActionArguments {
+                        package_names: None
+                    })),
                 }
             );
         }
 
         #[test]
         fn search_empty() {
-            let cli: Cli = Parser::parse_from(["paxy", "search"]);
-            assert_eq!(
-                cli,
-                Cli {
-                    global_arguments: GlobalArguments {
-                        json_flag: false,
-                        plain_flag: false,
-                        debug_flag: false,
-                        configuration_file: None
-                    },
-                    command: None,
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
-                }
-            );
+            let cli = Cli::try_parse_from(["paxy", "search"]);
+            assert!(cli.is_err());
         }
 
         #[test]
         fn install_empty() {
-            let cli: Cli = Parser::parse_from(["paxy", "install"]);
-            assert_eq!(
-                cli,
-                Cli {
-                    global_arguments: GlobalArguments {
-                        json_flag: false,
-                        plain_flag: false,
-                        debug_flag: false,
-                        configuration_file: None
-                    },
-                    command: None,
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
-                }
-            );
+            let cli = Cli::try_parse_from(["paxy", "install"]);
+            assert!(cli.is_err())
         }
 
         #[test]
         fn update_empty() {
-            let cli: Cli = Parser::parse_from(["paxy", "update"]);
+            let cli = Cli::parse_from(["paxy", "update"]);
             assert_eq!(
                 cli,
                 Cli {
@@ -499,53 +452,22 @@ pub mod cli_template {
                         configuration_file: None
                     },
                     command: Some(ActionCommand::Update(UpdateActionArguments {
-                        package_names: vec![]
+                        package_names: None
                     })),
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
                 }
             );
         }
 
         #[test]
         fn remove_empty() {
-            let cli: Cli = Parser::parse_from(["paxy", "remove"]);
-            assert_eq!(
-                cli,
-                Cli {
-                    global_arguments: GlobalArguments {
-                        json_flag: false,
-                        plain_flag: false,
-                        debug_flag: false,
-                        configuration_file: None
-                    },
-                    command: None,
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
-                }
-            );
+            let cli = Cli::try_parse_from(["paxy", "remove"]);
+            assert!(cli.is_err());
         }
 
         #[test]
         fn environment_empty() {
-            let cli: Cli = Parser::parse_from(["paxy", "env"]);
-            assert_eq!(
-                cli,
-                Cli {
-                    global_arguments: GlobalArguments {
-                        json_flag: false,
-                        plain_flag: false,
-                        debug_flag: false,
-                        configuration_file: None
-                    },
-                    command: None,
-                    arguments: UpdateActionArguments {
-                        package_names: vec![],
-                    }
-                }
-            );
+            let cli = Cli::try_parse_from(["paxy", "env"]);
+            assert!(cli.is_err());
         }
     }
 }
