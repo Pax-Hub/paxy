@@ -1,9 +1,11 @@
 ignore:
   - "/*"
   - "C:/*"
+  - "C:/*"
   - "C:\\*"
   - "../*"
   - "*/.cargo/*"
+  - "*\\.cargo\\*"
   - "*\\.cargo\\*"
 branch: true
 ignore-not-existing: true
