@@ -54,7 +54,27 @@ jobs:
       && !startsWith(github.event.head_commit.message, 'ci(')
       && !startsWith(github.event.head_commit.message, 'style:')
       && !startsWith(github.event.head_commit.message, 'style(')
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-unknown-linux-gnu
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+    continue-on-error: true
+    runs-on: ${{ matrix.os }}
+    env:
+      IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
     steps:
       - name: 🎟 Checkout Git Repository
         id: checkout_repository_step
@@ -84,7 +104,8 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --workspace -- -D warnings
+          use-cross: ${{ env.IS_CROSS }}
+          args: --workspace --target ${{ matrix.target }} -- -D warnings
 
   check:
     name: ✅ Check
@@ -103,27 +124,18 @@ jobs:
           - x86_64-pc-windows-msvc
           - x86_64-apple-darwin
           - aarch64-unknown-linux-gnu
-          - aarch64-apple-darwin
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            failable: false
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            failable: false
           - target: x86_64-apple-darwin
             os: macos-latest
-            failable: false
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
-            failable: false
-          - target: aarch64-apple-darwin
-            os: ubuntu-latest
-            failable: true
-    continue-on-error: ${{ matrix.failable }}
     runs-on: ${{ matrix.os }}
     env:
-      IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
+      IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
     steps:
       - name: 🎟 Checkout Git Repository
         id: checkout_repository_step
