@@ -2,19 +2,18 @@ on:
   workflow_dispatch:
   workflow_call:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 name: ✔ Validate
 
 jobs:
-
   fmt:
     name: 📑 Rustfmt
     if: |
       !startsWith(github.event.head_commit.message, 'ci:')
-      && !startsWith(github.event.head_commit.message, 'ci(')    
+      && !startsWith(github.event.head_commit.message, 'ci(')
     runs-on: ubuntu-latest
     steps:
       - name: 🎟 Checkout Git Repository
@@ -26,7 +25,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          override: true          
+          override: true
           components: rustfmt
       - name: 🗂 Set up cargo cache
         id: setup_cache_step
@@ -38,11 +37,11 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/            
+            target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
       - name: 📑 Cargo Fmt
-        id: cargo_fmt_step        
+        id: cargo_fmt_step
         uses: actions-rs/cargo@v1
         with:
           command: fmt
@@ -54,7 +53,7 @@ jobs:
       !startsWith(github.event.head_commit.message, 'ci:')
       && !startsWith(github.event.head_commit.message, 'ci(')
       && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')      
+      && !startsWith(github.event.head_commit.message, 'style(')
     runs-on: ubuntu-latest
     steps:
       - name: 🎟 Checkout Git Repository
@@ -66,8 +65,8 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          override: true          
-          components: clippy 
+          override: true
+          components: clippy
       - name: 🗂 Set up cargo cache
         id: setup_cache_step
         uses: actions/cache@v3
@@ -77,27 +76,27 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/            
+            target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
       - name: 📎 Clippy
-        id: clippy_step        
+        id: clippy_step
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --workspace -- -D warnings
 
   check:
-    name: ✅ Check    
+    name: ✅ Check
     if: |
       !startsWith(github.event.head_commit.message, 'ci:')
       && !startsWith(github.event.head_commit.message, 'ci(')
       && !startsWith(github.event.head_commit.message, 'docs:')
       && !startsWith(github.event.head_commit.message, 'docs(')
       && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')      
+      && !startsWith(github.event.head_commit.message, 'style(')
     strategy:
-      fail-fast: false      
+      fail-fast: false
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -106,22 +105,22 @@ jobs:
           - aarch64-unknown-linux-gnu
           - aarch64-apple-darwin
         include:
-          - target: x86_64-unknown-linux-gnu            
-            os: ubuntu-latest 
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
             failable: false
-          - target: x86_64-pc-windows-msvc 
-            os: windows-latest 
-            failable: false          
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            failable: false
           - target: x86_64-apple-darwin
-            os: macos-latest  
-            failable: false           
+            os: macos-latest
+            failable: false
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             failable: false
           - target: aarch64-apple-darwin
-            os: macos-latest 
+            os: macos-latest
             failable: true
-    continue-on-error: ${{ matrix.failable }}                              
+    continue-on-error: ${{ matrix.failable }}
     runs-on: ${{ matrix.os }}
     env:
       IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
@@ -138,11 +137,11 @@ jobs:
           override: true
           target: ${{ matrix.target }}
       - name: 🍎💪🐋 Setup MacOS ARM Docker Image
-        id: setup_macos_aarch64_docker_step        
+        id: setup_macos_aarch64_docker_step
         if: ${{ matrix.target == 'aarch64-apple-darwin' }}
         uses: actions-rs/cargo@v1
-        with:          
-          command: build-docker-image          
+        with:
+          command: build-docker-image
           args: aarch64-apple-darwin-cross --tag local
       - name: 🗂 Set up cargo cache
         id: setup_cache_step
@@ -153,16 +152,16 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/            
+            target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
       - name: ✅ Cargo Check
-        id: cargo_check_step        
+        id: cargo_check_step
         uses: actions-rs/cargo@v1
-        with:          
+        with:
           command: check
           use-cross: ${{ env.IS_CROSS }}
-          args: --workspace --target ${{ matrix.target }}              
+          args: --workspace --target ${{ matrix.target }}
 
   test:
     name: 🧪 Test
@@ -172,9 +171,9 @@ jobs:
       && !startsWith(github.event.head_commit.message, 'docs:')
       && !startsWith(github.event.head_commit.message, 'docs(')
       && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')      
+      && !startsWith(github.event.head_commit.message, 'style(')
     strategy:
-      fail-fast: false      
+      fail-fast: false
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -183,22 +182,22 @@ jobs:
           - aarch64-unknown-linux-gnu
           - aarch64-apple-darwin
         include:
-          - target: x86_64-unknown-linux-gnu            
-            os: ubuntu-latest 
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
             failable: false
-          - target: x86_64-pc-windows-msvc 
-            os: windows-latest 
-            failable: false          
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            failable: false
           - target: x86_64-apple-darwin
-            os: macos-latest  
-            failable: false           
+            os: macos-latest
+            failable: false
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             failable: false
           - target: aarch64-apple-darwin
-            os: macos-latest 
+            os: macos-latest
             failable: true
-    continue-on-error: ${{ matrix.failable }}                              
+    continue-on-error: ${{ matrix.failable }}
     runs-on: ${{ matrix.os }}
     env:
       IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
@@ -215,12 +214,12 @@ jobs:
           override: true
           target: ${{ matrix.target }}
       - name: 🍎💪🐋 Setup MacOS ARM Docker Image
-        id: setup_macos_aarch64_docker_step        
+        id: setup_macos_aarch64_docker_step
         if: ${{ matrix.target == 'aarch64-apple-darwin' }}
         uses: actions-rs/cargo@v1
-        with:          
-          command: build-docker-image          
-          args: aarch64-apple-darwin-cross --tag local   
+        with:
+          command: build-docker-image
+          args: aarch64-apple-darwin-cross --tag local
       - name: 🗂 Set up cargo cache
         id: setup_cache_step
         uses: actions/cache@v3
@@ -230,11 +229,11 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/            
+            target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-                     
+          restore-keys: ${{ runner.os }}-cargo-
       - name: 🧪 Cargo Test
-        id: cargo_test_step        
+        id: cargo_test_step
         uses: actions-rs/cargo@v1
         with:
           command: test
@@ -249,9 +248,9 @@ jobs:
       && !startsWith(github.event.head_commit.message, 'docs:')
       && !startsWith(github.event.head_commit.message, 'docs(')
       && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')      
+      && !startsWith(github.event.head_commit.message, 'style(')
     strategy:
-      fail-fast: false      
+      fail-fast: false
       matrix:
         target:
           - x86_64-unknown-linux-gnu
@@ -260,22 +259,22 @@ jobs:
           - aarch64-unknown-linux-gnu
           - aarch64-apple-darwin
         include:
-          - target: x86_64-unknown-linux-gnu            
-            os: ubuntu-latest 
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
             failable: false
-          - target: x86_64-pc-windows-msvc 
-            os: windows-latest 
-            failable: false          
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            failable: false
           - target: x86_64-apple-darwin
-            os: macos-latest  
-            failable: false           
+            os: macos-latest
+            failable: false
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             failable: true # Tests fail with cross, nightly toolchain, and the special commandline arguments used for grcov
           - target: aarch64-apple-darwin
-            os: macos-latest 
+            os: macos-latest
             failable: true
-    continue-on-error: ${{ matrix.failable }}                              
+    continue-on-error: ${{ matrix.failable }}
     runs-on: ${{ matrix.os }}
     env:
       IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin' }}
@@ -292,12 +291,12 @@ jobs:
           override: true
           target: ${{ matrix.target }}
       - name: 🍎💪🐋 Setup MacOS ARM Docker Image
-        id: setup_macos_aarch64_docker_step        
+        id: setup_macos_aarch64_docker_step
         if: ${{ matrix.target == 'aarch64-apple-darwin' }}
         uses: actions-rs/cargo@v1
-        with:          
-          command: build-docker-image          
-          args: aarch64-apple-darwin-cross --tag local    
+        with:
+          command: build-docker-image
+          args: aarch64-apple-darwin-cross --tag local
       - name: 🗂 Set up cargo cache
         id: setup_cache_step
         uses: actions/cache@v3
@@ -307,39 +306,40 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/            
+            target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-                
+          restore-keys: ${{ runner.os }}-cargo-
       - name: 💿 Install Cross
-        id: cross_installation_step # Needs to be separate because the next step fails if cross is installed automatically when Z flags are enabled        
-        uses: actions-rs/cargo@v1    
+        id: cross_installation_step # Needs to be separate because the next step fails if cross is installed automatically when Z flags are enabled
+        uses: actions-rs/cargo@v1
         with:
           command: check
           use-cross: ${{ env.IS_CROSS }}
           args: --target ${{ matrix.target }}
       - name: 🧪 Execute tests
-        id: execute_tests_step        
-        uses: actions-rs/cargo@v1    
+        id: execute_tests_step
+        uses: actions-rs/cargo@v1
         env:
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-        with:          
+        with:
           command: test
           use-cross: ${{ env.IS_CROSS }}
           args: --workspace --target ${{ matrix.target }}
       - name: 💽 Pre-Installing grcov
-        id: preinstall_grcov_step        
+        id: preinstall_grcov_step
         uses: actions-rs/install@v0.1
         with:
           crate: grcov
           use-tool-cache: true
       - name: 🔎 Gather Coverage Data
-        id: coverage_gather_step        
+        id: coverage_gather_step
         uses: actions-rs/grcov@v0.1
         with:
+          config: .github/actions-rs/grcov.yml
           coveralls-token: ${{ secrets.COVERALLS_TOKEN }}
       - name: ⬆ Coveralls Upload
-        id: coveralls_upload_step        
+        id: coveralls_upload_step
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -354,13 +354,13 @@ jobs:
       && !startsWith(github.event.head_commit.message, 'docs:')
       && !startsWith(github.event.head_commit.message, 'docs(')
       && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')      
+      && !startsWith(github.event.head_commit.message, 'style(')
     runs-on: ubuntu-latest
     needs: grcov
     steps:
       - name: ✔ Coveralls Finalization
-        id: coveralls_finalization_step         
+        id: coveralls_finalization_step
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true          
+          parallel-finished: true
