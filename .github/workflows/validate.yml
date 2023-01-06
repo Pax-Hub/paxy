@@ -136,13 +136,6 @@ jobs:
           toolchain: stable
           override: true
           target: ${{ matrix.target }}
-      - name: 🍎💪🐋 Setup MacOS ARM Docker Image
-        id: setup_macos_aarch64_docker_step
-        if: ${{ matrix.target == 'aarch64-apple-darwin' }}
-        uses: actions-rs/cargo@v1
-        with:
-          command: build-docker-image
-          args: aarch64-apple-darwin-cross --tag local
       - name: 🗂 Set up cargo cache
         id: setup_cache_step
         uses: actions/cache@v3
