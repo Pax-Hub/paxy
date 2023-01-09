@@ -1,5 +1,5 @@
 name: 🎉 Release
-run-name: Release triggered by ${{ github.actor }}
+
 on:
   workflow_dispatch:
   workflow_call:
@@ -21,7 +21,7 @@ jobs:
           - x86_64-pc-windows-msvc
           - x86_64-apple-darwin
           - aarch64-unknown-linux-gnu
-          - aarch64-apple-darwin
+          # - aarch64-apple-darwin
         include:
           - target: x86_64-unknown-linux-gnu            
             os: ubuntu-latest 
@@ -35,9 +35,9 @@ jobs:
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             failable: false
-          - target: aarch64-apple-darwin
-            os: macos-latest 
-            failable: true
+          # - target: aarch64-apple-darwin
+          #   os: macos-latest 
+          #   failable: true
     continue-on-error: ${{ matrix.failable }}                              
     runs-on: ${{ matrix.os }}
     steps:
@@ -52,13 +52,13 @@ jobs:
           toolchain: stable
           override: true
           target: ${{ matrix.target }}
-      - name: 🍎💪🐋 Setup MacOS ARM Docker Image
-        id: setup_macos_aarch64_docker_step        
-        if: ${{ matrix.target == 'aarch64-apple-darwin' }}
-        uses: actions-rs/cargo@v1
-        with:          
-          command: build-docker-image          
-          args: aarch64-apple-darwin-cross --tag local          
+      # - name: 🍎💪🐋 Setup MacOS ARM Docker Image
+      #   id: setup_macos_aarch64_docker_step        
+      #   if: ${{ matrix.target == 'aarch64-apple-darwin' }}
+      #   uses: actions-rs/cargo@v1
+      #   with:          
+      #     command: build-docker-image          
+      #     args: aarch64-apple-darwin-cross --tag local          
       - name: 🛠 Cargo Build
         id: cargo_build_step        
         uses: actions-rs/cargo@v1
@@ -86,7 +86,7 @@ jobs:
           - x86_64-pc-windows-msvc
           - x86_64-apple-darwin
           - aarch64-unknown-linux-gnu
-          - aarch64-apple-darwin
+          # - aarch64-apple-darwin
         include:
           - target: x86_64-unknown-linux-gnu
             short_target_name: linux_x86_64
@@ -100,9 +100,9 @@ jobs:
           - target: aarch64-unknown-linux-gnu
             short_target_name: linux_arm64
             failable: false
-          - target: aarch64-apple-darwin
-            short_target_name: macos_arm64
-            failable: true
+          # - target: aarch64-apple-darwin
+          #   short_target_name: macos_arm64
+          #   failable: true
     continue-on-error: ${{ matrix.failable }}            
     runs-on: ubuntu-latest
     steps:
