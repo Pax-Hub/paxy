@@ -54,10 +54,7 @@ impl CommandlineDispatcher {
     pub fn run() {
         let cli = Cli::parse();
 
-        println!(
-            "\nThe commandline argument structure is as below: \n{:#?}",
-            cli
-        );
+        println!("\nThe commandline argument structure is as below: \n{cli:#?}",);
 
         println!(
             "\nThe kind of output desired is: \n{:#?}\n",
