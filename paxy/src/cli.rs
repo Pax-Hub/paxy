@@ -1,28 +1,25 @@
-//! The commandline interface of the program with which users interact on a
-//! text-based console.
+#![warn(missing_docs)]
 
-pub use cli_template::*; // Flatten the cli_template module so that users do
-                         // not need to handle it. It is for our convenience
+//! A module to group the code that handles the commandline interface of `paxy`.
+
+pub use cli_template::*; // Flatten the `cli_template` module so that we do
+                         // not need to explicitly include t. It is strictly for
+                         // grouping convenience.
 
 use clap::Parser;
 
-pub trait CommandlineFlags {
+/// A trait that infers the type of display desired when boolean flags are
+/// specified.
+trait CommandlineFlags {
     fn json_flag(&self) -> bool;
     fn plain_flag(&self) -> bool;
     fn debug_flag(&self) -> bool;
     fn output_kind(&self) -> CommandlineOutputKind {
-        if self.json_flag() {
-            CommandlineOutputKind::Json
-        } else if self.plain_flag() {
-            CommandlineOutputKind::Plain
-        } else if self.debug_flag() {
-            CommandlineOutputKind::Debug
-        } else {
-            CommandlineOutputKind::Regular
-        }
+        CommandlineOutputKind::from_flags(self.json_flag(), self.plain_flag(), self.debug_flag())
     }
 }
 
+/// An enumeration that represents a user's choice for how to display output.
 #[derive(Debug)]
 pub enum CommandlineOutputKind {
     Regular,
@@ -31,14 +28,30 @@ pub enum CommandlineOutputKind {
     Debug,
 }
 
+impl CommandlineOutputKind {
+    /// Returns an enumeration representing how to display the output, based on
+    /// user-specified boolean flags for *json*, *plain* or *debug* output.
+    fn from_flags(json_flag: bool, plain_flag: bool, debug_flag: bool) -> Self {
+        if json_flag {
+            CommandlineOutputKind::Json
+        } else if plain_flag {
+            CommandlineOutputKind::Plain
+        } else if debug_flag {
+            CommandlineOutputKind::Debug
+        } else {
+            CommandlineOutputKind::Regular
+        }
+    }
+}
+
+/// A structure that takes in user input from the commandline and dispatches
+/// that input data to the appropriate code for performing an inferred task.
 pub struct CommandlineDispatcher {}
 
 impl CommandlineDispatcher {
-    pub fn new() -> Self {
-        CommandlineDispatcher {}
-    }
-
-    pub fn run(self) {
+    /// Parses commandline arguments accordinng to the `clap::_derive` template
+    /// specified by [`Cli`]
+    pub fn run() {
         let cli = Cli::parse();
 
         println!(
@@ -82,27 +95,28 @@ impl CommandlineDispatcher {
 /// helper functions that are used as part of the commandline interface.
 pub mod cli_template {
 
+    #![warn(missing_docs)]
+
     use super::CommandlineFlags;
     use clap::{Args, Parser, Subcommand};
     use std::path::PathBuf;
 
     /// The big picture of the commandline-interface. This structure contains
-    /// the outermost sub-commands of the interface
+    /// the outermost sub-commands of the interface.
     #[derive(Debug, Parser, PartialEq)]
-    #[command(version, author, about, args_conflicts_with_subcommands = true)]
+    #[clap(author, version, about)]
     pub struct Cli {
         /// Global arguments like `--json`, `--plain`, and `--debug`
         #[clap(flatten)]
         pub global_arguments: GlobalArguments,
 
-        /// Any subcommand variant to perform an action with the program
+        /// Any subcommand variant to perform an action with the program.
         #[clap(subcommand)]
-        pub command: Option<ActionCommand>,
+        pub command: ActionCommand,
     }
 
-    /// The arguments that are available regardless of the subcommand used
+    /// The arguments that are available regardless of the subcommand used.
     #[derive(Debug, Args, PartialEq)]
-    #[clap(args_conflicts_with_subcommands = true)]
     pub struct GlobalArguments {
         #[clap(
                 long = "json",
@@ -155,9 +169,8 @@ pub mod cli_template {
         }
     }
 
-    /// A subcommand variant to perform an action with the program
+    /// A subcommand variant to perform an action with the program.
     #[derive(Debug, Subcommand, PartialEq)]
-    #[clap(args_conflicts_with_subcommands = true)]
     pub enum ActionCommand {
         #[clap(name = "list", about = "List installed package(s).", display_order = 1)]
         List(ListActionArguments),
@@ -202,66 +215,72 @@ pub mod cli_template {
         Environment(EnvironmentActionArguments),
     }
 
+    /// Arguments for the `list` subcommand.
     #[derive(Debug, Args, PartialEq)]
     pub struct ListActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to search for, among the installed packages.",
-            num_args = 1..,
+            num_args = 0..,
             display_order = 19
         )]
-        pub package_names: Option<Vec<String>>, // This should always be the last argument
+        pub package_names: Vec<String>, // This should always be the last argument
     }
 
+    /// Arguments for the `search` subcommand.
     #[derive(Debug, Args, PartialEq)]
     pub struct SearchActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to list, among available packages.",
             num_args = 1..,
             required = true,
-            display_order = 19
+            display_order = 29
         )]
         pub package_names: Vec<String>, // This should always be the last argument
     }
 
+    /// Arguments for the `install` subcommand.
     #[derive(Debug, Args, PartialEq)]
     pub struct InstallActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to *install*, among available packages.",
             num_args = 1..,
             required = true,
-            display_order = 19
+            display_order = 39
         )]
         pub package_names: Vec<String>, // This should always be the last argument
     }
 
+    /// Arguments for the `update` subcommand.
     #[derive(Debug, Args, PartialEq)]
     pub struct UpdateActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to *update*, among the installed packages.",
-            num_args = 1..,
-            display_order = 19
+            num_args = 0..,
+            display_order = 49
         )]
-        pub package_names: Option<Vec<String>>, // This should always be the last argument
+        pub package_names: Vec<String>, // This should always be the last argument
     }
 
+    /// Arguments for the `remove` subcommand.
     #[derive(Debug, Args, PartialEq)]
     pub struct RemoveActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to *remove*, among the installed packages.",
             num_args = 1..,
             required = true,
-            display_order = 19
+            display_order = 59
         )]
         pub package_names: Vec<String>, // This should always be the last argument
     }
 
+    /// Arguments for the `env` subcommand.
     #[derive(Debug, Args, PartialEq)]
     pub struct EnvironmentActionArguments {
         #[clap(
             help = "Partial or full name(s) of the package(s) to create an environment from, among the available packages.",
             num_args = 1..,
             required = true,
-            display_order = 19
+            display_order = 69
         )]
         pub package_names: Vec<String>, // This should always be the last argument
     }
@@ -282,13 +301,13 @@ pub mod cli_template {
                         debug_flag: false,
                         configuration_file: None
                     },
-                    command: Some(ActionCommand::List(ListActionArguments {
-                        package_names: Some(vec![
+                    command: ActionCommand::List(ListActionArguments {
+                        package_names: vec![
                             "foo".to_string(),
                             "bar".to_string(),
                             "baz".to_string(),
-                        ])
-                    })),
+                        ]
+                    }),
                 }
             );
         }
@@ -305,13 +324,13 @@ pub mod cli_template {
                         debug_flag: false,
                         configuration_file: None
                     },
-                    command: Some(ActionCommand::Search(SearchActionArguments {
+                    command: ActionCommand::Search(SearchActionArguments {
                         package_names: vec![
                             "foo".to_string(),
                             "bar".to_string(),
                             "baz".to_string(),
                         ]
-                    })),
+                    }),
                 }
             );
         }
@@ -328,13 +347,13 @@ pub mod cli_template {
                         debug_flag: false,
                         configuration_file: None
                     },
-                    command: Some(ActionCommand::Install(InstallActionArguments {
+                    command: ActionCommand::Install(InstallActionArguments {
                         package_names: vec![
                             "foo".to_string(),
                             "bar".to_string(),
                             "baz".to_string(),
                         ]
-                    })),
+                    }),
                 }
             );
         }
@@ -351,13 +370,13 @@ pub mod cli_template {
                         debug_flag: false,
                         configuration_file: None
                     },
-                    command: Some(ActionCommand::Update(UpdateActionArguments {
-                        package_names: Some(vec![
+                    command: ActionCommand::Update(UpdateActionArguments {
+                        package_names: vec![
                             "foo".to_string(),
                             "bar".to_string(),
                             "baz".to_string(),
-                        ])
-                    })),
+                        ]
+                    }),
                 }
             );
         }
@@ -374,13 +393,13 @@ pub mod cli_template {
                         debug_flag: false,
                         configuration_file: None
                     },
-                    command: Some(ActionCommand::Remove(RemoveActionArguments {
+                    command: ActionCommand::Remove(RemoveActionArguments {
                         package_names: vec![
                             "foo".to_string(),
                             "bar".to_string(),
                             "baz".to_string(),
                         ]
-                    })),
+                    }),
                 }
             );
         }
@@ -397,13 +416,13 @@ pub mod cli_template {
                         debug_flag: false,
                         configuration_file: None
                     },
-                    command: Some(ActionCommand::Environment(EnvironmentActionArguments {
+                    command: ActionCommand::Environment(EnvironmentActionArguments {
                         package_names: vec![
                             "foo".to_string(),
                             "bar".to_string(),
                             "baz".to_string(),
                         ]
-                    })),
+                    }),
                 }
             );
         }
@@ -420,9 +439,9 @@ pub mod cli_template {
                         debug_flag: false,
                         configuration_file: None
                     },
-                    command: Some(ActionCommand::List(ListActionArguments {
-                        package_names: None
-                    })),
+                    command: ActionCommand::List(ListActionArguments {
+                        package_names: vec![],
+                    }),
                 }
             );
         }
@@ -451,9 +470,9 @@ pub mod cli_template {
                         debug_flag: false,
                         configuration_file: None
                     },
-                    command: Some(ActionCommand::Update(UpdateActionArguments {
-                        package_names: None
-                    })),
+                    command: ActionCommand::Update(UpdateActionArguments {
+                        package_names: vec![]
+                    }),
                 }
             );
         }
