@@ -1,6 +1,10 @@
 [workspace]
-members = ["paxy","paxy_build"]
+members = [
+    "paxy",
+    # "paxy_build"
+]
 
+# Keys that can be (optionally) inherited by workspace members
 [workspace.package]
 version = "0.0.1"
 authors = [
