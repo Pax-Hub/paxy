@@ -1,0 +1,4 @@
+name: base_flavor
+
+versions:
+  base_version: file://./base_version.yaml

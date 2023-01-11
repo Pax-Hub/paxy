@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Package Manifest",
+    "description": "Schema for paxy package manifests",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "versions"
+    ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "The name of the package"
+        },
+        "versions": {
+            "type": "object",
+            "description": "The versions of the package. The key is the name of the version and the value is the url of the version manifest.",
+            "patternProperties": {
+                ".+": {
+                    "type": "string",
+                    "description": "The url of the version.",
+                    "format": "uri"
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

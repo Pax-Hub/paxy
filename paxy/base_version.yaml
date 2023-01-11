@@ -1,0 +1,6 @@
+name: base_version
+order: 0
+
+steps:
+  - clone:
+      repo: https://example.com

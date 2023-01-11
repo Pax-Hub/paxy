@@ -1,0 +1,70 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Package Manifest",
+    "description": "Schema for paxy package manifests",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "flavors"
+    ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "The name of the package"
+        },
+        "description": {
+            "type": "string",
+            "description": "A description of the package"
+        },
+        "authors": {
+            "type": "array",
+            "description": "The authors of the package",
+            "items": {
+                "type": "object",
+                "required": [
+                    "username"
+                ],
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "description": "The username of the author"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "The email of the author"
+                    },
+                    "real_name": {
+                        "type": "string",
+                        "description": "The real name of the author"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "license": {
+            "type": "string",
+            "description": "The license of the package"
+        },
+        "website": {
+            "type": "string",
+            "description": "The website of the package"
+        },
+        "repository": {
+            "type": "string",
+            "description": "The repository of the package"
+        },
+        "flavors": {
+            "type": "object",
+            "description": "The flavors of the package. The key is the name of the flavor and the value is the url of the flavor manifest.",
+            "patternProperties": {
+                ".+": {
+                    "type": "string",
+                    "description": "The url of the flavor.",
+                    "format": "uri"
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Package Manifest",
+    "description": "Schema for paxy package manifests",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "versions"
+    ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "The name of the package"
+        },
+        "order": {
+            "type": "integer",
+            "description": "The order of the version, used to sort versions by recency (for example, 1.0.0 could be 0 while 1.0.1 is 1)"
+        },
+        "steps": {
+            
+        }
+    }
+}
