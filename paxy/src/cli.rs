@@ -7,6 +7,9 @@ pub use cli_template::*; // Flatten the `cli_template` module so that we do
                          // grouping convenience.
 
 use clap::Parser;
+use snafu::{whatever, Whatever};
+
+use crate::config::Config;
 
 /// A trait that infers the type of display desired when boolean flags are
 /// specified.
@@ -17,10 +20,11 @@ trait CommandlineFlags {
     fn output_kind(&self) -> CommandlineOutputKind {
         CommandlineOutputKind::from_flags(self.json_flag(), self.plain_flag(), self.debug_flag())
     }
+    fn user_flag(&self) -> bool;
 }
 
 /// An enumeration that represents a user's choice for how to display output.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum CommandlineOutputKind {
     Regular,
     Json,
@@ -51,10 +55,23 @@ pub struct CommandlineDispatcher {}
 impl CommandlineDispatcher {
     /// Parses commandline arguments accordinng to the `clap::_derive` template
     /// specified by [`Cli`]
-    pub fn run() {
+    pub fn run() -> Result<(), Whatever> {
         let cli = Cli::parse();
 
-        println!("\nThe commandline argument structure is as below: \n{cli:#?}",);
+        let _config = if let Some(path) = &cli.global_arguments.configuration_file {
+            if !path.exists() {
+                whatever!("The configuration file `{}` does not exist", path.display())
+            }
+            serde_yaml::from_str::<Config>(&std::fs::read_to_string(path).unwrap())
+                .or_else(|e| whatever!("Malformed yaml: {}", e))?
+        } else {
+            // TODO: choose a default config location
+            Config::default()
+        };
+
+        if cli.global_arguments.output_kind() == CommandlineOutputKind::Debug {
+            println!("\nThe commandline argument structure is as below: \n{cli:#?}");
+        }
 
         println!(
             "\nThe kind of output desired is: \n{:#?}\n",
@@ -84,6 +101,8 @@ impl CommandlineDispatcher {
         //         // Use cli.arguments.package_names
         //     }
         // }
+
+        Ok(())
     }
 }
 
@@ -150,6 +169,16 @@ pub mod cli_template {
             display_order = usize::MAX - 4,
         )]
         pub configuration_file: Option<PathBuf>,
+
+        #[clap(
+            long = "user",
+            short = 'u',
+            help = "Operate locally on this user's packages.",
+            num_args = 0,
+            global = true,
+            display_order = usize::MAX - 5,
+        )]
+        pub user_flag: bool,
     }
 
     impl CommandlineFlags for GlobalArguments {
@@ -163,6 +192,10 @@ pub mod cli_template {
 
         fn debug_flag(&self) -> bool {
             self.debug_flag
+        }
+
+        fn user_flag(&self) -> bool {
+            self.user_flag
         }
     }
 
@@ -296,7 +329,8 @@ pub mod cli_template {
                         json_flag: false,
                         plain_flag: false,
                         debug_flag: false,
-                        configuration_file: None
+                        configuration_file: None,
+                        user_flag: false,
                     },
                     command: ActionCommand::List(ListActionArguments {
                         package_names: vec![
@@ -319,7 +353,8 @@ pub mod cli_template {
                         json_flag: false,
                         plain_flag: false,
                         debug_flag: false,
-                        configuration_file: None
+                        configuration_file: None,
+                        user_flag: false,
                     },
                     command: ActionCommand::Search(SearchActionArguments {
                         package_names: vec![
@@ -342,7 +377,8 @@ pub mod cli_template {
                         json_flag: false,
                         plain_flag: false,
                         debug_flag: false,
-                        configuration_file: None
+                        configuration_file: None,
+                        user_flag: false,
                     },
                     command: ActionCommand::Install(InstallActionArguments {
                         package_names: vec![
@@ -365,7 +401,8 @@ pub mod cli_template {
                         json_flag: false,
                         plain_flag: false,
                         debug_flag: false,
-                        configuration_file: None
+                        configuration_file: None,
+                        user_flag: false,
                     },
                     command: ActionCommand::Update(UpdateActionArguments {
                         package_names: vec![
@@ -388,7 +425,8 @@ pub mod cli_template {
                         json_flag: false,
                         plain_flag: false,
                         debug_flag: false,
-                        configuration_file: None
+                        configuration_file: None,
+                        user_flag: false,
                     },
                     command: ActionCommand::Remove(RemoveActionArguments {
                         package_names: vec![
@@ -411,7 +449,8 @@ pub mod cli_template {
                         json_flag: false,
                         plain_flag: false,
                         debug_flag: false,
-                        configuration_file: None
+                        configuration_file: None,
+                        user_flag: false,
                     },
                     command: ActionCommand::Environment(EnvironmentActionArguments {
                         package_names: vec![
@@ -434,7 +473,8 @@ pub mod cli_template {
                         json_flag: false,
                         plain_flag: false,
                         debug_flag: false,
-                        configuration_file: None
+                        configuration_file: None,
+                        user_flag: false,
                     },
                     command: ActionCommand::List(ListActionArguments {
                         package_names: vec![],
@@ -465,7 +505,8 @@ pub mod cli_template {
                         json_flag: false,
                         plain_flag: false,
                         debug_flag: false,
-                        configuration_file: None
+                        configuration_file: None,
+                        user_flag: false,
                     },
                     command: ActionCommand::Update(UpdateActionArguments {
                         package_names: vec![]
