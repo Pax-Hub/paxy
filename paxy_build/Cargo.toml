@@ -14,8 +14,10 @@ exclude.workspace = true
 categories.workspace = true
 
 [dependencies]
-pollster = "0.2.5"
-reqwest = "0.11.13"
-serde = { version = "1.0.152", features = ["derive"] }
-serde_yaml = "0.9.16"
+snafu = "0.7"
+serde = { version = "1.0", features = ["derive"] }
 url = { version = "2.3.1", features = ["serde"] }
+
+[features]
+default = ["nested_building"]
+nested_building = []
