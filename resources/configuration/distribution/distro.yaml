@@ -1,0 +1,58 @@
+version: 0.1.0 # Version control for tracking and managing incompatible changes in schema
+rebornos:
+  packages:
+    - name: gnome-shell # Optionally specify the name key in the long format
+      manifest: /home/paxy_chan/sources/gnome-shell/manifest.yaml
+    - gnome-control-center: /home/paxy_chan/sources/gnome-control-center # /manifest.yaml can be skipped
+    - mutter: /home/paxy_chan/sources/mutter
+    - gnome-console: /home/paxy_chan/sources/gnome-console
+    - plasma-desktop # Defaults to use the remote repository
+    - systemsettings: https://some_url.com/file
+    - breeze: git://github.com/breeze_devs/breeze.git
+    - gdm: /home/paxy_chan/sources/gdm
+    - sddm: /home/paxy_chan/sources/sddm
+    - lightdm: /home/paxy_chan/sources/lightdm                  
+    - name: rust
+      flavors:
+        - stable: /home/paxy_chan/sources/rust.stable
+        - beta: /home/paxy_chan/sources/rust.beta
+        - name: nightly
+          manifest: /home/paxy_chan/sources/rust.nightly
+          flavors:
+            cranelift: /home/paxy_chan/sources/rust.nightly.cranelift
+  grouping:
+    - gnome:
+      - gnome-shell
+      - gnome-control-center
+      - mutter
+      - name: gdm
+        required: false
+      - name: gnome-console
+        required: false
+    - plasma:
+        - plasma-desktop
+        - systemsettings
+        - name: breeze
+          required: false
+        - name: sddm
+          required: false
+    - name: desktops
+      members_required: false
+      members:
+        - name: gnome
+        - name: plasma
+    - name: display_managers
+      members_required: false
+      members:
+        - name: gdm
+        - name: sddm
+        - name: lightdm
+  repositories:
+    - rebornos: https://repo.rebornos.org/$REPOSITORY/$ARCHITECTURE
+    - arch: /home/paxy_chan/paxy_mirrorlist
+    - local: /home/paxy_chan/sources
+  keys:
+    shivanandvp: ABCDEFGH12345678
+    keyrings:
+      - /home/paxy_chan/rebornos_keys.gpg
+      - /home/paxy_chan/arch_keys.gpg

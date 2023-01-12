@@ -4,7 +4,6 @@
 //! interact with the program while it is running.
 
 mod cli;
-mod package;
 
 use cli::CommandlineDispatcher;
 
