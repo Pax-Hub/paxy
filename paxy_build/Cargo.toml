@@ -1,0 +1,21 @@
+[package]
+name = "paxy_build"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+exclude.workspace = true
+categories.workspace = true
+
+[dependencies]
+pollster = "0.2.5"
+reqwest = "0.11.13"
+serde = { version = "1.0.152", features = ["derive"] }
+serde_yaml = "0.9.16"
+url = { version = "2.3.1", features = ["serde"] }

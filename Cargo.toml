@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "paxy",
-    # "paxy_build"
+    "paxy_build"
 ]
 
 # Keys that can be (optionally) inherited by workspace members

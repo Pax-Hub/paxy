@@ -1,29 +1,25 @@
 [package]
 name = "paxy"
-version = "0.1.0"
-authors = [
-    "shivanandvp <shivanandvp.oss@gmail.com, shivanandvp@rebornos.org>",
-    "lylythechosenone",
-    "flyingcakes85",
-]
-edition = "2021"
-description = "A package manager that gets out of your way"
-documentation = "https://paxyhub.github.io/paxy"
-readme = "https://github.com/PaxyHub/paxy#readme"
-homepage = "https://paxyhub.github.io/"
-repository = "https://github.com/PaxyHub/paxy.git"
-license = "MPL-2.0"
-keywords = ["package", "package-manager", "paxy", "packager"]
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+exclude.workspace = true
 categories = ["development-tools::build-utils", "command-line-utilities"]
-exclude = [".github", ".vscode", "*.code-workspace"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 clap = { version = "4.0", features = ["derive", "help"] }
-pollster = "0.2.5"
-reqwest = "0.11.13"
-serde = { version = "1.0.152", features = ["derive"] }
-serde_yaml = "0.9.16"
-snafu = "0.7.4"
-url = { version = "2.3.1", features = ["serde"] }
+pollster = "0.3"
+reqwest = "0.11"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+snafu = "0.7"
+url = { version = "2.3", features = ["serde"] }

@@ -1,0 +1,2 @@
+version: 0.1.0 # Version control for tracking and managing incompatible changes in schema
+distribution_file: ./distribution_minimal.yaml
