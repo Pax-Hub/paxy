@@ -23,7 +23,7 @@ pub struct PackageMetadata {
     pub website: Option<Url>,
     pub repository: Option<Url>,
 }
-
+ 
 #[cfg(feature = "nested_building")]
 mod nested_building {
 
