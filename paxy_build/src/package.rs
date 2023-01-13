@@ -71,21 +71,25 @@ pub enum Error {
 }
 
 /// Represents data describing a single author
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 pub struct Author {
-    pub username: String,
-    pub real_name: Option<String>,
-    pub email: Option<Vec<String>>,
+    pub name: String,
+    pub email: Option<String>,
 }
 
-// impl<'de> Deserialize<'de> for Author {
-//     fn deserialize<D>(deserializer: D) -> Result<i32, D::Error>
-//     where
-//         D: Deserializer<'de>,
-//     {
-//         deserializer.deserialize_i32(I32Visitor)
-//     }
-// }
+impl<'de> Deserialize<'de> for Author {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s: String = Deserialize::deserialize(deserializer)?;
+        let tokens: Vec<&str> = s.split(['<', '>']).collect(); 
+        Ok(Author{
+            name: tokens[0].to_owned(),
+            email: Some(tokens[1].to_owned()),
+        })
+    }
+}
 
 /// Represents data associated with the package that by itself is not a part
 /// of the package
@@ -218,7 +222,7 @@ mod nested_building {
             .filter(|e| e.file_type().is_file()) // to eliminate directories
             .map(|e| e.into_path()) // to extract paths
             .filter(|p| p.file_stem() == Some(OsStr::new(*MANIFEST_FILE_STEM))) // to eliminate files which are not named like manifest.[extension]
-            .fold(Ok(None), |acc: Result<Option<PackageNode<V>>, Error>, i: PathBuf| { 
+            .fold(Ok(None), |acc: Result<Option<PackageNode<V>>, Error>, i: PathBuf| -> Result<Option<PackageNode<V>>, Error> { 
                 let versioned_package : Result<VersionedPackage<V>, Error>= match i.extension().map(|e| {
                     e.to_str()
                         .map(|es| TryInto::<ManifestFileExtensions>::try_into(es))
@@ -248,8 +252,11 @@ mod nested_building {
                     None => Err(Error::InvalidFileExtension { path: i }), // No extension found,
                 };
                 println!("Versioned package: {:#?}", versioned_package);
-
-                todo!();
+                if let Ok(None) = acc {
+                    versioned_package.map(|a| Some(PackageNode::VersionedPackage(a)))
+                } else {
+                    acc
+                }
             });
             todo!();
     }
