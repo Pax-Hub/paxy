@@ -1,4 +1,0 @@
-name: test
-
-flavors:
-  base_flavor: file://./base_flavor.yaml
