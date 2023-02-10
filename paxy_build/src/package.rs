@@ -1,11 +1,12 @@
 use lazy_static::lazy_static;
-use serde::{Deserialize, Serialize, de::DeserializeOwned, Deserializer};
+use semver::Version;
+use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
 use snafu::prelude::*;
-use std::{fmt::Display, path::PathBuf, str::FromStr};
+use std::{fmt::Display, marker, path::PathBuf, str::FromStr};
 use url::Url;
 
-#[cfg(feature = "nested_building")]
-pub use nested_building::*;
+#[cfg(feature = "nested_sources")]
+pub use nested_sources::*;
 
 lazy_static! {
     static ref MANIFEST_FILE_STEM: &'static str = "manifest";
@@ -26,7 +27,7 @@ pub enum Error {
         "Invalid file extension for manifest_path \"{}\"",
         path.to_string_lossy(),
     ))]
-    InvalidFileExtension {path: PathBuf,},
+    InvalidFileExtension { path: PathBuf },
 
     #[snafu(display(
         "Unsupported extension \"{value}\" for \"{value_type}\". Valid extensions are: {:?}",
@@ -41,9 +42,7 @@ pub enum Error {
     #[snafu(display(
         "No manifest files found in the path \"{}\"", path.to_string_lossy()
     ))]
-    ManifestNotFound {
-        path: PathBuf,
-    },
+    ManifestNotFound { path: PathBuf },
 
     #[snafu(display(
         "The manifest file at path \"{}\" has incorrect YAML format and hence cannot be parsed", path.to_string_lossy()
@@ -77,14 +76,17 @@ pub struct Author {
     pub email: Option<String>,
 }
 
-impl<'de> Deserialize<'de> for Author {
+impl<'de, 'input> Deserialize<'de> for Author
+where
+    'de: 'input,
+{
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
         let s: String = Deserialize::deserialize(deserializer)?;
-        let tokens: Vec<&str> = s.split(['<', '>']).collect(); 
-        Ok(Author{
+        let tokens: Vec<&str> = s.split(['<', '>']).collect();
+        Ok(Author {
             name: tokens[0].to_owned(),
             email: Some(tokens[1].to_owned()),
         })
@@ -94,28 +96,15 @@ impl<'de> Deserialize<'de> for Author {
 /// Represents data associated with the package that by itself is not a part
 /// of the package
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PackageMetadata {
-    pub name: String,
+pub struct Package {
+    pub name: Option<String>,
+    pub version: Option<String>,
     pub description: Option<String>,
     pub authors: Option<Vec<Author>>,
     pub author: Option<Author>,
     pub license: Option<String>,
     pub website: Option<Url>,
     pub repository: Option<Url>,
-}
-
-/// Represents a generic Uri that could either contain a URL or a path
-#[derive(Debug, Serialize, Deserialize)]
-pub enum GenericUri {
-    Url(Url),
-    Path(PathBuf),
-}
-
-/// Represents a generic version
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, PartialOrd)]
-pub struct Version<V>
-where V: PartialOrd {
-    version: V,
 }
 
 /// Represents all the file extensions a manifest file can have
@@ -175,13 +164,24 @@ impl FromStr for ManifestFileExtensions {
     }
 }
 
-#[cfg(feature = "nested_building")]
-mod nested_building {
+/// Represents a generic Uri that could either contain a URL or a path
+#[derive(Debug, Serialize, Deserialize)]
+pub enum GenericUri {
+    Url(Url),
+    Path(PathBuf),
+}
+
+#[cfg(feature = "nested_sources")]
+mod nested_sources {
 
     use super::*;
     use lazy_static::lazy_static;
     use serde::{Deserialize, Serialize};
-    use std::{ffi::OsStr, path::Path, fs::{File, self}, io::Read};
+    use std::{
+        ffi::OsStr,
+        fs::{self, File},
+        path::Path,
+    };
     use walkdir::WalkDir;
 
     lazy_static! {
@@ -189,31 +189,8 @@ mod nested_building {
         static ref MAX_DEPTH: usize = 5;
     }
 
-    /// Represents one node in a tree of package flavors
-    #[derive(Debug, Serialize, Deserialize)]
-    pub enum PackageNode<V>
-    where V: PartialOrd {
-        FlavoredPackage(FlavoredPackage<V>),
-        VersionedPackage(VersionedPackage<V>),
-    }
-
-    /// Represents a package with possible flavors
-    #[derive(Debug, Serialize, Deserialize)]
-    pub struct FlavoredPackage<V: PartialOrd> {
-        pub flavors: Option<Vec<PackageNode<V>>>,
-    }
-
-    /// Represents a leaf package with no flavors, but a version
-    #[derive(Debug, Serialize, Deserialize)]
-    pub struct VersionedPackage<V>
-    where V: PartialOrd {
-        #[serde(flatten)]
-        pub metadata: PackageMetadata,
-        pub version: Option<Version<V>>,
-    }
-
-    fn parse_packages<V: PartialOrd + DeserializeOwned + std::fmt::Debug>(package_path: &Path) -> Result<PackageNode<V>, Error> {
-        let manifest_paths = WalkDir::new(package_path)
+    fn parse_packages(package_path: &Path) -> Result<Vec<Package>, Error> {
+        let packages = WalkDir::new(package_path)
             .follow_links(true) // to respect symlinks
             .min_depth(*MIN_DEPTH) // to at least look inside the directory
             .max_depth(*MAX_DEPTH) // to limit flavor depth to MAX_DEPTH - 1
@@ -222,43 +199,73 @@ mod nested_building {
             .filter(|e| e.file_type().is_file()) // to eliminate directories
             .map(|e| e.into_path()) // to extract paths
             .filter(|p| p.file_stem() == Some(OsStr::new(*MANIFEST_FILE_STEM))) // to eliminate files which are not named like manifest.[extension]
-            .fold(Ok(None), |acc: Result<Option<PackageNode<V>>, Error>, i: PathBuf| -> Result<Option<PackageNode<V>>, Error> { 
-                let versioned_package : Result<VersionedPackage<V>, Error>= match i.extension().map(|e| {
-                    e.to_str()
-                        .map(|es| TryInto::<ManifestFileExtensions>::try_into(es))
-                }) {
-                    Some(Some(Ok(ManifestFileExtensions::Yaml))) => serde_yaml::from_reader(File::open(&i).context(ManifestCannotBeReadSnafu{
-                        path: &i,
-                    })?).context(IncorrectYamlManifestFormatSnafu{
-                        path: &i,
-                    }),
-                    Some(Some(Ok(ManifestFileExtensions::Json))) => serde_json::from_reader(File::open(&i).context(ManifestCannotBeReadSnafu{
-                        path: &i,
-                    })?).context(IncorrectJsonManifestFormatSnafu{
-                        path: &i,
-                    }),
-                    Some(Some(Ok(ManifestFileExtensions::Toml))) => toml::from_slice(fs::read(&i).context(ManifestCannotBeReadSnafu{
-                        path: &i,
-                    })?.as_slice()).context(IncorrectTomlManifestFormatSnafu{
-                        path: &i,
-                    }),
-                    Some(Some(Ok(ManifestFileExtensions::Ron))) => serde_json::from_reader(File::open(&i).context(ManifestCannotBeReadSnafu{
-                        path: &i,
-                    })?).context(IncorrectJsonManifestFormatSnafu{
-                        path: &i,
-                    }),
-                    Some(Some(Err(error))) => Err(error)?, // Unsupported extension,
-                    Some(None) => Err(Error::InvalidFileExtension { path: i }), // Extension cannot be converted to a string,
-                    None => Err(Error::InvalidFileExtension { path: i }), // No extension found,
-                };
-                println!("Versioned package: {:#?}", versioned_package);
-                if let Ok(None) = acc {
-                    versioned_package.map(|a| Some(PackageNode::VersionedPackage(a)))
-                } else {
+            .fold(
+                Ok(None),
+                |mut acc: Result<Option<Vec<Package>>, Error>,
+                 manifest_path: PathBuf|
+                 -> Result<Option<Vec<Package>>, Error> {
+                    let package: Result<Package, Error> = match manifest_path.extension().map(|e| {
+                        e.to_str()
+                            .map(|es| TryInto::<ManifestFileExtensions>::try_into(es))
+                    }) {
+                        Some(Some(Ok(ManifestFileExtensions::Yaml))) => serde_yaml::from_reader(
+                            File::open(&manifest_path).context(ManifestCannotBeReadSnafu {
+                                path: &manifest_path,
+                            })?,
+                        )
+                        .context(IncorrectYamlManifestFormatSnafu {
+                            path: &manifest_path,
+                        }),
+                        Some(Some(Ok(ManifestFileExtensions::Json))) => serde_json::from_reader(
+                            File::open(&manifest_path).context(ManifestCannotBeReadSnafu {
+                                path: &manifest_path,
+                            })?,
+                        )
+                        .context(IncorrectJsonManifestFormatSnafu {
+                            path: &manifest_path,
+                        }),
+                        Some(Some(Ok(ManifestFileExtensions::Toml))) => toml::from_str(
+                            fs::read_to_string(&manifest_path)
+                                .context(ManifestCannotBeReadSnafu {
+                                    path: &manifest_path,
+                                })?
+                                .as_str(),
+                        )
+                        .context(IncorrectTomlManifestFormatSnafu {
+                            path: &manifest_path,
+                        }),
+                        Some(Some(Ok(ManifestFileExtensions::Ron))) => serde_json::from_reader(
+                            File::open(&manifest_path).context(ManifestCannotBeReadSnafu {
+                                path: &manifest_path,
+                            })?,
+                        )
+                        .context(IncorrectJsonManifestFormatSnafu {
+                            path: &manifest_path,
+                        }),
+                        Some(Some(Err(error))) => Err(error)?, // Unsupported extension,
+                        Some(None) => Err(Error::InvalidFileExtension {
+                            path: manifest_path,
+                        }), // Extension cannot be converted to a string,
+                        None => Err(Error::InvalidFileExtension {
+                            path: manifest_path,
+                        }), // No extension found,
+                    };
+                    println!("Package: {:#?}", package);
+                    if let Ok(package) = package {
+                        match &mut acc {
+                            Ok(Some(list_of_packages)) => {
+                                list_of_packages.push(package);
+                            }
+                            Ok(None) => {
+                                acc = Ok(Some(vec![package]));
+                            }
+                            _ => {}
+                        };
+                    }
                     acc
-                }
-            });
-            todo!();
+                },
+            );
+        packages.map(|item| item.unwrap())
     }
 
     #[cfg(test)]
@@ -266,13 +273,13 @@ mod nested_building {
         use super::*;
 
         #[test]
-        #[cfg(feature = "nested_building")]
+        #[cfg(feature = "nested_sources")]
         fn parse_nested() {
             let manifest_path = PathBuf::from(concat!(
                 env!("CARGO_MANIFEST_DIR"),
                 "/../resources/test/nested_source"
             ));
-            assert!(parse_packages::<i32>(&manifest_path).is_ok());
+            assert!(parse_packages(&manifest_path).is_ok());
         }
     }
 }
