@@ -20,10 +20,11 @@ lazy_static = "1.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
 serde_json = "1.0"
-toml = "0.5"
+toml = "0.7"
 ron = "0.8"
+semver = "1.0"
 url = { version = "2.3", features = ["serde"] }
 
 [features]
-default = ["nested_building"]
-nested_building = []
+default = ["nested_sources"]
+nested_sources = []
