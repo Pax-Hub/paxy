@@ -5,7 +5,6 @@
 
 mod cli;
 mod config;
-mod package;
 
 use cli::CommandlineDispatcher;
 use snafu::Whatever;
