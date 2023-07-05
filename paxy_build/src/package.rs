@@ -1,8 +1,7 @@
 use lazy_static::lazy_static;
-use semver::Version;
-use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use snafu::prelude::*;
-use std::{fmt::Display, marker, path::PathBuf, str::FromStr};
+use std::{fmt::Display, path::PathBuf, str::FromStr};
 use url::Url;
 
 #[cfg(feature = "nested_sources")]
@@ -176,7 +175,6 @@ mod nested_sources {
 
     use super::*;
     use lazy_static::lazy_static;
-    use serde::{Deserialize, Serialize};
     use std::{
         ffi::OsStr,
         fs::{self, File},
