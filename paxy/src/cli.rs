@@ -1,9 +1,9 @@
 #![warn(missing_docs)]
 
-//! A module to group the code that handles the commandline interface of `paxy`.
+//! A module that defines the commandline interface of `paxy`.
 
 pub use cli_template::*; // Flatten the `cli_template` module so that we do
-                         // not need to explicitly include t. It is strictly for
+                         // not need to explicitly include it. It is strictly for
                          // grouping convenience.
 
 use clap::Parser;
@@ -11,24 +11,19 @@ use snafu::{whatever, Whatever};
 
 use crate::config::Config;
 
-/// A trait that infers the type of display desired when boolean flags are
-/// specified.
-trait CommandlineFlags {
-    fn json_flag(&self) -> bool;
-    fn plain_flag(&self) -> bool;
-    fn debug_flag(&self) -> bool;
-    fn output_kind(&self) -> CommandlineOutputKind {
-        CommandlineOutputKind::from_flags(self.json_flag(), self.plain_flag(), self.debug_flag())
-    }
-    fn user_flag(&self) -> bool;
-}
-
 /// An enumeration that represents a user's choice for how to display output.
 #[derive(Debug, PartialEq, Eq)]
 pub enum CommandlineOutputKind {
+    /// Human-readable output (perhaps with helpful hints, suggestions, and coloring)
     Regular,
+
+    /// JSON output for use in other scripts or programs
     Json,
+
+    /// Plain, tabular output for use as input to other scripts
     Plain,
+
+    /// Detailed output helpful for diagnosing issues and debugging
     Debug,
 }
 
@@ -69,14 +64,22 @@ impl CommandlineDispatcher {
             Config::default()
         };
 
-        if cli.global_arguments.output_kind() == CommandlineOutputKind::Debug {
-            println!("\nThe commandline argument structure is as below: \n{cli:#?}");
-        }
+        {
+            let commandline_output_kind = CommandlineOutputKind::from_flags(
+                cli.global_arguments.json_flag,
+                cli.global_arguments.plain_flag,
+                cli.global_arguments.debug_flag,
+            );
 
-        println!(
-            "\nThe kind of output desired is: \n{:#?}\n",
-            cli.global_arguments.output_kind()
-        );
+            if commandline_output_kind == CommandlineOutputKind::Debug {
+                println!("\nThe commandline argument structure is as below: \n{cli:#?}");
+            }
+
+            println!(
+                "\nThe kind of output desired is: \n{:#?}\n",
+                commandline_output_kind
+            );
+        }
 
         // match cli.command {
         //     Some(ActionCommand::List(list_action_arguments)) => {
@@ -113,7 +116,6 @@ pub mod cli_template {
 
     #![warn(missing_docs)]
 
-    use super::CommandlineFlags;
     use clap::{Args, Parser, Subcommand};
     use std::path::PathBuf;
 
@@ -179,24 +181,6 @@ pub mod cli_template {
             display_order = usize::MAX - 5,
         )]
         pub user_flag: bool,
-    }
-
-    impl CommandlineFlags for GlobalArguments {
-        fn json_flag(&self) -> bool {
-            self.json_flag
-        }
-
-        fn plain_flag(&self) -> bool {
-            self.plain_flag
-        }
-
-        fn debug_flag(&self) -> bool {
-            self.debug_flag
-        }
-
-        fn user_flag(&self) -> bool {
-            self.user_flag
-        }
     }
 
     /// A subcommand variant to perform an action with the program.
