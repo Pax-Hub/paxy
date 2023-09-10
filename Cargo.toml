@@ -8,7 +8,7 @@ members = [
 [workspace.package]
 version = "0.0.1"
 authors = [
-    "shivanandvp <shivanandvp.oss@gmail.com, shivanandvp@rebornos.org>",
+    "shiva.patt <shiva.patt.oss@gmail.com, shivanandvp@rebornos.org>",
     "lylythechosenone",
     "flyingcakes85",
 ]
