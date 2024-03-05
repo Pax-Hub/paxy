@@ -183,7 +183,7 @@ mod nested_sources {
         static ref MIN_DEPTH: usize = 1;
         static ref MAX_DEPTH: usize = 5;
     }
-    
+
     #[allow(dead_code)]
     fn parse_packages(package_path: &Path) -> Result<Vec<Package>, Error> {
         #[allow(clippy::manual_try_fold)]
@@ -201,10 +201,10 @@ mod nested_sources {
                 |mut acc: Result<Option<Vec<Package>>, Error>,
                  manifest_path: PathBuf|
                  -> Result<Option<Vec<Package>>, Error> {
-                    let package: Result<Package, Error> = match manifest_path.extension().map(|e| {
-                        e.to_str()
-                            .map(TryInto::<ManifestFileExtensions>::try_into)
-                    }) {
+                    let package: Result<Package, Error> = match manifest_path
+                        .extension()
+                        .map(|e| e.to_str().map(TryInto::<ManifestFileExtensions>::try_into))
+                    {
                         Some(Some(Ok(ManifestFileExtensions::Yaml))) => serde_yaml::from_reader(
                             File::open(&manifest_path).context(ManifestCannotBeReadSnafu {
                                 path: &manifest_path,
