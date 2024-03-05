@@ -4,9 +4,6 @@ use snafu::prelude::*;
 use std::{fmt::Display, path::PathBuf, str::FromStr};
 use url::Url;
 
-#[cfg(feature = "nested_sources")]
-pub use nested_sources::*;
-
 lazy_static! {
     static ref MANIFEST_FILE_STEM: &'static str = "manifest";
 }
@@ -186,8 +183,10 @@ mod nested_sources {
         static ref MIN_DEPTH: usize = 1;
         static ref MAX_DEPTH: usize = 5;
     }
-
+    
+    #[allow(dead_code)]
     fn parse_packages(package_path: &Path) -> Result<Vec<Package>, Error> {
+        #[allow(clippy::manual_try_fold)]
         let packages = WalkDir::new(package_path)
             .follow_links(true) // to respect symlinks
             .min_depth(*MIN_DEPTH) // to at least look inside the directory
@@ -204,7 +203,7 @@ mod nested_sources {
                  -> Result<Option<Vec<Package>>, Error> {
                     let package: Result<Package, Error> = match manifest_path.extension().map(|e| {
                         e.to_str()
-                            .map(|es| TryInto::<ManifestFileExtensions>::try_into(es))
+                            .map(TryInto::<ManifestFileExtensions>::try_into)
                     }) {
                         Some(Some(Ok(ManifestFileExtensions::Yaml))) => serde_yaml::from_reader(
                             File::open(&manifest_path).context(ManifestCannotBeReadSnafu {
