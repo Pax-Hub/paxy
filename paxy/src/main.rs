@@ -1,6 +1,6 @@
 #![warn(missing_docs)]
-#![doc(html_favicon_url = "https://raw.githubusercontent.com/PaxyHub/.github/main/paxy_logo.png")]
-#![doc(html_logo_url = "https://raw.githubusercontent.com/PaxyHub/.github/main/paxy_logo.svg")]
+#![doc(html_favicon_url = "https://raw.githubusercontent.com/pax-hub/.github/main/paxy_logo.png")]
+#![doc(html_logo_url = "https://raw.githubusercontent.com/pax-hub/.github/main/paxy_logo.svg")]
 
 //! The main binary crate which contains the commandline interface used to
 //! interact with the paxy program while it is running.

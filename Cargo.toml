@@ -1,23 +1,24 @@
 [workspace]
 members = [
     "paxy",
-    "paxy_build"
+    "paxy_build", "paxy_install",
+    "tests"
 ]
 
 # Keys that can be (optionally) inherited by workspace members
 [workspace.package]
 version = "0.0.1"
 authors = [
-    "shiva.patt <shiva.patt.oss@gmail.com, shivanandvp@rebornos.org>",
+    "shivanandvp <pvshvp.oss@gmail.com, shivanandvp@rebornos.org>",
     "lylythechosenone",
     "flyingcakes85",
 ]
 edition = "2021"
 description = "A package manager that gets out of your way"
-documentation = "https://paxyhub.github.io/paxy"
-readme = "https://github.com/PaxyHub/paxy#readme"
-homepage = "https://paxyhub.github.io/"
-repository = "https://github.com/PaxyHub/paxy.git"
+documentation = "https://pax-hub.github.io/paxy"
+readme = "https://github.com/pax-hub/paxy#readme"
+homepage = "https://pax-hub.github.io/"
+repository = "https://github.com/pax-hub/paxy.git"
 license = "MPL-2.0"
 keywords = ["package", "package-manager", "paxy", "packager"]
 categories = ["development-tools::build-utils"]

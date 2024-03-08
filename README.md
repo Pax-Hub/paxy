@@ -1,14 +1,14 @@
 # Paxy - *A package manager that gets out of your way*
 
 [![Discord Server](https://dcbadge.vercel.app/api/server/vFG57wDxsd?style=flat)](https://discord.gg/vFG57wDxsd)
-[![GitHub License](https://img.shields.io/github/license/paxyhub/paxy)](https://www.mozilla.org/en-US/MPL/)
-[![GitHub top language](https://img.shields.io/github/languages/top/PaxyHub/paxy)](https://www.rust-lang.org/)
-[![Coverage Status](https://coveralls.io/repos/github/PaxyHub/paxy/badge.svg?branch=main)](https://coveralls.io/github/PaxyHub/paxy?branch=main)
-[![Release](https://github.com/PaxyHub/Paxy/actions/workflows/release.yml/badge.svg)](https://github.com/PaxyHub/Paxy/actions/workflows/release.yml)
-[![Pre-Release (Git)](https://github.com/PaxyHub/Paxy/actions/workflows/pre_release.yml/badge.svg)](https://github.com/PaxyHub/Paxy/actions/workflows/pre_release.yml)
-[![Validation](https://github.com/PaxyHub/Paxy/actions/workflows/validate.yml/badge.svg)](https://github.com/PaxyHub/Paxy/actions/workflows/validate.yml)
-[![API Documentation](https://github.com/PaxyHub/Paxy/actions/workflows/docs.yml/badge.svg)](https://github.com/PaxyHub/Paxy/actions/workflows/docs.yml)
-[![Security Audit](https://github.com/PaxyHub/Paxy/actions/workflows/security_audit.yml/badge.svg)](https://github.com/PaxyHub/Paxy/actions/workflows/security_audit.yml)
+[![GitHub License](https://img.shields.io/github/license/pax-hub/paxy)](https://www.mozilla.org/en-US/MPL/)
+[![GitHub top language](https://img.shields.io/github/languages/top/pax-hub/paxy)](https://www.rust-lang.org/)
+[![Coverage Status](https://coveralls.io/repos/github/pax-hub/paxy/badge.svg?branch=main)](https://coveralls.io/github/pax-hub/paxy?branch=main)
+[![Release](https://github.com/pax-hub/paxy/actions/workflows/release.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/release.yml)
+[![Pre-Release (Git)](https://github.com/pax-hub/paxy/actions/workflows/pre_release.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/pre_release.yml)
+[![Validation](https://github.com/pax-hub/paxy/actions/workflows/validate.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/validate.yml)
+[![API Documentation](https://github.com/pax-hub/paxy/actions/workflows/docs.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/docs.yml)
+[![Security Audit](https://github.com/pax-hub/paxy/actions/workflows/security_audit.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/security_audit.yml)
 
 ## Table of Contents
 
@@ -36,12 +36,12 @@ paxy --help
 to see the various commandline options available.
 
 ### User Guide
-Please visit https://paxyhub.github.io/paxy-book for a detailed user guide.
+Please visit https://pax-hub.github.io/paxy-book for a detailed user guide.
 
 ## For Developers
 
 ### API Documentation
-Please visit https://paxyhub.github.io/paxy the full API documentation.
+Please visit https://pax-hub.github.io/paxy the full API documentation.
 
 ### Cloning
 
@@ -50,7 +50,7 @@ In order to download the source code to your local computer for testing, or for 
 #### HTTPS
 
 ```sh
-git clone https://github.com/PaxyHub/paxy.git 
+git clone https://github.com/pax-hub/paxy.git 
 ```
 
 OR
@@ -58,7 +58,7 @@ OR
 #### SSH
 
 ```sh
-git clone git@github.com:PaxyHub/paxy.git
+git clone git@github.com:pax-hub/paxy.git
 ```
 
 ### Continuous Integration (CI)
