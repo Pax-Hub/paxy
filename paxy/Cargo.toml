@@ -17,9 +17,11 @@ categories = ["development-tools::build-utils", "command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.0", features = ["derive", "help"] }
+home = "0.5.9"
 pollster = "0.3"
 reqwest = "0.11"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
 snafu = "0.7"
+toml = "0.8.10"
 url = { version = "2.3", features = ["serde"] }

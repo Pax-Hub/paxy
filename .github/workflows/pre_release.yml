@@ -115,6 +115,9 @@ jobs:
         with:
           name: ${{ matrix.target }} Unstable
           path: output
+      - name: Install dependencies
+        id: install_dependencies
+        run: apt-get install libssl-dev openssl
       - name: 🖩 Generate CheckSum
         id: generate_checksum_step
         run: |
