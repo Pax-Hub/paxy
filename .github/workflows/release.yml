@@ -9,7 +9,7 @@ on:
 jobs:
   validate:
     name: ✔ Validate
-    uses: ./.github/workflows/validate.yml
+    uses: ./.github/workflows/code_validate.yml
   build:
     name: 🏗 Build
     needs: validate
@@ -43,7 +43,7 @@ jobs:
     steps:
       - name: 🎟 Checkout Git Repository
         id: checkout_repository_step
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: 🧰 Install Rust Toolchain
         id: install_toolchain_step
         uses: actions-rs/toolchain@v1
@@ -108,7 +108,7 @@ jobs:
     steps:
       - name: 🎟 Checkout Git Repository
         id: checkout_repository_step
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: 🏷 Determine Latest Tag
         id: set_latest_tag        
         run: |

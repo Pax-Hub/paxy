@@ -1,0 +1,39 @@
+[package]
+
+name = "paxy-gui"
+version.workspace = true
+description.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+keywords.workspace = true
+exclude.workspace = true
+categories.workspace = true
+documentation.workspace = true
+readme.workspace = true
+edition.workspace = true
+
+
+[dependencies]
+
+paxy = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Error handling
+snafu = {workspace = true}
+
+# Internationalization
+fluent = { workspace = true }
+
+# CLI
+clap = { workspace = true, features = ["cargo", "env"] }
+clap-verbosity-flag = { workspace = true }
+anstream = { workspace = true }
+owo-colors = { workspace = true }
+console = { workspace = true }
+
+# GUI
+relm4 = { workspace = true }
+relm4-components = { workspace = true }

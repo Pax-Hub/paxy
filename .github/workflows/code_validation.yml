@@ -1,35 +1,35 @@
 on:
-  workflow_dispatch:
-  workflow_call:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch: # Run when manually triggered
+  workflow_call: # Run when called by another workflow
 
-name: ✔ Validate
+name: ✔ Validate Code
 
 jobs:
   fmt:
-    name: 📑 Rustfmt
+    name: 📑 Rustfmt Job
     if: |
       !startsWith(github.event.head_commit.message, 'ci:')
       && !startsWith(github.event.head_commit.message, 'ci(')
     runs-on: ubuntu-latest
     steps:
-      - name: 🎟 Checkout Git Repository
-        id: checkout_repository_step
-        uses: actions/checkout@v2
-      - name: 🧰 Install Rust Toolchain
-        id: install_toolchain_step
+      - name: 🎟 Checkout Git Repository Step
+        id: repository_checkout_step
+        uses: actions/checkout@v4
+      - name: 🧰 Install Rust Toolchain Step
+        id: toolchain_install_step
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
           components: rustfmt
-      - name: 🗂 Set up cargo cache
-        id: setup_cache_step
-        uses: actions/cache@v3
+      - name: 🗂 Setup Cargo Cache Step
+        id: cache_setup_step
+        uses: actions/cache@v4
         continue-on-error: false
         with:
           path: |
@@ -48,7 +48,7 @@ jobs:
           args: --verbose -- --check
 
   clippy:
-    name: 📎 Clippy
+    name: 📎 Clippy Job
     if: |
       !startsWith(github.event.head_commit.message, 'ci:')
       && !startsWith(github.event.head_commit.message, 'ci(')
@@ -79,20 +79,21 @@ jobs:
     env:
       IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
     steps:
-      - name: 🎟 Checkout Git Repository
-        id: checkout_repository_step
-        uses: actions/checkout@v2
+      - name: 🎟 Checkout Git Repository Step
+        id: repository_checkout_step
+        uses: actions/checkout@v4
       - name: 🧰 Install Rust Toolchain
-        id: install_toolchain_step
+        id: toolchain_install_step
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
           components: clippy
-      - name: 🗂 Set up cargo cache
-        id: setup_cache_step
-        uses: actions/cache@v3
+      - name: 🗂 Setup Cargo Cache Step
+        id: cache_setup_step
+        uses: actions/cache@v4
+        continue-on-error: false
         with:
           path: |
             ~/.cargo/bin/
@@ -111,7 +112,7 @@ jobs:
           args: --workspace --target ${{ matrix.target }} -- -D warnings
 
   check:
-    name: ✅ Check
+    name: ✅ Check Job
     if: |
       !startsWith(github.event.head_commit.message, 'ci:')
       && !startsWith(github.event.head_commit.message, 'ci(')
@@ -143,19 +144,19 @@ jobs:
     env:
       IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
     steps:
-      - name: 🎟 Checkout Git Repository
-        id: checkout_repository_step
-        uses: actions/checkout@v2
-      - name: 🧰 Install Rust Toolchain
-        id: install_toolchain_step
+      - name: 🎟 Checkout Git Repository Step
+        id: repository_checkout_step
+        uses: actions/checkout@v4
+      - name: 🧰 Install Rust Toolchain Step
+        id: toolchain_install_step
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
           target: ${{ matrix.target }}
-      - name: 🗂 Set up cargo cache
-        id: setup_cache_step
+      - name: 🗂 Setup Cargo Cache Step
+        id: cache_setup_step
         uses: actions/cache@v3
         with:
           path: |
@@ -166,7 +167,7 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
-      - name: ✅ Cargo Check
+      - name: ✅ Cargo Check Step
         id: cargo_check_step
         uses: actions-rs/cargo@v1
         with:
@@ -211,15 +212,15 @@ jobs:
         id: checkout_repository_step
         uses: actions/checkout@v2
       - name: 🧰 Install Rust Toolchain
-        id: install_toolchain_step
+        id: toolchain_install_step
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
           target: ${{ matrix.target }}
-      - name: 🗂 Set up cargo cache
-        id: setup_cache_step
+      - name: 🗂 Setup Cargo Cache Step
+        id: cache_setup_step
         uses: actions/cache@v3
         with:
           path: |

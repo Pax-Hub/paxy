@@ -1,27 +1,58 @@
 [package]
+
 name = "paxy"
 version.workspace = true
-authors.workspace = true
-edition.workspace = true
 description.workspace = true
-documentation.workspace = true
-readme.workspace = true
-homepage.workspace = true
 repository.workspace = true
-license.workspace = true
+homepage.workspace = true
+authors.workspace = true
 keywords.workspace = true
 exclude.workspace = true
-categories = ["development-tools::build-utils", "command-line-utilities"]
+categories = ["development-tools::build-utils"]
+documentation.workspace = true
+readme.workspace = true
+edition.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.0", features = ["derive", "help"] }
+
+# Logging
+tracing = { workspace = true }
+tracing-appender = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Configuration
+figment = { workspace = true, features = ["toml", "json", "yaml", "env"] }
+
+# Filesystem
+directories = { workspace = true }
+permissions = { workspace = true }
+
+# Error handling
+snafu = {workspace = true}
+
+# Data
+lazy_static = { workspace = true }
+serde = { workspace = true }
+serde-aux = { workspace = true }
+serde_yaml = { workspace = true }
+tracing-serde = { workspace = true }
+speedy = { workspace = true }
+log = { workspace = true, features = ["serde"] }
+
+# Internationalization
+fluent = { workspace = true }
+
+# CLI
+clap = { workspace = true }
+clap-verbosity-flag = { workspace = true }
+anstream = { workspace = true }
+owo-colors = { workspace = true, features = ["supports-colors"]}
+console = { workspace = true }
+
+# Miscellaneous
 home = "0.5.9"
+toml = "0.8.10"
 pollster = "0.3"
 reqwest = "0.11"
-serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.9"
-snafu = "0.7"
-toml = "0.8.10"
 url = { version = "2.3", features = ["serde"] }

@@ -1,2 +1,1 @@
-# The `paxy` Binary Crate
-
+# The `paxy` Library Crate

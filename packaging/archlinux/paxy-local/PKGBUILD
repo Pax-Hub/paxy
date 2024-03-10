@@ -1,0 +1,87 @@
+#! /usr/bin/env sh
+
+# Maintainer: shivanandvp <pvshvp.oss@gmail.com, shivanandvp@rebornos.org>
+
+PKGVER_STUB=0.0.1
+pkgver=0.0.1.2023_08_31_04
+pkgrel=1
+pkgbase='paxy'
+pkgname=('paxy-cli-local' 'paxy-gui-local' 'paxy-db-local')
+arch=('x86_64')
+url="https://github.com/shivanandvp/paxy"
+makedepends=('cargo' 'gtk4' 'base-devel')
+source=()
+sha256sums=()
+
+prepare() {
+    export PROJECT_DIRECTORY="$(dirname -- "$(dirname -- "$(dirname -- "$(pwd)")")")"
+    export RESOURCE_DIRECTORY="$PROJECT_DIRECTORY/packaging/resources"
+    export BUILD_DIRECTORY="$PROJECT_DIRECTORY/target"
+}
+
+pkgver() {
+    echo "$PKGVER_STUB.$(date "+%Y_%m_%e_%H")"
+}
+
+build() {  
+    (   
+        cd "$PROJECT_DIRECTORY"
+
+        cargo build \
+            --release \
+            --all-features \
+            --target-dir="target" \
+
+        cargo run \
+            --bin="paxy-cli" \
+            -- \
+            generate-database \
+            "$PROJECT_DIRECTORY/paxy-db/input-file.yaml" \
+            "$PROJECT_DIRECTORY/target/database.db"
+    )
+}
+
+package_paxy-cli-local() {
+    pkgdesc='(CLI-only package) A package manager that gets out of your way.'
+    provides=('paxy')
+    depends=()
+    license=('MPL2') 
+    conflicts=("paxy-cli" "paxy-cli-git" "paxy-gui" "paxy-gui-local" "paxy-gui-git")
+
+    # To bypass makepkg's dependency check during build-time
+    optdepends+=("paxy-db")
+
+    (   
+        cd "$PROJECT_DIRECTORY"
+
+        install -Dm644 "$PROJECT_DIRECTORY/paxy/LICENSE" "$pkgdir/usr/share/licenses/paxy/LICENSE"
+        install -Dm644 "$PROJECT_DIRECTORY/paxy-cli/LICENSE" "$pkgdir/usr/share/licenses/paxy-cli/LICENSE"
+
+        install -Dm755 "$PROJECT_DIRECTORY/target/release/paxy-cli" "$pkgdir/usr/bin/paxy-cli"
+        ln -s "/usr/bin/paxy-cli" "$pkgdir/usr/bin/paxy"
+    )
+}
+
+package_paxy-gui-local() {
+    pkgdesc='(CLI + GUI package) A package manager that gets out of your way.'
+    provides=('paxy')
+    depends=('gtk4')
+    license=('MPL2')
+    conflicts=("paxy-gui" "paxy-gui-git" "paxy-cli" "paxy-cli-local" "paxy-cli-git")
+    
+    # To bypass makepkg's dependency check during build-time
+    optdepends+=("paxy-db")
+
+    (   
+        cd "$PROJECT_DIRECTORY"
+
+        install -Dm644 "$PROJECT_DIRECTORY/paxy/LICENSE" "$pkgdir/usr/share/licenses/paxy/LICENSE"
+        install -Dm644 "$PROJECT_DIRECTORY/paxy-cli/LICENSE" "$pkgdir/usr/share/licenses/paxy-cli/LICENSE"
+        install -Dm644 "$PROJECT_DIRECTORY/paxy-gui/LICENSE" "$pkgdir/usr/share/licenses/paxy-gui/LICENSE"
+
+        install -Dm755 "$PROJECT_DIRECTORY/target/release/paxy-cli" "$pkgdir/usr/bin/paxy-cli"
+        ln -s "/usr/bin/paxy-cli" "$pkgdir/usr/bin/paxy"
+        install -Dm755 "$PROJECT_DIRECTORY/target/release/paxy-gui" "$pkgdir/usr/bin/paxy-gui"        
+    )
+}
+

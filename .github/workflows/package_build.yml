@@ -1,0 +1,88 @@
+name: 📦🏗 Build Package(s)
+
+on:
+  workflow_dispatch: # Run when manually triggered
+    inputs:
+      branch:
+        description: 'The branch to act on.'
+        default: 'main'
+        required: false
+        type: string
+      release_type:
+        description: 'The release type - Stable or Unstable. The stable release uses the source from the latest git tag whereas the unstable release uses the source from the latest git commit.'
+        default: 'Stable'
+        required: false
+        type: string
+  workflow_call: # Run when called by another workflow
+    inputs:
+      branch:
+        description: 'The branch to act on.'
+        default: 'main'
+        required: false
+        type: string
+      release_type:
+        description: 'The release type - Stable or Unstable. The stable release uses the source from the latest git tag whereas the unstable release uses the source from the latest git commit.'
+        default: 'Stable'
+        required: false
+        type: string
+
+run-name: ${{ inputs.release_type }} Package Build triggered by ${{ github.actor }} on branch ${{ inputs.branch }} 
+
+jobs:
+  package_build_job:
+    name: 📦🏗 Build Package
+    strategy:
+      matrix:
+        platform: 
+          - archlinux
+          # - debian
+          # - fedora
+          # - opensuse
+          # - windows
+          # - macos
+          # - flatpak
+        architecture:
+          - x86_64
+          # - arm
+        include:
+          - os: archlinux
+            architecture: x86_64
+            compilation_target: x86_64-unknown-linux-gnu
+            docker_image: archlinux:latest
+            runner: ubuntu-latest
+          # - os: archlinux
+          #   architecture: arm
+          #   compilation_target: aarch64-unknown-linux-gnu
+          #   docker_image: archlinux:latest
+          #   runner: ubuntu-latest
+    runs-on: ubuntu-latest
+    container: 
+      image: archlinux:latest
+      ports:
+        - 80
+    steps:
+      - name: 🐋 Initialize Arch Linux Docker Container 
+        id: docker_init_step           
+        run: |
+          # pacman-key --init
+          pacman -Sy --noconfirm base-devel git # Install essential dependencies
+          useradd build_user -m # Create the build user
+          passwd -d build_user # Delete build_user's password
+          printf 'build_user ALL=(ALL) ALL\n' | tee -a /etc/sudoers # Allow build_user password-less sudo
+      - name: 🎟 Checkout Git Repository
+        id: repository_checkout_step
+        uses: actions/checkout@v4
+      - name: 🛠 Build Package
+        id: package_build_step        
+        run: |
+          chown -R build_user packaging
+          chmod -R +x packaging
+          sudo -u build_user sh -c "packaging/archlinux/build_package.sh stable --noconfirm"
+      - name: ⬆ Upload Package Artifact
+        id: upload_package_step
+        uses: actions/upload-artifact@v4
+        with: 
+          name: Stable Package
+          path: |
+            packaging/archlinux/paxy/*.pkg.tar.*
+          if-no-files-found: error

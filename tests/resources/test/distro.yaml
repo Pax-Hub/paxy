@@ -52,7 +52,7 @@ rebornos:
     - arch: /home/paxy_chan/paxy_mirrorlist
     - local: /home/paxy_chan/sources
   keys:
-    shiva.patt: ABCDEFGH12345678
+    shivanandvp: ABCDEFGH12345678
     keyrings:
       - /home/paxy_chan/rebornos_keys.gpg
       - /home/paxy_chan/arch_keys.gpg

@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: 🎟 Checkout Git Repository
         id: checkout_repository_step
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: 🧰 Install Rust Toolchain
         id: install_toolchain_step
         uses: actions-rs/toolchain@v1
@@ -101,7 +101,7 @@ jobs:
     steps:
       - name: 🎟 Checkout Git Repository
         id: checkout_repository_step
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: 🏷 Determine Git Version
         id: set_git_version        
         run: |

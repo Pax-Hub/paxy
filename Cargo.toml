@@ -1,26 +1,75 @@
 [workspace]
-resolver = "1"
+
 members = [
     "paxy",
-    "paxy_build", "paxy_install",
-    "tests"
+    "paxy-cli",
+    "paxy-gui",
+
+    "tests",
 ]
 
-# Keys that can be (optionally) inherited by workspace members
+resolver = "2"
+
+
 [workspace.package]
+
 version = "0.0.1"
+description = "A package manager that gets out of your way"
+repository = "https://github.com/pax-hub/paxy.git"
+homepage = "https://pax-hub.github.io/"
 authors = [
     "shivanandvp <pvshvp.oss@gmail.com, shivanandvp@rebornos.org>",
     "lylythechosenone",
+    "ferriswastaken",
     "flyingcakes85",
 ]
-edition = "2021"
-description = "A package manager that gets out of your way"
+keywords = ["package", "package-manager", "paxy", "packager"]
+exclude = [".github", ".vscode", "*.code-workspace"]
+categories = ["development-tools::build-utils"]
 documentation = "https://pax-hub.github.io/paxy"
 readme = "https://github.com/pax-hub/paxy#readme"
-homepage = "https://pax-hub.github.io/"
-repository = "https://github.com/pax-hub/paxy.git"
+edition = "2021"
 license = "MPL-2.0"
-keywords = ["package", "package-manager", "paxy", "packager"]
-categories = ["development-tools::build-utils"]
-exclude = [".github", ".vscode", "*.code-workspace"]
+
+
+[workspace.dependencies]
+
+paxy = { path = "paxy" }
+
+# Logging
+tracing = "0.1"
+tracing-appender = "0.2"
+tracing-subscriber = "0.3"
+
+# Configuration
+figment = "0.10"
+
+# Filesystem
+directories = "5.0"
+permissions = "0.5"
+
+# Error handling
+snafu = "0.8"
+
+# Data
+lazy_static = "1.4"
+serde = { version = "1.0", features = ["derive"] }
+serde-aux = "4.2"
+serde_yaml = "0.9"
+tracing-serde = "0.1"
+speedy = "0.8"
+log = "0.4"
+
+# Internationalization
+fluent = "0.16"
+
+# CLI
+clap = { version = "4.4", features = ["derive", "wrap_help"] }
+clap-verbosity-flag = "2.0"
+anstream = "0.6"
+owo-colors = "4.0"
+console = "0.15"
+
+# GUI
+relm4 = "0.6"
+relm4-components = "0.6"
