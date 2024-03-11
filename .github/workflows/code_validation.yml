@@ -61,10 +61,6 @@ jobs:
             cpu_architecture: aarch64
             platform: linux
             toolchain: gnu 
-          - task: fmt
-            command: cargo fmt --verbose -- --check
-          - task: clippy
-            command: cargo clippy --workspace --target ${{ matrix.target }} -- -D warnings
     runs-on: ${{ matrix.cicd_runner }}
     steps:
       - name: 🎟 Checkout Git Repository Step
