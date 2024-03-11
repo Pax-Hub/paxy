@@ -79,6 +79,8 @@ jobs:
             job_name: 🧪 Cargo Test Job
             rust_toolchain_components: cargo, rustc, rust-std
     runs-on: ${{ matrix.cicd_runner }}
+    env:
+      PKG_CONFIG_SYSROOT_DIR: '/'
     steps:
       - name: 🎟 Checkout Git Repository Step
         id: repository_checkout_step
@@ -104,7 +106,7 @@ jobs:
         if: ${{ matrix.cicd_runner == 'ubuntu-latest' }}
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: libssl-dev openssl libgtk-4-dev
+          packages: libgtk-4-dev
           version: 1.0
       - name: 📑 Cargo Fmt Step
         id: cargo_fmt_step
