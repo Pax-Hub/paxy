@@ -58,7 +58,7 @@ jobs:
         id: toolchain_install_step
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
           targets: ${{ matrix.compilation_target }}          
           components: rustc, cargo
       - name: 🔄 Install Cross-Compilation Tools Step
