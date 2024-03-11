@@ -91,6 +91,13 @@ jobs:
       - name: 🎟 Checkout Git Repository Step
         id: repository_checkout_step
         uses: actions/checkout@v4
+      - name: ↕️ Install Ubuntu Dependencies
+        id: dependencies_install_step
+        if: ${{ matrix.cicd_runner == 'ubuntu-latest' }}
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgtk-4-dev
+          version: 1.0
       - name: 🧰 Install Rust Toolchain
         id: toolchain_install_step
         uses: dtolnay/rust-toolchain@master
@@ -134,4 +141,4 @@ jobs:
     steps:
       - name: ✈ Deploy to GitHub Pages
         id: deployment_step
-        uses: actions/deploy-pages@v4        
+        uses: actions/deploy-pages@v4     
