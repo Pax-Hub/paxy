@@ -78,7 +78,7 @@ jobs:
         if: ${{ matrix.cpu_architecture != 'x86_64' }}
         uses: taiki-e/setup-cross-toolchain-action@v1
         with:
-          targets: ${{ matrix.compilation_target }}          
+          target: ${{ matrix.compilation_target }}          
       - name: 🗂 Setup Cache Step
         id: cache_setup_step
         uses: Swatinem/rust-cache@v2
