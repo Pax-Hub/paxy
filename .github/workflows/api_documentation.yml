@@ -28,7 +28,7 @@ jobs:
         cpu_architecture: [x86_64]
         include:
           - platform: linux
-            cicd_runner: ubuntu_latest
+            cicd_runner: ubuntu-latest
           - compilation_target: x86_64-unknown-linux-gnu
             cpu_architecture: x86_64
             platform: linux

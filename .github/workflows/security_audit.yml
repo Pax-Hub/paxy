@@ -30,7 +30,7 @@ jobs:
           # - riscv64gc
         include:
           - platform: linux
-            cicd_runner: ubuntu_latest
+            cicd_runner: ubuntu-latest
           - platform: windows
             cicd_runner: windows-latest
           - platform: apple
