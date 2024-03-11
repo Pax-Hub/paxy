@@ -89,7 +89,7 @@ jobs:
         with:
           toolchain: nightly
           targets: ${{ matrix.compilation_target }}          
-          components: rustc, cargo
+          components: ${{ matrix.rust_toolchain_components }}
       - name: 🔄 Install Cross-Compilation Tools Step
         id: cross_install_step
         if: ${{ matrix.cpu_architecture != 'x86_64' }}
