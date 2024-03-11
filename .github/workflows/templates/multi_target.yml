@@ -18,12 +18,15 @@ jobs:
   some_job:
     name: Some Job
     if: |
-      github.event_name == 'push'
-      && github.ref == 'refs/heads/main'
-      && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')
-      && !startsWith(github.event.head_commit.message, 'chore:')
-      && !startsWith(github.event.head_commit.message, 'chore(')
+      (
+        github.event_name == 'push' 
+        && github.ref == 'refs/heads/main'
+      ) || (
+        !startsWith(github.event.head_commit.message, 'style:')
+        && !startsWith(github.event.head_commit.message, 'style(')
+        && !startsWith(github.event.head_commit.message, 'chore:')
+        && !startsWith(github.event.head_commit.message, 'chore(')
+      )
     strategy:
       fail-fast: false
       matrix:
