@@ -46,7 +46,6 @@ figment = "0.10"
 
 # Filesystem
 directories = "5.0"
-permissions = "0.5"
 
 # Error handling
 snafu = "0.8"
