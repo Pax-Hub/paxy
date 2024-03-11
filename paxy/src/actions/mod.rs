@@ -34,22 +34,22 @@ use snafu::Snafu;
 
 // region: MODULES
 
+pub mod downgrade;
 pub mod install;
 pub mod list;
 pub mod search;
 pub mod uninstall;
 pub mod update;
-pub mod downgrade;
 
 // endregion: MODULES
 
 // region: RE-EXPORTS
 
+pub use downgrade::*;
 pub use install::*;
 pub use list::*;
 pub use search::*;
 pub use uninstall::*;
 pub use update::*;
-pub use downgrade::*;
 
 // endregion: RE-EXPORTS

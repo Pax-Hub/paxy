@@ -41,8 +41,8 @@ pub fn init_config() -> Result<(Config, Vec<PathBuf>), Error> {
                 figment
             },
         );
-        
-        figment = figment.admerge(Env::prefixed("PAXY_"));
+
+    figment = figment.admerge(Env::prefixed("PAXY_"));
 
     Ok((
         figment

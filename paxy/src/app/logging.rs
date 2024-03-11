@@ -182,12 +182,16 @@ fn obtain_log_dirpath(preferred_log_dirpath: Option<PathBuf>) -> Result<PathBuf,
             directories::BaseDirs::new().context(RetreiveLoggingUserAppBaseDirectoriesSnafu {})?;
         fs::create_dir_all(xdg_app_dirs.data_dir()).context(CreateLogDirectorySnafu {
             path: {
-                let mut state_dirpath = xdg_app_dirs.data_dir().to_owned();
+                let mut state_dirpath = xdg_app_dirs
+                    .data_dir()
+                    .to_owned();
                 state_dirpath.push(*app::APP_NAME);
                 state_dirpath
             },
         })?;
-        Ok(xdg_app_dirs.data_dir().to_owned())
+        Ok(xdg_app_dirs
+            .data_dir()
+            .to_owned())
     };
     Ok(match preferred_log_dirpath {
         Some(preferred_log_dirpath) => {
