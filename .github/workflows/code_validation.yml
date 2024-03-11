@@ -68,13 +68,16 @@ jobs:
             toolchain: gnu 
           - task: fmt
             job_name: 📑 Cargo Fmt Job
+            rust_toolchain_components: cargo, rustfmt
           - task: clippy
             job_name: 📎 Cargo Clippy Job
+            rust_toolchain_components: cargo, clippy
           - task: check
             job_name: ✅ Cargo Check Job
+            rust_toolchain_components: cargo, rustc, rust-std
           - task: test
             job_name: 🧪 Cargo Test Job
-
+            rust_toolchain_components: cargo, rustc, rust-std
     runs-on: ${{ matrix.cicd_runner }}
     steps:
       - name: 🎟 Checkout Git Repository Step
