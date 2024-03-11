@@ -106,7 +106,7 @@ jobs:
         if: ${{ matrix.cicd_runner == 'ubuntu-latest' }}
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: libgtk-4-dev
+          packages: libssl-dev openssl libgtk-4-dev
           version: 1.0
       - name: 📑 Cargo Fmt Step
         id: cargo_fmt_step
