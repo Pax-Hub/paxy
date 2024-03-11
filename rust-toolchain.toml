@@ -1,5 +1,5 @@
 [toolchain]
-channel = "nightly"
+channel = "stable"
 components = ["rustc", "cargo", "rust-std", "rustfmt"]
 targets = [
     "x86_64-unknown-linux-gnu",

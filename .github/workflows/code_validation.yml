@@ -87,7 +87,7 @@ jobs:
         id: toolchain_install_step
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly
+          toolchain: stable
           targets: ${{ matrix.compilation_target }}          
           components: ${{ matrix.rust_toolchain_components }}
       - name: 🔄 Install Cross-Compilation Tools Step
