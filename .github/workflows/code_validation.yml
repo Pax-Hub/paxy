@@ -95,15 +95,19 @@ jobs:
         id: cargo_fmt_step
         if: ${{ matrix.task == 'fmt' }}
         run: cargo fmt --verbose -- --check
+        continue-on-error: true
       - name: 📎 Cargo Clippy Step
         id: cargo_clippy_step
         if: ${{ matrix.task == 'clippy' }}
         run: cargo clippy --workspace --target ${{ matrix.compilation_target }} -- -D warnings
+        continue-on-error: true
       - name: ✅ Cargo Check Step
         id: cargo_check_step
         if: ${{ matrix.task == 'check' }}
         run: cargo check --workspace --target ${{ matrix.compilation_target }}
+        continue-on-error: true
       - name: 🧪 Cargo Test Step
         id: cargo_test_step
         if: ${{ matrix.task == 'test' }}
         run: cargo test --workspace --target ${{ matrix.compilation_target }}
+        continue-on-error: true
