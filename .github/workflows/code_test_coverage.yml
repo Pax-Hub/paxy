@@ -3,7 +3,11 @@ on:
     paths:
       - '.github/workflows/code_test_coverage.yml' # Run when this workflow changes
       - '**/src/**'
+    branches: [main]
   pull_request:
+    paths:
+      - '.github/workflows/code_test_coverage.yml' # Run when this workflow changes
+      - '**/src/**'
     branches: [main]
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
@@ -42,15 +46,10 @@ jobs:
           #   toolchain: darwin
     runs-on: ${{ matrix.cicd_runner }}           
     if: |
-      (
-        github.event_name == 'push' 
-        && github.ref == 'refs/heads/main'
-      ) || (
-        !startsWith(github.event.head_commit.message, 'style:')
-        && !startsWith(github.event.head_commit.message, 'style(')
-        && !startsWith(github.event.head_commit.message, 'chore:')
-        && !startsWith(github.event.head_commit.message, 'chore(')
-      )                       
+      !startsWith(github.event.head_commit.message, 'style:')
+      && !startsWith(github.event.head_commit.message, 'style(')
+      && !startsWith(github.event.head_commit.message, 'chore:')
+      && !startsWith(github.event.head_commit.message, 'chore(')              
     steps:
       - name: 🎟 Checkout Git Repository Step
         id: repository_checkout_step

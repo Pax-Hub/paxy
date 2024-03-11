@@ -1,16 +1,25 @@
 on:
   push:
-    branches: [main]
+    paths:
+      - '.github/workflows/code_validation.yml' # Run when this workflow changes
+      - '**/Cargo.toml' # Run when dependencies change
+      - '**/Cargo.lock' # Run when dependencies change
+      - '**/src/**'
   pull_request:
+    paths:
+      - '.github/workflows/code_validation.yml' # Run when this workflow changes
+      - '**/Cargo.toml' # Run when dependencies change
+      - '**/Cargo.lock' # Run when dependencies change
+      - '**/src/**'
     branches: [main]
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
-name: ✔ Validate Code
+name: ✔ Validate Code Workflow
 
 jobs:
-  fmt:
-    name: 📑 Rustfmt Job
+  code_validation_job:
+    name: ✔ Validate Code Job
     if: |
       !startsWith(github.event.head_commit.message, 'ci:')
       && !startsWith(github.event.head_commit.message, 'ci(')

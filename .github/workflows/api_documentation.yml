@@ -3,6 +3,7 @@ on:
     paths:
       - '.github/workflows/api_documentation.yml' # Run when this workflow changes
       - '**/src/**'
+    branches: [main]
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
@@ -12,15 +13,10 @@ jobs:
   build_documentation_job:
     name: 🛠 Build Documentation Job
     if: |
-      (
-        github.event_name == 'push' 
-        && github.ref == 'refs/heads/main'
-      ) || (
-        !startsWith(github.event.head_commit.message, 'style:')
-        && !startsWith(github.event.head_commit.message, 'style(')
-        && !startsWith(github.event.head_commit.message, 'chore:')
-        && !startsWith(github.event.head_commit.message, 'chore(')
-      )
+      !startsWith(github.event.head_commit.message, 'style:')
+      && !startsWith(github.event.head_commit.message, 'style(')
+      && !startsWith(github.event.head_commit.message, 'chore:')
+      && !startsWith(github.event.head_commit.message, 'chore(')
     strategy:
       fail-fast: true
       matrix:

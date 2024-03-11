@@ -5,9 +5,13 @@ on:
       - '**/Cargo.toml' # Run when dependencies change
       - '**/Cargo.lock' # Run when dependencies change
   pull_request:
+    paths:
+      - '.github/workflows/security_audit.yml' # Run when this workflow changes
+      - '**/Cargo.toml' # Run when dependencies change
+      - '**/Cargo.lock' # Run when dependencies change
     branches: [main]
   schedule:
-    - cron: '0 0 * * *' # Run periodically to capture recent developments
+    - cron: '0 0 * * 0' # Run periodically to capture recent developments
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
