@@ -72,7 +72,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with: 
           path: target/doc
-  publish_documentation_job:
+  deploy:
     name: ✈ Publish Documentation Job   
     needs: build_documentation_job
     runs-on: ubuntu-latest
