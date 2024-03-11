@@ -3,9 +3,9 @@ pub fn init_config() -> Result<(Config, Vec<PathBuf>), Error> {
         directories::BaseDirs::new().context(RetreiveConfigUserAppBaseDirectoriesSnafu {})?;
 
     #[cfg(target_os = "linux")]
-    let candidate_config_filepath_stubs = vec![
-        format!("/etc/xdg/{}", *app::APP_NAME).into(),
-        format!("/etc/{}", *app::APP_NAME).into(),
+    let candidate_config_filepath_stubs = [
+        format!("/etc/xdg/{}", *app::APP_NAME),
+        format!("/etc/{}", *app::APP_NAME),
         format!(
             "{}/{}",
             xdg_app_dirs
@@ -50,7 +50,7 @@ pub fn init_config() -> Result<(Config, Vec<PathBuf>), Error> {
             .context(ExtractConfigSnafu {})?,
         candidate_config_filepath_stubs
             .iter()
-            .map(|f| PathBuf::from(f))
+            .map(PathBuf::from)
             .collect(),
     ))
 }

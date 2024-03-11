@@ -31,7 +31,7 @@ where
 }
 
 pub fn first_readable_path<'a>(
-    paths: &'a Vec<impl AsRef<Path> + 'a>,
+    paths: &'a [impl AsRef<Path> + 'a],
 ) -> Option<impl AsRef<Path> + 'a> {
     paths
         .iter()
@@ -39,7 +39,7 @@ pub fn first_readable_path<'a>(
 }
 
 pub fn first_writable_path<'a>(
-    paths: &'a Vec<impl AsRef<Path> + 'a>,
+    paths: &'a [impl AsRef<Path> + 'a],
 ) -> Option<impl AsRef<Path> + 'a> {
     paths
         .iter()
@@ -47,7 +47,7 @@ pub fn first_writable_path<'a>(
 }
 
 pub fn all_readable_paths<'a>(
-    paths: &'a Vec<impl AsRef<Path> + 'a>,
+    paths: &'a [impl AsRef<Path> + 'a],
 ) -> impl Iterator<Item = impl AsRef<Path> + 'a> {
     paths
         .iter()
@@ -55,7 +55,7 @@ pub fn all_readable_paths<'a>(
 }
 
 pub fn all_writable_paths<'a>(
-    paths: &'a Vec<impl AsRef<Path> + 'a>,
+    paths: &'a [impl AsRef<Path> + 'a],
 ) -> impl Iterator<Item = impl AsRef<Path> + 'a> {
     paths
         .iter()

@@ -169,7 +169,7 @@ pub fn init_log(
             ],
         },
         {
-            let mut log_filepath = PathBuf::from(log_dirpath);
+            let mut log_filepath = log_dirpath;
             log_filepath.push(log_filename + "*");
             log_filepath
         },

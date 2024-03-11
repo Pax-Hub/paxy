@@ -28,8 +28,8 @@ where
     let config_log_dirpath = config
         .log_directory
         .as_ref()
-        .map(|s| PathBuf::from(s));
-    let config_verbosity_filter: Option<LevelFilter> = (&config)
+        .map(PathBuf::from);
+    let config_verbosity_filter: Option<LevelFilter> = config
         .log_level_filter
         .and_then(|lf| {
             lf.as_str()
@@ -45,17 +45,17 @@ where
 
     // Modify logging behavior if Plain or Json output is desired
     if cli_input.is_json() {
-        _ = handle
+        handle
             .switch_to_json()
             .context(app::LoggingSnafu {})
             .context(crate::AppSnafu {})?;
     } else if cli_input.is_plain() {
-        _ = handle
+        handle
             .switch_to_plain()
             .context(app::LoggingSnafu {})
             .context(crate::AppSnafu {})?;
     } else if cli_input.is_test() {
-        _ = handle
+        handle
             .switch_to_test()
             .context(app::LoggingSnafu {})
             .context(crate::AppSnafu {})?;
