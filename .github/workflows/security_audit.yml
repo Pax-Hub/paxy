@@ -19,15 +19,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - linux
-          - windows
-          - apple
-        cpu_architecture:
-          # - i686
-          - x86_64
-          # - aarch64
-          # - riscv64gc
+        platform: [linux, windows, apple]
+        cpu_architecture: [x86_64]
         include:
           - platform: linux
             cicd_runner: ubuntu-latest
@@ -39,42 +32,14 @@ jobs:
             cpu_architecture: x86_64
             platform: linux
             toolchain: gnu
-          # - compilation_target: x86_64-unknown-linux-musl
-          #   cpu_architecture: x86_64
-          #   platform: linux
-          #   toolchain: musl
           - compilation_target: x86_64-pc-windows-msvc
             cpu_architecture: x86_64
             platform: windows
             toolchain: msvc
-          # - compilation_target: x86_64-pc-windows-gnu
-          #   cpu_architecture: x86_64
-          #   platform: windows
-          #   toolchain: gnu
           - compilation_target: x86_64-apple-darwin
             cpu_architecture: x86_64
             platform: apple
             toolchain: darwin
-          # - compilation_target: aarch64-unknown-linux-gnu
-          #   cpu_architecture: aarch64
-          #   platform: linux
-          #   toolchain: gnu  
-          # - compilation_target: aarch64-unknown-linux-musl
-          #   cpu_architecture: aarch64
-          #   platform: linux
-          #   toolchain: musl
-          # - compilation_target: aarch64-pc-windows-msvc
-          #   cpu_architecture: aarch64
-          #   platform: windows
-          #   toolchain: msvc
-          # - compilation_target: aarch64-apple-darwin
-          #   cpu_architecture: aarch64
-          #   platform: apple
-          #   toolchain: darwin
-          # - compilation_target: riscv64gc-unknown-linux-gnu
-          #   cpu_architecture: riscv64gc
-          #   platform: linux
-          #   toolchain: gnu
     permissions:
       contents: read
       issues: write
@@ -89,14 +54,15 @@ jobs:
         with:
           python-version: '3.11' 
           cache: 'pip'
-      - name: ↕️ Install dependencies
+      - name: ↕️ Install Dependencies Step
         id: dependencies_install_step
         run: |
           python -m pip install --upgrade pip
           pip install requests
+      - name: 🗂 Setup Cache Step
+        id: cache_setup_step
+        uses: Swatinem/rust-cache@v2
       - name: 🕵️‍♂️ Security Audit Step
         id: audit_step
         uses: actions-rust-lang/audit@v1
-      - name: 🗂 Setup Cache
-        id: cache_setup_step
-        uses: Swatinem/rust-cache@v2
+      

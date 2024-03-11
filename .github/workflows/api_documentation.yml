@@ -38,36 +38,36 @@ jobs:
       - name: 🎟 Checkout Git Repository Step
         id: repository_checkout_step
         uses: actions/checkout@v4
-      - name: ↕️ Install Ubuntu Dependencies
+      - name: ↕️ Install Ubuntu Dependencies Step
         id: dependencies_install_step
         if: ${{ matrix.cicd_runner == 'ubuntu-latest' }}
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: libgtk-4-dev
           version: 1.0
-      - name: 🧰 Install Rust Toolchain
+      - name: 🧰 Install Rust Toolchain Step
         id: toolchain_install_step
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
           targets: ${{ matrix.compilation_target }}          
           components: rustc, cargo
-      - name: 🔄 Install Cross-Compilation Tools
+      - name: 🔄 Install Cross-Compilation Tools Step
         id: cross_install_step
         if: ${{ matrix.cpu_architecture != 'x86_64' }}
         uses: taiki-e/setup-cross-toolchain-action@v1
         with:
           targets: ${{ matrix.compilation_target }}          
-      - name: 🗂 Setup Cache
+      - name: 🗂 Setup Cache Step
         id: cache_setup_step
         uses: Swatinem/rust-cache@v2
-      - name: 📜 Cargo Doc
+      - name: 📜 Cargo Doc Step
         id: cargo_doc_step
         env:
           RUSTDOCFLAGS: "--enable-index-page -Zunstable-options"
         run: |
           cargo doc --all-features --workspace --no-deps --document-private-items
-      - name: ⬆ Upload Docs Artifact
+      - name: ⬆ Upload Docs Artifact Step
         id: documentation_upload_step        
         uses: actions/upload-pages-artifact@v3
         with: 
@@ -86,7 +86,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment_step.outputs.page_url }}      
     steps:
-      - name: ✈ Deploy to GitHub Pages
+      - name: ✈ Deploy to GitHub Pages Step
         id: deployment_step
         uses: actions/deploy-pages@v4
           
