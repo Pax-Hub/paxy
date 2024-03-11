@@ -19,7 +19,7 @@ name: ✔ Validate Code Workflow
 
 jobs:
   code_validation_job:
-    name: ✔ Validate Code Job
+    name: ${{ matrix.job_name }}
     if: |
       !startsWith(github.event.head_commit.message, 'chore:')
       && !startsWith(github.event.head_commit.message, 'chore(')
@@ -61,6 +61,15 @@ jobs:
             cpu_architecture: aarch64
             platform: linux
             toolchain: gnu 
+          - task: fmt
+            job_name: 📑 Cargo Fmt Job
+          - task: clippy
+            job_name: 📎 Cargo Clippy Job
+          - task: check
+            job_name: ✅ Cargo Check Job
+          - task: test
+            job_name: 🧪 Cargo Test Job
+
     runs-on: ${{ matrix.cicd_runner }}
     steps:
       - name: 🎟 Checkout Git Repository Step
