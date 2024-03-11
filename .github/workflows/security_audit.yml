@@ -4,17 +4,78 @@ on:
       - '.github/workflows/security_audit.yml' # Run when this workflow changes
       - '**/Cargo.toml' # Run when dependencies change
       - '**/Cargo.lock' # Run when dependencies change
+  pull_request:
+    branches: [main]
   schedule:
     - cron: '0 0 * * *' # Run periodically to capture recent developments
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
-name: 🕵️‍♂️ Security Audit
+name: 🕵️‍♂️ Security Audit Workflow
 
 jobs:
-  audit:
+  audit_job:
     name: 🕵️‍♂️ Security Audit Job
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux
+          - windows
+          - apple
+        cpu_architecture:
+          # - i686
+          - x86_64
+          # - aarch64
+          # - riscv64gc
+        include:
+          - platform: linux
+            cicd_runner: ubuntu_latest
+          - platform: windows
+            cicd_runner: windows-latest
+          - platform: apple
+            cicd_runner: macos-latest
+          - compilation_target: x86_64-unknown-linux-gnu
+            cpu_architecture: x86_64
+            platform: linux
+            toolchain: gnu
+          # - compilation_target: x86_64-unknown-linux-musl
+          #   cpu_architecture: x86_64
+          #   platform: linux
+          #   toolchain: musl
+          - compilation_target: x86_64-pc-windows-msvc
+            cpu_architecture: x86_64
+            platform: windows
+            toolchain: msvc
+          # - compilation_target: x86_64-pc-windows-gnu
+          #   cpu_architecture: x86_64
+          #   platform: windows
+          #   toolchain: gnu
+          - compilation_target: x86_64-apple-darwin
+            cpu_architecture: x86_64
+            platform: apple
+            toolchain: darwin
+          # - compilation_target: aarch64-unknown-linux-gnu
+          #   cpu_architecture: aarch64
+          #   platform: linux
+          #   toolchain: gnu  
+          # - compilation_target: aarch64-unknown-linux-musl
+          #   cpu_architecture: aarch64
+          #   platform: linux
+          #   toolchain: musl
+          # - compilation_target: aarch64-pc-windows-msvc
+          #   cpu_architecture: aarch64
+          #   platform: windows
+          #   toolchain: msvc
+          # - compilation_target: aarch64-apple-darwin
+          #   cpu_architecture: aarch64
+          #   platform: apple
+          #   toolchain: darwin
+          # - compilation_target: riscv64gc-unknown-linux-gnu
+          #   cpu_architecture: riscv64gc
+          #   platform: linux
+          #   toolchain: gnu
+    runs-on: ${{ matrix.cicd_runner }}
     steps:
       - name: 🎟 Checkout Git Repository Step
         id: repository_checkout_step

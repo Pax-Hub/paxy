@@ -9,8 +9,8 @@ on:
         required: false
         type: string
       release_type:
-        description: 'The release type - Stable or Unstable. The stable release uses the source from the latest git tag whereas the unstable release uses the source from the latest git commit.'
-        default: 'Stable'
+        description: 'The release type - stable or unstable. The stable release uses the source from the latest git tag whereas the unstable release uses the source from the latest git commit.'
+        default: 'stable'
         required: false
         type: string
   workflow_call: # Run when called by another workflow
@@ -21,8 +21,8 @@ on:
         required: false
         type: string
       release_type:
-        description: 'The release type - Stable or Unstable. The stable release uses the source from the latest git tag whereas the unstable release uses the source from the latest git commit.'
-        default: 'Stable'
+        description: 'The release type - stable or unstable. The stable release uses the source from the latest git tag whereas the unstable release uses the source from the latest git commit.'
+        default: 'stable'
         required: false
         type: string
 
@@ -45,24 +45,21 @@ jobs:
           - x86_64
           # - arm
         include:
-          - os: archlinux
+          - platform: archlinux
             architecture: x86_64
             compilation_target: x86_64-unknown-linux-gnu
-            docker_image: archlinux:latest
-            runner: ubuntu-latest
-          # - os: archlinux
-          #   architecture: arm
-          #   compilation_target: aarch64-unknown-linux-gnu
-          #   docker_image: archlinux:latest
-          #   runner: ubuntu-latest
-    runs-on: ubuntu-latest
+            container_image: archlinux:latest
+            github_runner: ubuntu-latest
+          # TODO: Add information for other platforms
+    runs-on: ${{ matrix.github_runner }}
     container: 
-      image: archlinux:latest
+      image: ${{ matrix.container_image }}
       ports:
         - 80
     steps:
-      - name: 🐋 Initialize Arch Linux Docker Container 
-        id: docker_init_step           
+      - name: 🐋 Initialize Arch Linux Container 
+        id: container_init_step
+        if: ${{ matrix.platform=='archlinux' }}
         run: |
           # pacman-key --init
           pacman -Sy --noconfirm base-devel git # Install essential dependencies
@@ -73,7 +70,8 @@ jobs:
         id: repository_checkout_step
         uses: actions/checkout@v4
       - name: 🛠 Build Package
-        id: package_build_step        
+        id: package_build_step     
+        if: ${{ matrix.platform=='archlinux' }}   
         run: |
           chown -R build_user packaging
           chmod -R +x packaging
