@@ -21,229 +21,84 @@ jobs:
   code_validation_job:
     name: ✔ Validate Code Job
     if: |
-      !startsWith(github.event.head_commit.message, 'ci:')
-      && !startsWith(github.event.head_commit.message, 'ci(')
-    runs-on: ubuntu-latest
+      !startsWith(github.event.head_commit.message, 'chore:')
+      && !startsWith(github.event.head_commit.message, 'chore(')
+    strategy:
+      fail-fast: true
+      matrix:
+        platform:
+          - linux
+          - windows
+          - apple
+        cpu_architecture:
+          - x86_64
+          - aarch64
+        task:
+          - fmt
+          - clippy
+          - check
+          - test
+        include:
+          - platform: linux
+            cicd_runner: ubuntu-latest
+          - platform: windows
+            cicd_runner: windows-latest
+          - platform: apple
+            cicd_runner: macos-latest
+          - compilation_target: x86_64-unknown-linux-gnu
+            cpu_architecture: x86_64
+            platform: linux
+            toolchain: gnu
+          - compilation_target: x86_64-pc-windows-msvc
+            cpu_architecture: x86_64
+            platform: windows
+            toolchain: msvc
+          - compilation_target: x86_64-apple-darwin
+            cpu_architecture: x86_64
+            platform: apple
+            toolchain: darwin
+          - compilation_target: aarch64-unknown-linux-gnu
+            cpu_architecture: aarch64
+            platform: linux
+            toolchain: gnu 
+          - task: fmt
+            command: cargo fmt --verbose -- --check
+          - task: clippy
+            command: cargo clippy --workspace --target ${{ matrix.target }} -- -D warnings
+    runs-on: ${{ matrix.cicd_runner }}
     steps:
       - name: 🎟 Checkout Git Repository Step
         id: repository_checkout_step
         uses: actions/checkout@v4
       - name: 🧰 Install Rust Toolchain Step
         id: toolchain_install_step
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: rustfmt
-      - name: 🗂 Setup Cargo Cache Step
+          toolchain: nightly
+          targets: ${{ matrix.compilation_target }}          
+          components: rustc, cargo
+      - name: 🔄 Install Cross-Compilation Tools Step
+        id: cross_install_step
+        if: ${{ matrix.cpu_architecture != 'x86_64' }}
+        uses: taiki-e/setup-cross-toolchain-action@v1
+        with:
+          targets: ${{ matrix.compilation_target }}          
+      - name: 🗂 Setup Cache Step
         id: cache_setup_step
-        uses: actions/cache@v4
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-      - name: 📑 Cargo Fmt
+        uses: Swatinem/rust-cache@v2
+      - name: 📑 Cargo Fmt Step
         id: cargo_fmt_step
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --verbose -- --check
-
-  clippy:
-    name: 📎 Clippy Job
-    if: |
-      !startsWith(github.event.head_commit.message, 'ci:')
-      && !startsWith(github.event.head_commit.message, 'ci(')
-      && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-pc-windows-msvc
-          - x86_64-apple-darwin
-          - aarch64-unknown-linux-gnu
-          # - aarch64-apple-darwin
-        include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-          # - target: aarch64-apple-darwin
-          #   os: macos-latest          
-    continue-on-error: true
-    runs-on: ${{ matrix.os }}
-    env:
-      IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
-    steps:
-      - name: 🎟 Checkout Git Repository Step
-        id: repository_checkout_step
-        uses: actions/checkout@v4
-      - name: 🧰 Install Rust Toolchain
-        id: toolchain_install_step
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: clippy
-      - name: 🗂 Setup Cargo Cache Step
-        id: cache_setup_step
-        uses: actions/cache@v4
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-      - name: 📎 Clippy
-        id: clippy_step
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          use-cross: ${{ env.IS_CROSS }}
-          args: --workspace --target ${{ matrix.target }} -- -D warnings
-
-  check:
-    name: ✅ Check Job
-    if: |
-      !startsWith(github.event.head_commit.message, 'ci:')
-      && !startsWith(github.event.head_commit.message, 'ci(')
-      && !startsWith(github.event.head_commit.message, 'docs:')
-      && !startsWith(github.event.head_commit.message, 'docs(')
-      && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-pc-windows-msvc
-          - x86_64-apple-darwin
-          - aarch64-unknown-linux-gnu
-          # - aarch64-apple-darwin
-        include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-          # - target: aarch64-apple-darwin
-          #   os: macos-latest             
-    runs-on: ${{ matrix.os }}
-    env:
-      IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
-    steps:
-      - name: 🎟 Checkout Git Repository Step
-        id: repository_checkout_step
-        uses: actions/checkout@v4
-      - name: 🧰 Install Rust Toolchain Step
-        id: toolchain_install_step
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: ${{ matrix.target }}
-      - name: 🗂 Setup Cargo Cache Step
-        id: cache_setup_step
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+        if: ${{ matrix.task == 'fmt' }}
+        run: cargo fmt --verbose -- --check
+      - name: 📎 Cargo Clippy Step
+        id: cargo_clippy_step
+        if: ${{ matrix.task == 'clippy' }}
+        run: cargo clippy --workspace --target ${{ matrix.compilation_target }} -- -D warnings
       - name: ✅ Cargo Check Step
         id: cargo_check_step
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          use-cross: ${{ env.IS_CROSS }}
-          args: --workspace --target ${{ matrix.target }}
-
-  test:
-    name: 🧪 Test
-    if: |
-      !startsWith(github.event.head_commit.message, 'ci:')
-      && !startsWith(github.event.head_commit.message, 'ci(')
-      && !startsWith(github.event.head_commit.message, 'docs:')
-      && !startsWith(github.event.head_commit.message, 'docs(')
-      && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-pc-windows-msvc
-          - x86_64-apple-darwin
-          - aarch64-unknown-linux-gnu
-          # - aarch64-apple-darwin
-        include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-          # - target: aarch64-apple-darwin
-          #   os: macos-latest           
-    runs-on: ${{ matrix.os }}
-    env:
-      IS_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
-    steps:
-      - name: 🎟 Checkout Git Repository
-        id: checkout_repository_step
-        uses: actions/checkout@v2
-      - name: 🧰 Install Rust Toolchain
-        id: toolchain_install_step
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: ${{ matrix.target }}
-      - name: 🗂 Setup Cargo Cache Step
-        id: cache_setup_step
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-      - name: 🧪 Cargo Test
+        if: ${{ matrix.task == 'check' }}
+        run: cargo check --workspace --target ${{ matrix.compilation_target }}
+      - name: 🧪 Cargo Test Step
         id: cargo_test_step
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          use-cross: ${{ env.IS_CROSS }}
-          args: --workspace --target ${{ matrix.target }}
+        if: ${{ matrix.task == 'test' }}
+        run: cargo test --workspace --target ${{ matrix.compilation_target }}
