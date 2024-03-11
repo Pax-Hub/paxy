@@ -74,7 +74,7 @@ jobs:
             rust_toolchain_components: cargo, clippy
           - task: check
             job_name: ✅ Cargo Check Job
-            rust_toolchain_components: cargo, rustc, rust-stdcargo 
+            rust_toolchain_components: cargo, rustc, rust-std
           - task: test
             job_name: 🧪 Cargo Test Job
             rust_toolchain_components: cargo, rustc, rust-std
