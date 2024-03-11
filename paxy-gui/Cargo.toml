@@ -35,5 +35,6 @@ owo-colors = { workspace = true }
 console = { workspace = true }
 
 # GUI
+[target.'cfg(target_os = "linux")'.dependencies]
 relm4 = { workspace = true }
 relm4-components = { workspace = true }
