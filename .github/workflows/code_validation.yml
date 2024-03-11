@@ -99,6 +99,13 @@ jobs:
       - name: 🗂 Setup Cache Step
         id: cache_setup_step
         uses: Swatinem/rust-cache@v2
+      - name: ↕️ Install Ubuntu Dependencies Step
+        id: dependencies_install_step
+        if: ${{ matrix.cicd_runner == 'ubuntu-latest' }}
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgtk-4-dev
+          version: 1.0
       - name: 📑 Cargo Fmt Step
         id: cargo_fmt_step
         if: ${{ matrix.task == 'fmt' }}
