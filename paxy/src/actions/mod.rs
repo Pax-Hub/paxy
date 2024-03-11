@@ -45,11 +45,17 @@ pub mod update;
 
 // region: RE-EXPORTS
 
+#[allow(unused_imports)]
 pub use downgrade::*;
+#[allow(unused_imports)]
 pub use install::*;
+#[allow(unused_imports)]
 pub use list::*;
+#[allow(unused_imports)]
 pub use search::*;
+#[allow(unused_imports)]
 pub use uninstall::*;
+#[allow(unused_imports)]
 pub use update::*;
 
 // endregion: RE-EXPORTS

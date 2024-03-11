@@ -311,6 +311,7 @@ mod cli_template {
 
 // region: RE-EXPORTS
 
+#[allow(unused_imports)]
 pub use cli_template::*;
 
 // endregion: RE-EXPORTS

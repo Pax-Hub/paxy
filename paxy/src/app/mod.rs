@@ -28,9 +28,6 @@ pub enum Error {
 }
 
 // region: IMPORTS
-
-use std::{iter, path::Path};
-
 use lazy_static::lazy_static;
 use snafu::Snafu;
 
@@ -46,8 +43,11 @@ pub mod logging;
 
 // region: RE-EXPORTS
 
+#[allow(unused_imports)]
 pub use config::*;
+#[allow(unused_imports)]
 pub use i18n::*;
+#[allow(unused_imports)]
 pub use logging::*;
 
 // endregion: RE-EXPORTS
