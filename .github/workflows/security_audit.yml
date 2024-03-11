@@ -75,11 +75,25 @@ jobs:
           #   cpu_architecture: riscv64gc
           #   platform: linux
           #   toolchain: gnu
+    permissions:
+      contents: read
+      issues: write
     runs-on: ${{ matrix.cicd_runner }}
     steps:
       - name: 🎟 Checkout Git Repository Step
         id: repository_checkout_step
         uses: actions/checkout@v4
+      - name: 🐍 Setup Python Step
+        id: python_setup_step
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' 
+          cache: 'pip'
+      - name: ↕️ Install dependencies
+        id: dependencies_install_step
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
       - name: 🕵️‍♂️ Security Audit Step
         id: audit_step
         uses: actions-rust-lang/audit@v1
