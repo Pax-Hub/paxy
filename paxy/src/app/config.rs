@@ -15,6 +15,18 @@ pub fn init_config() -> Result<(Config, Vec<PathBuf>), Error> {
         ),
     ];
 
+    #[cfg(any(target_os = "windows", target_os = "macos"))]
+    let candidate_config_filepath_stubs = [
+        format!(
+            "{}/{}",
+            xdg_app_dirs
+                .config_dir()
+                .to_string_lossy(),
+            *app::APP_NAME
+        ),
+    ];
+
+
     let mut figment = Figment::from(Config::default());
 
     figment = candidate_config_filepath_stubs
