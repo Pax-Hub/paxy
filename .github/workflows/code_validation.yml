@@ -50,22 +50,26 @@ jobs:
             cicd_runner: windows-latest
           - platform: apple
             cicd_runner: macos-latest
+          - command_base: cross
           - compilation_target: x86_64-unknown-linux-gnu
             cpu_architecture: x86_64
             platform: linux
             toolchain: gnu
+            command_base: cargo
           - compilation_target: x86_64-pc-windows-msvc
             cpu_architecture: x86_64
             platform: windows
             toolchain: msvc
+            command_base: cargo
           - compilation_target: x86_64-apple-darwin
             cpu_architecture: x86_64
             platform: apple
             toolchain: darwin
+            command_base: cargo
           - compilation_target: aarch64-unknown-linux-gnu
             cpu_architecture: aarch64
             platform: linux
-            toolchain: gnu 
+            toolchain: gnu         
           - task: fmt
             job_name: 📑 Cargo Fmt Job
             rust_toolchain_components: cargo, rustfmt
@@ -79,8 +83,6 @@ jobs:
             job_name: 🧪 Cargo Test Job
             rust_toolchain_components: cargo, rustc, rust-std
     runs-on: ${{ matrix.cicd_runner }}
-    env:
-      PKG_CONFIG_SYSROOT_DIR: '/'
     steps:
       - name: 🎟 Checkout Git Repository Step
         id: repository_checkout_step
@@ -94,10 +96,8 @@ jobs:
           components: ${{ matrix.rust_toolchain_components }}
       - name: 🔄 Install Cross-Compilation Tools Step
         id: cross_install_step
-        if: ${{ matrix.cpu_architecture != 'x86_64' }}
-        uses: taiki-e/setup-cross-toolchain-action@v1
-        with:
-          target: ${{ matrix.compilation_target }}          
+        if: ${{ matrix.command_base == 'cross' }}
+        uses: taiki-e/install-action@cross        
       - name: 🗂 Setup Cache Step
         id: cache_setup_step
         uses: Swatinem/rust-cache@v2
@@ -108,19 +108,19 @@ jobs:
         with:
           packages: libssl-dev openssl libgtk-4-dev
           version: 1.0
-      - name: 📑 Cargo Fmt Step
-        id: cargo_fmt_step
+      - name: 📑 Fmt Step
+        id: fmt_step
         if: ${{ matrix.task == 'fmt' }}
         run: cargo fmt --verbose -- --check
-      - name: 📎 Cargo Clippy Step
-        id: cargo_clippy_step
+      - name: 📎 Clippy Step
+        id: clippy_step
         if: ${{ matrix.task == 'clippy' }}
-        run: cargo clippy --workspace --target ${{ matrix.compilation_target }} -- -D warnings
-      - name: ✅ Cargo Check Step
-        id: cargo_check_step
+        run: ${{ matrix.command_base }} clippy --workspace --target ${{ matrix.compilation_target }} -- -D warnings
+      - name: ✅ Check Step
+        id: check_step
         if: ${{ matrix.task == 'check' }}
-        run: cargo check --workspace --target ${{ matrix.compilation_target }}
-      - name: 🧪 Cargo Test Step
+        run: ${{ matrix.command_base }} check --workspace --target ${{ matrix.compilation_target }}
+      - name: 🧪 Test Step
         id: cargo_test_step
         if: ${{ matrix.task == 'test' }}
-        run: cargo test --workspace --target ${{ matrix.compilation_target }}
+        run: ${{ matrix.command_base }} test --workspace --target ${{ matrix.compilation_target }}
