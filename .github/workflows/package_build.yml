@@ -1,5 +1,3 @@
-name: 📦🏗 Build Package(s)
-
 on:
   workflow_dispatch: # Run when manually triggered
     inputs:
@@ -26,31 +24,62 @@ on:
         required: false
         type: string
 
-run-name: ${{ inputs.release_type }} Package Build triggered by ${{ github.actor }} on branch ${{ inputs.branch }} 
+name: 📦🏗 Package Build Workflow
+
+run-name: \"${{ inputs.release_type }}\" build triggered by ${{ github.actor }} on branch ${{ inputs.branch }} 
 
 jobs:
-  package_build_job:
-    name: 📦🏗 Build Package
+  cargo_build_job:
+    name: 🏗 Build Job
     strategy:
       matrix:
-        platform: 
-          - archlinux
-          # - debian
-          # - fedora
-          # - opensuse
-          # - windows
-          # - macos
-          # - flatpak
-        architecture:
+        platform:
+          - linux
+          - windows
+          - apple
+        cpu_architecture:
           - x86_64
-          # - arm
+          - aarch64
+        task:
+          - fmt
+          - clippy
+          - check
+          - test
+        exclude:
+          - platform: windows
+            cpu_architecture: aarch64
+          - platform: apple
+            cpu_architecture: aarch64
         include:
-          - platform: archlinux
-            architecture: x86_64
-            compilation_target: x86_64-unknown-linux-gnu
-            container_image: archlinux:latest
-            github_runner: ubuntu-latest
-          # TODO: Add information for other platforms
+          - platform: linux
+            cicd_runner: ubuntu-latest
+          - platform: windows
+            cicd_runner: windows-latest
+          - platform: apple
+            cicd_runner: macos-latest
+          - command_base: cross
+          - compilation_target: x86_64-unknown-linux-gnu
+            cpu_architecture: x86_64
+            platform: linux
+            toolchain: gnu
+            command_base: cargo
+          - compilation_target: x86_64-pc-windows-msvc
+            cpu_architecture: x86_64
+            platform: windows
+            toolchain: msvc
+            command_base: cargo
+          - compilation_target: x86_64-apple-darwin
+            cpu_architecture: x86_64
+            platform: apple
+            toolchain: darwin
+            command_base: cargo
+          - compilation_target: aarch64-unknown-linux-gnu
+            cpu_architecture: aarch64
+            platform: linux
+            toolchain: gnu         
+          - task: build
+            job_name: 📑 Build Job
+            rust_toolchain_components: cargo, rustc, rust-std, 
     runs-on: ${{ matrix.github_runner }}
     container: 
       image: ${{ matrix.container_image }}
