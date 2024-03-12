@@ -102,11 +102,11 @@ jobs:
         id: cache_setup_step
         uses: Swatinem/rust-cache@v2
       - name: ↕️ Install Ubuntu Dependencies Step
-        id: dependencies_install_step
-        if: ${{ matrix.cicd_runner == 'ubuntu-latest' }}
+        id: ubuntu_dependencies_install_step
+        if: ${{ matrix.cicd_runner == 'ubuntu-latest' && command_base == 'cargo' }}
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: libssl-dev openssl libgtk-4-dev
+          packages: build-essential libssl-dev libgtk-4-dev
           version: 1.0
       - name: 📑 Fmt Step
         id: fmt_step

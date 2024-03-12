@@ -35,6 +35,7 @@ owo-colors = { workspace = true }
 console = { workspace = true }
 
 # GUI
+# TODO: install dependencies for Windows and MacOS in the CI before removing the below filter restricting relm4 to Linux
 [target.'cfg(target_os = "linux")'.dependencies]
 relm4 = { workspace = true }
 relm4-components = { workspace = true }
