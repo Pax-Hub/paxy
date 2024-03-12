@@ -97,7 +97,9 @@ jobs:
       - name: 🔄 Install Cross-Compilation Tools Step
         id: cross_install_step
         if: ${{ matrix.command_base == 'cross' }}
-        uses: taiki-e/install-action@cross        
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross   
       - name: 🗂 Setup Cache Step
         id: cache_setup_step
         uses: Swatinem/rust-cache@v2
