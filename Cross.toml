@@ -1,5 +1,5 @@
 [target.aarch64-unknown-linux-gnu]
-image = "ghcr.io/cross-rs/$TARGET:main"
+image = "ghcr.io/cross-rs/aarch64:main"
 # Install libssl-dev:arm64, see <https://github.com/cross-rs/cross/blob/main/docs/custom_images.md#adding-dependencies-to-existing-images>
 pre-build = [
     "dpkg --add-architecture $CROSS_DEB_ARCH", 
