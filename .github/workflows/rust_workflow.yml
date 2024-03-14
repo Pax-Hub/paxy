@@ -10,7 +10,10 @@ jobs:
   test1:
     runs-on: ubuntu-latest
     steps:
-      - name: test1
+      - name: test
+        run: |
+          apt-get update && apt-get --assume-yes install libssl-dev libgtk-4-dev
+      - name: test2
         uses: pax-hub/rust-github-action@main
         with:
           rust_release_channel: nightly
