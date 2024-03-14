@@ -1,0 +1,21 @@
+name: Test
+
+on:
+  workflow_dispatch: # Run when manually triggered
+  workflow_call: # Run when called by another workflow
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test1
+        uses: paxy-hub/rust-github-action@main
+        with:
+          rust_release_channel: nightly
+          compilation_taget: x86_64-unknown-linux-gnu
+          command: test
+          arguments: '--workspace'
+          use_cross: false
+
+
+
