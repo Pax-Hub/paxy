@@ -8,11 +8,11 @@ on:
 
 jobs:
   test1:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
-      - name: test
-        run: |
-          sudo apt-get update && sudo apt-get --assume-yes install libssl-dev libgtk-4-dev
+      # - name: test1
+      #   run: |
+      #     sudo apt-get update && sudo apt-get --assume-yes install libssl-dev libgtk-4-dev
       - name: test2
         uses: pax-hub/rust-github-action@main
         with:
