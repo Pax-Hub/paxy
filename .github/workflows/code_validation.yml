@@ -19,7 +19,7 @@ name: ✔ Validate Code Workflow
 
 jobs:
   code_validation_job:
-    name: ${{ matrix.step_name }}
+    name: ${{ matrix.job_name }}
     if: |
       !startsWith(github.event.head_commit.message, 'chore:')
       && !startsWith(github.event.head_commit.message, 'chore(')
@@ -71,16 +71,16 @@ jobs:
             platform: linux
             toolchain: gnu         
           - subcommand: fmt
-            step_name: 📑 Cargo Fmt Job
+            job_name: 📑 Cargo Fmt Job
             arguments: '--verbose -- --check'
           - subcommand: clippy
-            step_name: 📎 Cargo Clippy Job
+            job_name: 📎 Cargo Clippy Job
             arguments: '--workspace -- -D warnings'
           - subcommand: check
-            step_name: ✅ Cargo Check Job
+            job_name: ✅ Cargo Check Job
             arguments: '--workspace'
           - subcommand: test
-            step_name: 🧪 Cargo Test Job
+            job_name: 🧪 Cargo Test Job
             arguments: '--workspace'
     runs-on: ${{ matrix.cicd_runner }}
     steps:
@@ -91,7 +91,7 @@ jobs:
         with:
           packages: libgtk-4-dev
           version: 1.0
-      - name: ${{ matrix.step_name }}
+      - name: ${{ matrix.job_name }}
         id: task_step
         uses: pax-hub/rust-github-action@main
         with:
