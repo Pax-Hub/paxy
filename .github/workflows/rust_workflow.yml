@@ -21,6 +21,7 @@ jobs:
           command: run
           arguments: '--all-features --bin paxy-cli -- -vvv --debug --test'
           use_cross: false
+      - name: test4
         run: |
           echo "Hello World"
 
