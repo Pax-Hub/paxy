@@ -1,3 +1,5 @@
+name: 📜 API Documentation Workflow
+
 on:
   push:
     paths:
@@ -6,8 +8,6 @@ on:
     branches: [main]
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
-
-name: 📜 API Documentation Workflow
 
 jobs:
   build_documentation_job:
@@ -31,46 +31,32 @@ jobs:
             toolchain: gnu
     runs-on: ${{ matrix.cicd_runner }}
     steps:
-      - name: 🎟 Checkout Git Repository Step
-        id: repository_checkout_step
-        uses: actions/checkout@v4
       - name: ↕️ Install Ubuntu Dependencies Step
         id: dependencies_install_step
-        if: ${{ matrix.cicd_runner == 'ubuntu-latest' }}
+        if: ${{ matrix.compilation_target == 'x86_64-unknown-linux-gnu' }}
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: libgtk-4-dev
           version: 1.0
-      - name: 🧰 Install Rust Toolchain Step
-        id: toolchain_install_step
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly
-          targets: ${{ matrix.compilation_target }}          
-          components: rustc, cargo
-      - name: 🔄 Install Cross-Compilation Tools Step
-        id: cross_install_step
-        if: ${{ matrix.cpu_architecture != 'x86_64' }}
-        uses: taiki-e/setup-cross-toolchain-action@v1
-        with:
-          targets: ${{ matrix.compilation_target }}          
-      - name: 🗂 Setup Cache Step
-        id: cache_setup_step
-        uses: Swatinem/rust-cache@v2
-      - name: 📜 Cargo Doc Step
-        id: cargo_doc_step
+      - name: 📜 Build Documentation Step
+        id: documentation_build_step
+        uses: pax-hub/rust-github-action@main
         env:
           RUSTDOCFLAGS: "--enable-index-page -Zunstable-options"
-        run: |
-          cargo doc --all-features --workspace --no-deps --document-private-items
-      - name: ⬆ Upload Docs Artifact Step
+        with:
+          subcommand: doc
+          arguments: '--all-features --workspace --no-deps --document-private-items'
+          rust_release_channel: nightly
+          use_cross: false
+          compilation_target: ${{ matrix.compilation_target }}       
+      - name: ⬆ Upload Documentation Step
         id: documentation_upload_step        
         uses: actions/upload-pages-artifact@v3
         with: 
           path: target/doc
   publish_documentation_job:
     name: ✈ Publish Documentation Job
-    if: github.ref == 'refs/heads/main'   
+    if: github.ref == 'refs/heads/main' # Publish only while dealing with the main branch
     needs: build_documentation_job
     runs-on: ubuntu-latest
     permissions:

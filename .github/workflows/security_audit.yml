@@ -1,3 +1,5 @@
+name: 🕵️‍♂️ Security Audit Workflow
+
 on:
   push:
     paths:
@@ -15,40 +17,30 @@ on:
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
-name: 🕵️‍♂️ Security Audit Workflow
-
 jobs:
   audit_job:
     name: 🕵️‍♂️ Security Audit Job
+    # Ignore commits that just change the style of the code or just make miscellaneous changes.
     if: |
       !startsWith(github.event.head_commit.message, 'style:')
       && !startsWith(github.event.head_commit.message, 'style(')
       && !startsWith(github.event.head_commit.message, 'chore:')
       && !startsWith(github.event.head_commit.message, 'chore(')
     strategy:
-      fail-fast: false
+      fail-fast: false # We want all permutations to run because we want to discover all security vulnerabilities
       matrix:
         platform: [linux, windows, apple]
         cpu_architecture: [x86_64]
         include:
           - platform: linux
+            cpu_architecture: x86_64
             cicd_runner: ubuntu-latest
           - platform: windows
+            cpu_architecture: x86_64
             cicd_runner: windows-latest
           - platform: apple
+            cpu_architecture: x86_64
             cicd_runner: macos-latest
-          - compilation_target: x86_64-unknown-linux-gnu
-            cpu_architecture: x86_64
-            platform: linux
-            toolchain: gnu
-          - compilation_target: x86_64-pc-windows-msvc
-            cpu_architecture: x86_64
-            platform: windows
-            toolchain: msvc
-          - compilation_target: x86_64-apple-darwin
-            cpu_architecture: x86_64
-            platform: apple
-            toolchain: darwin
     permissions:
       contents: read
       issues: write
@@ -57,7 +49,7 @@ jobs:
       - name: 🎟 Checkout Git Repository Step
         id: repository_checkout_step
         uses: actions/checkout@v4
-      - name: 🐍 Setup Python Step
+      - name: 💿🐍 Setup Python Step
         id: python_setup_step
         uses: actions/setup-python@v5
         with:

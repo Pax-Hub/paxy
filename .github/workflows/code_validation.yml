@@ -19,7 +19,7 @@ name: ✔ Validate Code Workflow
 
 jobs:
   code_validation_job:
-    name: ${{ matrix.job_name }}
+    name: ${{ matrix.step_name }}
     if: |
       !startsWith(github.event.head_commit.message, 'chore:')
       && !startsWith(github.event.head_commit.message, 'chore(')
@@ -33,7 +33,7 @@ jobs:
         cpu_architecture:
           - x86_64
           - aarch64
-        task:
+        subcommand:
           - fmt
           - clippy
           - check
@@ -50,79 +50,53 @@ jobs:
             cicd_runner: windows-latest
           - platform: apple
             cicd_runner: macos-latest
-          - command_base: cross
+          - use_cross: true
           - compilation_target: x86_64-unknown-linux-gnu
             cpu_architecture: x86_64
             platform: linux
             toolchain: gnu
-            command_base: cargo
+            use_cross: false
           - compilation_target: x86_64-pc-windows-msvc
             cpu_architecture: x86_64
             platform: windows
             toolchain: msvc
-            command_base: cargo
+            use_cross: false
           - compilation_target: x86_64-apple-darwin
             cpu_architecture: x86_64
             platform: apple
             toolchain: darwin
-            command_base: cargo
+            use_cross: false
           - compilation_target: aarch64-unknown-linux-gnu
             cpu_architecture: aarch64
             platform: linux
             toolchain: gnu         
-          - task: fmt
-            job_name: 📑 Cargo Fmt Job
-            rust_toolchain_components: cargo, rustfmt
-          - task: clippy
-            job_name: 📎 Cargo Clippy Job
-            rust_toolchain_components: cargo, clippy
-          - task: check
-            job_name: ✅ Cargo Check Job
-            rust_toolchain_components: cargo, rustc, rust-std
-          - task: test
-            job_name: 🧪 Cargo Test Job
-            rust_toolchain_components: cargo, rustc, rust-std
+          - subcommand: fmt
+            step_name: 📑 Cargo Fmt Job
+            arguments: '--verbose -- --check'
+          - subcommand: clippy
+            step_name: 📎 Cargo Clippy Job
+            arguments: '--workspace -- -D warnings'
+          - subcommand: check
+            step_name: ✅ Cargo Check Job
+            arguments: '--workspace'
+          - subcommand: test
+            step_name: 🧪 Cargo Test Job
+            arguments: '--workspace'
     runs-on: ${{ matrix.cicd_runner }}
     steps:
-      - name: 🎟 Checkout Git Repository Step
-        id: repository_checkout_step
-        uses: actions/checkout@v4
-      - name: 🧰 Install Rust Toolchain Step
-        id: toolchain_install_step
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly
-          targets: ${{ matrix.compilation_target }}          
-          components: ${{ matrix.rust_toolchain_components }}
-      - name: 🔄 Install Cross-Compilation Tools Step
-        id: cross_install_step
-        if: ${{ matrix.command_base == 'cross' }}
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cross   
-      - name: 🗂 Setup Cache Step
-        id: cache_setup_step
-        uses: Swatinem/rust-cache@v2
       - name: ↕️ Install Ubuntu Dependencies Step
-        id: ubuntu_dependencies_install_step
-        if: ${{ matrix.cicd_runner == 'ubuntu-latest' && matrix.command_base == 'cargo' }}
+        id: dependencies_install_step
+        if: ${{ matrix.compilation_target == 'x86_64-unknown-linux-gnu' }}
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: build-essential libssl-dev libgtk-4-dev
+          packages: libgtk-4-dev
           version: 1.0
-      - name: 📑 Fmt Step
-        id: fmt_step
-        if: ${{ matrix.task == 'fmt' }}
-        run: cargo fmt --verbose -- --check
-      - name: 📎 Clippy Step
-        id: clippy_step
-        if: ${{ matrix.task == 'clippy' }}
-        run: ${{ matrix.command_base }} clippy --workspace --target ${{ matrix.compilation_target }} -- -D warnings
-      - name: ✅ Check Step
-        id: check_step
-        if: ${{ matrix.task == 'check' }}
-        run: ${{ matrix.command_base }} check --workspace --target ${{ matrix.compilation_target }}
-      - name: 🧪 Test Step
-        id: cargo_test_step
-        if: ${{ matrix.task == 'test' }}
-        run: ${{ matrix.command_base }} test --workspace --target ${{ matrix.compilation_target }}
+      - name: ${{ matrix.step_name }}
+        id: task_step
+        uses: pax-hub/rust-github-action@main
+        with:
+          subcommand: ${{ matrix.subcommand }}
+          arguments: ${{ matrix.arguments }}
+          rust_release_channel: nightly
+          use_cross: ${{ matrix.use_cross }}
+          compilation_target: ${{ matrix.compilation_target }}

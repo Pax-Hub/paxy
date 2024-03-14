@@ -1,3 +1,5 @@
+name: 🔎 Code Test Coverage Workflow
+
 on:
   push:
     paths:
@@ -11,8 +13,6 @@ on:
     branches: [main]
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
-
-name: 🔎 Code Test Coverage Workflow
 
 jobs:
   coverage_job:
@@ -51,28 +51,17 @@ jobs:
       && !startsWith(github.event.head_commit.message, 'chore:')
       && !startsWith(github.event.head_commit.message, 'chore(')              
     steps:
-      - name: 🎟 Checkout Git Repository Step
-        id: repository_checkout_step
-        uses: actions/checkout@v4
-      - name: 🧰 Install Rust Toolchain Step
-        id: toolchain_install_step
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly
-          targets: ${{ matrix.compilation_target }}          
-          components: rustc, cargo
-      - name: 🔄 Install Cross-Compilation Tools Step
-        id: cross_install_step
-        if: ${{ matrix.cpu_architecture != 'x86_64' }}
-        uses: taiki-e/setup-cross-toolchain-action@v1
-        with:
-          targets: ${{ matrix.compilation_target }}          
-      - name: 🗂 Setup Cache Step
-        id: cache_setup_step
-        uses: Swatinem/rust-cache@v2
       - name: 🔎 Generate Code Coverage Step
         id: coverage_generation_step
-        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+        uses: pax-hub/rust-github-action@main
+        env:
+          RUSTDOCFLAGS: "--enable-index-page -Zunstable-options"
+        with:
+          subcommand: llvm-cov
+          arguments: '--all-features --workspace --lcov --output-path lcov.info'
+          rust_release_channel: nightly
+          use_cross: false
+          compilation_target: ${{ matrix.compilation_target }}  
       - name: 📊 Upload coverage to Codecov Step
         id: coverage_upload_step
         uses: codecov/codecov-action@v3
