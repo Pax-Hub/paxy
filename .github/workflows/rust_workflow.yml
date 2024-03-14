@@ -1,11 +1,11 @@
-name: Test
+name: Test1
 
 on:
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
 jobs:
-  test:
+  test1:
     runs-on: ubuntu-latest
     steps:
       - name: test1
