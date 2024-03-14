@@ -1,6 +1,8 @@
 name: Test1
 
 on:
+  push:
+    branches: [ci/dev]
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
