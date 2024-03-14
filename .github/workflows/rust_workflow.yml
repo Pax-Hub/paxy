@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: test1
-        uses: paxy-hub/rust-github-action@main
+        uses: pax-hub/rust-github-action@main
         with:
           rust_release_channel: nightly
           compilation_taget: x86_64-unknown-linux-gnu
