@@ -1,9 +1,10 @@
-use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, create_dir_all, File},
     io::Write,
     path::PathBuf,
 };
+
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 #[derive(Serialize, Deserialize)]
@@ -32,7 +33,8 @@ impl Default for Config {
             repositories: Some(vec![
                 Url::parse("https://github.com/Pax-Hub/Packages.git").unwrap()
             ]),
-            user_install_location: user.clone(), // Not harmful since the value is dropped in the very next line
+            user_install_location: user.clone(), /* Not harmful since the value is dropped in the
+                                                  * very next line */
             system_install_location: system,
             default_install_type: InstallType::default(),
         };
@@ -45,8 +47,12 @@ impl Default for Config {
             }
             if !user.is_file() {
                 let mut file = File::create(user).unwrap();
-                file.write_all(toml::to_string(&conf).unwrap().as_bytes())
-                    .expect("Permission error");
+                file.write_all(
+                    toml::to_string(&conf)
+                        .unwrap()
+                        .as_bytes(),
+                )
+                .expect("Permission error");
             }
         }
         conf
@@ -68,7 +74,11 @@ fn load_conf() -> Config {
     };
     conf_path.push(".paxy");
     conf_path.push("config.ini");
-    match toml::from_str::<Config>(fs::read_to_string(&conf_path).unwrap().as_str()) {
+    match toml::from_str::<Config>(
+        fs::read_to_string(&conf_path)
+            .unwrap()
+            .as_str(),
+    ) {
         Ok(val) => val,
         Err(_) => Config::default(),
     }

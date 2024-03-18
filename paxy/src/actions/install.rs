@@ -8,12 +8,13 @@ pub enum Error {
 
 // region: IMPORTS
 
-use std::path::Path;
+use std::path::PathBuf;
 
 use snafu::Snafu;
 
 // endregion: IMPORTS
-
-fn plugin(manifest: Box<Path>) -> Box<Path> {
+#[allow(dead_code)]
+#[allow(unused_variables)]
+fn plugin(manifest: PathBuf) -> PathBuf {
     todo!()
 }

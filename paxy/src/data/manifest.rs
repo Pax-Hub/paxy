@@ -16,6 +16,7 @@ struct Version {
     number: String,
 }
 
+#[allow(dead_code)]
 fn parse_manifest(manifest: Box<Path>) -> Manifest {
     let toml = fs::read_to_string(manifest).unwrap();
     toml::from_str(&toml).unwrap()
@@ -31,10 +32,16 @@ mod tests {
 [[version]]
 url = "https://github.com/tizonia/tizonia-openmax-il"
 number = "1.0.0""#;
-        assert_eq!(toml::from_str::<Manifest>(toml).unwrap(), Manifest {
-            version: vec![Version {url: Url::parse("https://github.com/tizonia/tizonia-openmax-il").unwrap(), number: "1.0.0".to_string()}],
-            name: "paxy".to_string(),
-            author: None
-        });
+        assert_eq!(
+            toml::from_str::<Manifest>(toml).unwrap(),
+            Manifest {
+                version: vec![Version {
+                    url: Url::parse("https://github.com/tizonia/tizonia-openmax-il").unwrap(),
+                    number: "1.0.0".to_string()
+                }],
+                name: "paxy".to_string(),
+                author: None
+            }
+        );
     }
 }
