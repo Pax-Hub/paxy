@@ -1,6 +1,6 @@
 [toolchain]
-channel = "nightly"
-components = ["rustc", "cargo", "rust-std", "rustfmt"]
+channel = "nightly-2024-03-17"
+components = ["rustc", "cargo", "rust-std", "rustfmt", "clippy"]
 targets = [
     "x86_64-unknown-linux-gnu",
     "x86_64-pc-windows-msvc",

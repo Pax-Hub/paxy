@@ -35,3 +35,5 @@ use snafu::Snafu;
 // pub use some_module::*;
 
 // endregion: RE-EXPORTS
+mod config;
+mod manifest;
