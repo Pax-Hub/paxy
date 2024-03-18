@@ -2,66 +2,6 @@ lazy_static! {
     pub static ref APP_NAME: &'static str = "paxy";
 }
 
-pub trait PathListPermissions<'a, P>: Iterator<Item = P> + Sized
-where
-    P: AsRef<Path> + 'a,
-{
-    fn first_readable_path(mut self) -> Option<P> {
-        self.find(|p| permissions::is_readable(p).unwrap_or(false))
-    }
-
-    fn first_writable_path(mut self) -> Option<P> {
-        self.find(|p| permissions::is_writable(p).unwrap_or(false))
-    }
-
-    fn all_readable_paths(self) -> iter::Filter<Self, fn(&P) -> bool> {
-        self.filter(|p| permissions::is_readable(p).unwrap_or(false))
-    }
-
-    fn all_writable_paths(self) -> iter::Filter<Self, fn(&P) -> bool> {
-        self.filter(|p| permissions::is_writable(p).unwrap_or(false))
-    }
-}
-
-impl<'a, T, P> PathListPermissions<'a, P> for T
-where
-    T: Iterator<Item = P>,
-    P: AsRef<Path> + 'a,
-{
-}
-
-pub fn first_readable_path<'a>(
-    paths: &'a Vec<impl AsRef<Path> + 'a>,
-) -> Option<impl AsRef<Path> + 'a> {
-    paths
-        .iter()
-        .find(|p| permissions::is_readable(p).unwrap_or(false))
-}
-
-pub fn first_writable_path<'a>(
-    paths: &'a Vec<impl AsRef<Path> + 'a>,
-) -> Option<impl AsRef<Path> + 'a> {
-    paths
-        .iter()
-        .find(|p| permissions::is_writable(p).unwrap_or(false))
-}
-
-pub fn all_readable_paths<'a>(
-    paths: &'a Vec<impl AsRef<Path> + 'a>,
-) -> impl Iterator<Item = impl AsRef<Path> + 'a> {
-    paths
-        .iter()
-        .filter(|p| permissions::is_readable(p).unwrap_or(false))
-}
-
-pub fn all_writable_paths<'a>(
-    paths: &'a Vec<impl AsRef<Path> + 'a>,
-) -> impl Iterator<Item = impl AsRef<Path> + 'a> {
-    paths
-        .iter()
-        .filter(|p| permissions::is_writable(p).unwrap_or(false))
-}
-
 #[derive(Debug, Snafu)]
 #[non_exhaustive]
 pub enum Error {
@@ -88,9 +28,6 @@ pub enum Error {
 }
 
 // region: IMPORTS
-
-use std::{iter, path::Path};
-
 use lazy_static::lazy_static;
 use snafu::Snafu;
 
@@ -106,8 +43,11 @@ pub mod logging;
 
 // region: RE-EXPORTS
 
+#[allow(unused_imports)]
 pub use config::*;
+#[allow(unused_imports)]
 pub use i18n::*;
+#[allow(unused_imports)]
 pub use logging::*;
 
 // endregion: RE-EXPORTS

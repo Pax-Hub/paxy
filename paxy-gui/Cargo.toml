@@ -35,5 +35,7 @@ owo-colors = { workspace = true }
 console = { workspace = true }
 
 # GUI
+# TODO: install dependencies for Linux ARM, Windows and MacOS in the CI or Cross.toml before removing the below filter restricting relm4 to Linux x86_64
+[target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
 relm4 = { workspace = true }
 relm4-components = { workspace = true }

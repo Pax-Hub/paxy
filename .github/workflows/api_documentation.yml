@@ -1,70 +1,67 @@
-on:
-  workflow_dispatch:
-  workflow_call:
-  push:
-    branches: [ main ]
+name: 📜 API Documentation
 
-name: 📜 Document API
+on:
+  push:
+    paths:
+      - '.github/workflows/api_documentation.yml' # Run when this workflow changes
+      - '**/src/**'
+    branches: [main]
+  workflow_dispatch: # Run when manually triggered
+  workflow_call: # Run when called by another workflow
 
 jobs:
-  build:
-    name: 🛠 Build
+  build_documentation_job:
+    name: 🛠 Build Documentation Job
     if: |
-      !startsWith(github.event.head_commit.message, 'ci:')
-      && !startsWith(github.event.head_commit.message, 'ci(')
-      && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')      
-    runs-on: ubuntu-latest
+      !startsWith(github.event.head_commit.message, 'style:')
+      && !startsWith(github.event.head_commit.message, 'style(')
+      && !startsWith(github.event.head_commit.message, 'chore:')
+      && !startsWith(github.event.head_commit.message, 'chore(')
+    strategy:
+      fail-fast: true
+      matrix:
+        platform: [linux]
+        cpu_architecture: [x86_64]
+        include:
+          - platform: linux
+            cicd_runner: ubuntu-latest
+          - compilation_target: x86_64-unknown-linux-gnu
+            cpu_architecture: x86_64
+            platform: linux
+            toolchain: gnu
+    runs-on: ${{ matrix.cicd_runner }}
     steps:
-      - name: 🎟 Checkout Git Repository
-        id: checkout_repository_step
-        uses: actions/checkout@v2
-      - name: 🧰 Install Rust Toolchain
-        id: install_toolchain_step
-        uses: actions-rs/toolchain@v1
+      - name: ↕️ Install Ubuntu Dependencies Step
+        id: dependencies_install_step
+        if: ${{ matrix.compilation_target == 'x86_64-unknown-linux-gnu' }}
+        uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          profile: minimal
-          toolchain: nightly
-          override: true          
-          components: rust-docs
-      - name: 🗂 Set up cargo cache
-        id: setup_cache_step
-        uses: actions/cache@v3
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/            
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-      - name: 📜 Cargo Doc
-        id: cargo_doc_step        
-        uses: actions-rs/cargo@v1
+          packages: libgtk-4-dev
+          version: 1.0
+      - name: 📜 Build Documentation Step
+        id: documentation_build_step
+        uses: pax-hub/rust-github-action@main
         env:
           RUSTDOCFLAGS: "--enable-index-page -Zunstable-options"
-        with:          
-          command: doc
-          args: --all-features --workspace --no-deps --document-private-items
-      - name: ⬆ Upload Docs Artifact
-        id: upload_docs_step        
-        uses: actions/upload-pages-artifact@v1
+        with:
+          subcommand: doc
+          arguments: '--workspace --all-features --no-deps --document-private-items'
+          rust_release_channel: nightly
+          use_cross: false
+          compilation_target: ${{ matrix.compilation_target }}       
+      - name: ⬆ Upload Documentation Step
+        id: documentation_upload_step        
+        uses: actions/upload-pages-artifact@v3
         with: 
           path: target/doc
-  deploy:
-    name: ✈ Deploy
-    if: |
-      !startsWith(github.event.head_commit.message, 'ci:')
-      && !startsWith(github.event.head_commit.message, 'ci(')
-      && !startsWith(github.event.head_commit.message, 'style:')
-      && !startsWith(github.event.head_commit.message, 'style(')      
-    needs: build
+  publish_documentation_job:
+    name: ✈ Publish Documentation Job
+    if: github.ref == 'refs/heads/main' # Publish only while dealing with the main branch
+    needs: build_documentation_job
     runs-on: ubuntu-latest
     permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
+      pages: write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
     concurrency:
       group: "pages"
       cancel-in-progress: true
@@ -72,7 +69,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment_step.outputs.page_url }}      
     steps:
-      - name: ✈ Deploy to GitHub Pages
+      - name: ✈ Deploy to GitHub Pages Step
         id: deployment_step
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
           

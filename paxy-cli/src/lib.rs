@@ -123,11 +123,7 @@ mod cli_template {
         )]
         Uninstall(UninstallActionArguments),
 
-        #[clap(
-            name = "downgrade",
-            about = "Downgrade a package.",
-            display_order = 5
-        )]
+        #[clap(name = "downgrade", about = "Downgrade a package.", display_order = 5)]
         Downgrade(DowngradeActionArguments),
     }
 

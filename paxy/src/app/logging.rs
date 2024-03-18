@@ -52,30 +52,25 @@ pub fn init_log(
     // In Test mode, for stderr, permit messages of equal or lower verbosity
     // than 'WARN', and permit all targets.
     let filter_stderr_test = move |metadata: &Metadata<'_>| metadata.level() < &Level::INFO;
+    type FilterFunctionType = FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>>;
     // Box the closure to allow for type match when switching between two similar
     // closures.
-    let stdout_regular_filter: FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>> =
-        filter_fn(Box::new(filter_stdout_regular));
+    let stdout_regular_filter: FilterFunctionType = filter_fn(Box::new(filter_stdout_regular));
     // Box the closure to allow for type match when switching between two similar
     // closures.
-    let stdout_test_filter: FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>> =
-        filter_fn(Box::new(filter_stdout_test));
+    let stdout_test_filter: FilterFunctionType = filter_fn(Box::new(filter_stdout_test));
     // Box the closure to allow for type match when switching between two similar
     // closures.
-    let stdout_plain_filter: FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>> =
-        filter_fn(Box::new(filter_stdout_plain));
+    let stdout_plain_filter: FilterFunctionType = filter_fn(Box::new(filter_stdout_plain));
     // Box the closure to allow for type match when switching between two similar
     // closures.
-    let stdout_json_filter: FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>> =
-        filter_fn(Box::new(filter_stdout_json));
+    let stdout_json_filter: FilterFunctionType = filter_fn(Box::new(filter_stdout_json));
     // Box the closure to allow for type match when switching between two similar
     // closures.
-    let stderr_regular_filter: FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>> =
-        filter_fn(Box::new(filter_stderr_regular));
+    let stderr_regular_filter: FilterFunctionType = filter_fn(Box::new(filter_stderr_regular));
     // Box the closure to allow for type match when switching between two similar
     // closures.
-    let stderr_test_filter: FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>> =
-        filter_fn(Box::new(filter_stderr_test));
+    let stderr_test_filter: FilterFunctionType = filter_fn(Box::new(filter_stderr_test));
     // Wrap the filter in reload::Layer and obtain handle to allow switching between
     // filters.
     let (stdout_filter, stdout_filter_reload_handle) = reload::Layer::new(stdout_regular_filter);
@@ -85,25 +80,13 @@ pub fn init_log(
     // mode
     let switch_stdout = move |logging_mode: LoggingMode| match logging_mode {
         LoggingMode::Test => stdout_filter_reload_handle
-            .modify(
-                |filter: &mut FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>>| {
-                    *filter = stdout_test_filter
-                },
-            )
+            .modify(|filter: &mut FilterFunctionType| *filter = stdout_test_filter)
             .context(SwitchToTestSnafu {}),
         LoggingMode::Plain => stdout_filter_reload_handle
-            .modify(
-                |filter: &mut FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>>| {
-                    *filter = stdout_plain_filter
-                },
-            )
+            .modify(|filter: &mut FilterFunctionType| *filter = stdout_plain_filter)
             .context(SwitchToPlainSnafu {}),
         LoggingMode::Json => stdout_filter_reload_handle
-            .modify(
-                |filter: &mut FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>>| {
-                    *filter = stdout_json_filter
-                },
-            )
+            .modify(|filter: &mut FilterFunctionType| *filter = stdout_json_filter)
             .context(SwitchToJsonSnafu {}),
         LoggingMode::Regular => Ok(()),
     };
@@ -111,11 +94,7 @@ pub fn init_log(
     // mode
     let switch_stderr = move |logging_mode: LoggingMode| match logging_mode {
         LoggingMode::Test => stderr_filter_reload_handle
-            .modify(
-                |filter: &mut FilterFn<Box<dyn Fn(&Metadata<'_>) -> bool + Send + Sync>>| {
-                    *filter = stderr_test_filter
-                },
-            )
+            .modify(|filter: &mut FilterFunctionType| *filter = stderr_test_filter)
             .context(SwitchToTestSnafu {}),
         LoggingMode::Regular | LoggingMode::Plain | LoggingMode::Json => Ok(()),
     };
@@ -169,7 +148,7 @@ pub fn init_log(
             ],
         },
         {
-            let mut log_filepath = PathBuf::from(log_dirpath);
+            let mut log_filepath = log_dirpath;
             log_filepath.push(log_filename + "*");
             log_filepath
         },
@@ -182,16 +161,24 @@ fn obtain_log_dirpath(preferred_log_dirpath: Option<PathBuf>) -> Result<PathBuf,
             directories::BaseDirs::new().context(RetreiveLoggingUserAppBaseDirectoriesSnafu {})?;
         fs::create_dir_all(xdg_app_dirs.data_dir()).context(CreateLogDirectorySnafu {
             path: {
-                let mut state_dirpath = xdg_app_dirs.data_dir().to_owned();
+                let mut state_dirpath = xdg_app_dirs
+                    .data_dir()
+                    .to_owned();
                 state_dirpath.push(*app::APP_NAME);
                 state_dirpath
             },
         })?;
-        Ok(xdg_app_dirs.data_dir().to_owned())
+        Ok(xdg_app_dirs
+            .data_dir()
+            .to_owned())
     };
     Ok(match preferred_log_dirpath {
         Some(preferred_log_dirpath) => {
-            if permissions::is_writable(&preferred_log_dirpath).unwrap_or(false) {
+            if !fs::metadata(&preferred_log_dirpath)
+                .map(|m| m.permissions())
+                .map(|p| p.readonly())
+                .unwrap_or(true)
+            {
                 preferred_log_dirpath
             } else {
                 obtain_fallback_log_dirpath()?
@@ -201,9 +188,11 @@ fn obtain_log_dirpath(preferred_log_dirpath: Option<PathBuf>) -> Result<PathBuf,
     })
 }
 
+type OutputModeSwitchFunction = Box<dyn FnOnce(LoggingMode) -> Result<(), Error>>;
+
 pub struct Handle {
-    _switch_stdout_inner: Option<Box<dyn FnOnce(LoggingMode) -> Result<(), Error>>>,
-    _switch_stderr_inner: Option<Box<dyn FnOnce(LoggingMode) -> Result<(), Error>>>,
+    _switch_stdout_inner: Option<OutputModeSwitchFunction>,
+    _switch_stderr_inner: Option<OutputModeSwitchFunction>,
     pub worker_guards: Vec<WorkerGuard>,
 }
 

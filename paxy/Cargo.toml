@@ -26,7 +26,6 @@ figment = { workspace = true, features = ["toml", "json", "yaml", "env"] }
 
 # Filesystem
 directories = { workspace = true }
-permissions = { workspace = true }
 
 # Error handling
 snafu = {workspace = true}

@@ -1,24 +1,69 @@
+name: 🕵️‍♂️ Security Audit
+
 on:
   push:
     paths:
       - '.github/workflows/security_audit.yml' # Run when this workflow changes
       - '**/Cargo.toml' # Run when dependencies change
       - '**/Cargo.lock' # Run when dependencies change
+  pull_request:
+    paths:
+      - '.github/workflows/security_audit.yml' # Run when this workflow changes
+      - '**/Cargo.toml' # Run when dependencies change
+      - '**/Cargo.lock' # Run when dependencies change
+    branches: [main]
   schedule:
-    - cron: '0 0 * * *' # Run periodically to capture recent developments
+    - cron: '0 0 * * 0' # Run periodically to capture recent developments
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
-name: 🕵️‍♂️ Security Audit
-
 jobs:
-  audit:
+  audit_job:
     name: 🕵️‍♂️ Security Audit Job
-    runs-on: ubuntu-latest
+    # Ignore commits that just change the style of the code or just make miscellaneous changes.
+    if: |
+      !startsWith(github.event.head_commit.message, 'style:')
+      && !startsWith(github.event.head_commit.message, 'style(')
+      && !startsWith(github.event.head_commit.message, 'chore:')
+      && !startsWith(github.event.head_commit.message, 'chore(')
+    strategy:
+      fail-fast: false # We want all permutations to run because we want to discover all security vulnerabilities
+      matrix:
+        platform: [linux, windows, apple]
+        cpu_architecture: [x86_64]
+        include:
+          - platform: linux
+            cpu_architecture: x86_64
+            cicd_runner: ubuntu-latest
+          - platform: windows
+            cpu_architecture: x86_64
+            cicd_runner: windows-latest
+          - platform: apple
+            cpu_architecture: x86_64
+            cicd_runner: macos-latest
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ${{ matrix.cicd_runner }}
     steps:
       - name: 🎟 Checkout Git Repository Step
         id: repository_checkout_step
         uses: actions/checkout@v4
+      - name: 💿🐍 Setup Python Step
+        id: python_setup_step
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' 
+          cache: 'pip'
+      - name: ↕️ Install Dependencies Step
+        id: dependencies_install_step
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+      - name: 🗂 Setup Cache Step
+        id: cache_setup_step
+        uses: Swatinem/rust-cache@v2
       - name: 🕵️‍♂️ Security Audit Step
         id: audit_step
         uses: actions-rust-lang/audit@v1
+      
