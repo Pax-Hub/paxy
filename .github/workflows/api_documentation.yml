@@ -48,12 +48,17 @@ jobs:
           arguments: '--workspace --all-features --no-deps --document-private-items'
           rust_release_channel: nightly
           use_cross: false
-          compilation_target: ${{ matrix.compilation_target }}       
+          compilation_target: ${{ matrix.compilation_target }}
+      # - name: Download Artifact Step
+      #   id: artifact_download_step
+      #   uses: actions/download-artifact@v4  
+      #   with:
+      #     name: artifact-doc-${{ matrix.compilation_target }}  
       - name: ⬆ Upload Documentation Step
         id: documentation_upload_step        
         uses: actions/upload-pages-artifact@v3
         with: 
-          path: target/doc
+          path: target/doc/
   publish_documentation_job:
     name: ✈ Publish Documentation Job
     if: github.ref == 'refs/heads/main' # Publish only while dealing with the main branch
