@@ -15,7 +15,7 @@ on:
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
-name: ✔ Validate Code Workflow
+name: ✔ Validate Code Workflow Job
 
 jobs:
   code_validation_job:
