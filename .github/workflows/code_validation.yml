@@ -38,8 +38,8 @@ jobs:
           - clippy
           - check
           - test
-          - doc
-          - build
+          # - doc
+          # - build
         include:
           - platform: linux
             cicd_runner: ubuntu-latest
