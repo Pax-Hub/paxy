@@ -8,7 +8,7 @@
 [![Validation](https://github.com/pax-hub/paxy/actions/workflows/code_validation.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/code_validation.yml)
 [![API Documentation](https://github.com/pax-hub/paxy/actions/workflows/api_documentation.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/api_documentation.yml)
 [![Security Audit](https://github.com/pax-hub/paxy/actions/workflows/security_audit.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/security_audit.yml)
-[![Coverage Status](https://coveralls.io/repos/github/pax-hub/paxy/badge.svg?branch=main)](https://coveralls.io/github/pax-hub/paxy?branch=main)
+[![codecov](https://codecov.io/gh/Pax-Hub/paxy/graph/badge.svg?token=RGDGEIBHBZ)](https://codecov.io/gh/Pax-Hub/paxy)
 
 ## Table of Contents
 
