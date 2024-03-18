@@ -48,7 +48,13 @@ jobs:
           arguments: '--workspace --all-features --no-deps --document-private-items'
           rust_release_channel: nightly
           use_cross: false
-          compilation_target: ${{ matrix.compilation_target }}       
+          compilation_target: ${{ matrix.compilation_target }}
+      - name: Fix Permissions Step
+        id: permissions_fix_step
+        run: |
+          chmod -c -R +rX "target/" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done       
       - name: ⬆ Upload Documentation Step
         id: documentation_upload_step        
         uses: actions/upload-pages-artifact@v3
