@@ -1,43 +1,28 @@
 on:
-  push:
-    paths:
-      - '.github/workflows/code_validation.yml' # Run when this workflow changes
-      - '**/Cargo.toml' # Run when dependencies change
-      - '**/Cargo.lock' # Run when dependencies change
-      - '**/src/**'
-  pull_request:
-    paths:
-      - '.github/workflows/code_validation.yml' # Run when this workflow changes
-      - '**/Cargo.toml' # Run when dependencies change
-      - '**/Cargo.lock' # Run when dependencies change
-      - '**/src/**'
-    branches: [main]
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
-name: ✔ Validate Code Workflow
+name: Test
 
 jobs:
-  code_validation_job:
+  test_action_job:
     name: ${{ matrix.job_name }}
-    if: |
-      !startsWith(github.event.head_commit.message, 'chore:')
-      && !startsWith(github.event.head_commit.message, 'chore(')
     strategy:
       fail-fast: false
       matrix:
         platform:
           - linux
-          - windows
-          - apple
+          # - windows
+          # - apple
         cpu_architecture:
           - x86_64
-          - aarch64
+          # - aarch64
         subcommand:
-          - fmt
-          - clippy
-          - check
-          - test
+          # - fmt
+          # - clippy
+          # - check
+          # - test
+          - build
         exclude:
           - platform: windows
             cpu_architecture: aarch64

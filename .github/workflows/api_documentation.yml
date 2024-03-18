@@ -45,7 +45,7 @@ jobs:
           RUSTDOCFLAGS: "--enable-index-page -Zunstable-options"
         with:
           subcommand: doc
-          arguments: '--all-features --workspace --no-deps --document-private-items'
+          arguments: '--workspace --all-features --no-deps --document-private-items'
           rust_release_channel: nightly
           use_cross: false
           compilation_target: ${{ matrix.compilation_target }}       
