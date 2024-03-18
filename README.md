@@ -1,10 +1,10 @@
 # Paxy - *A package manager that gets out of your way*
 
 [![Discord Server](https://dcbadge.vercel.app/api/server/vFG57wDxsd?style=flat)](https://discord.gg/vFG57wDxsd)
-[![License: MPL v2.0](https://img.shields.io/github/license/pax-hub/paxy)](https://www.mozilla.org/en-US/MPL/)
+[![License](https://img.shields.io/github/license/pax-hub/paxy)](LICENSE)
 [![GitHub top language](https://img.shields.io/github/languages/top/pax-hub/paxy)](https://www.rust-lang.org/)
-[![Release](https://github.com/pax-hub/paxy/actions/workflows/release.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/release.yml)
-[![Pre-Release (Git)](https://github.com/pax-hub/paxy/actions/workflows/pre_release.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/pre_release.yml)
+<!-- [![Release](https://github.com/pax-hub/paxy/actions/workflows/release.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/release.yml)
+[![Pre-Release (Git)](https://github.com/pax-hub/paxy/actions/workflows/pre_release.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/pre_release.yml) -->
 [![Validation](https://github.com/pax-hub/paxy/actions/workflows/code_validation.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/code_validation.yml)
 [![API Documentation](https://github.com/pax-hub/paxy/actions/workflows/api_documentation.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/api_documentation.yml)
 [![Security Audit](https://github.com/pax-hub/paxy/actions/workflows/security_audit.yml/badge.svg)](https://github.com/pax-hub/paxy/actions/workflows/security_audit.yml)

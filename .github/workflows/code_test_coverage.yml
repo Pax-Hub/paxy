@@ -1,4 +1,4 @@
-name: 🔎 Code Test Coverage Workflow
+name: 🔎 Code Test Coverage
 
 on:
   push:

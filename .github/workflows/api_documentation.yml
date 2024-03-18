@@ -1,4 +1,4 @@
-name: 📜 API Documentation Workflow
+name: 📜 API Documentation
 
 on:
   push:

@@ -15,7 +15,7 @@ on:
   workflow_dispatch: # Run when manually triggered
   workflow_call: # Run when called by another workflow
 
-name: ✔ Validate Code Workflow Job
+name: ✔ Code Validation
 
 jobs:
   code_validation_job:
@@ -38,11 +38,8 @@ jobs:
           - clippy
           - check
           - test
-        exclude:
-          - platform: windows
-            cpu_architecture: aarch64
-          - platform: apple
-            cpu_architecture: aarch64
+          - doc
+          - build
         include:
           - platform: linux
             cicd_runner: ubuntu-latest
@@ -69,7 +66,17 @@ jobs:
           - compilation_target: aarch64-unknown-linux-gnu
             cpu_architecture: aarch64
             platform: linux
-            toolchain: gnu         
+            toolchain: gnu
+          - compilation_target: aarch64-pc-windows-msvc
+            cpu_architecture: aarch64
+            platform: windows
+            toolchain: msvc
+            use_cross: false # No Cross image for this yet
+          - compilation_target: aarch64-apple-darwin
+            cpu_architecture: aarch64
+            platform: apple
+            toolchain: darwin
+            use_cross: false # No Cross image for this yet
           - subcommand: fmt
             job_name: 📑 Format Job
             arguments: '--verbose -- --check'
