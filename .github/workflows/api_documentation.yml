@@ -61,7 +61,7 @@ jobs:
           path: target/doc/
   publish_documentation_job:
     name: ✈ Publish Documentation Job
-    if: github.ref == 'refs/heads/main' # Publish only while dealing with the main branch
+    # if: github.ref == 'refs/heads/main' # Publish only while dealing with the main branch
     needs: build_documentation_job
     runs-on: ubuntu-latest
     permissions:
