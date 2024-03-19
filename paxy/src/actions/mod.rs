@@ -41,6 +41,7 @@ pub mod search;
 pub mod uninstall;
 pub mod update;
 pub mod add_repo;
+pub mod rm_repo;
 
 // endregion: MODULES
 
