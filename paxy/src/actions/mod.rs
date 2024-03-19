@@ -40,6 +40,7 @@ pub mod list;
 pub mod search;
 pub mod uninstall;
 pub mod update;
+pub mod add_repo;
 
 // endregion: MODULES
 
@@ -59,3 +60,12 @@ pub use uninstall::*;
 pub use update::*;
 
 // endregion: RE-EXPORTS
+#[macro_export]
+macro_rules! home {
+    () => {
+        match home::home_dir() {
+            Some(path) => path,
+            None => panic!("Impossible to get your home dir!"),
+        }
+    };
+}
