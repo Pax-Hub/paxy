@@ -92,5 +92,5 @@ pub fn ensure_path(path: Option<&PathBuf>) {
             )
             .expect("Inufficient permissions");
         }
-    };
+    }
 }
