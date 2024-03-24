@@ -34,14 +34,14 @@ use snafu::Snafu;
 
 // region: MODULES
 
+pub mod add_repo;
 pub mod downgrade;
 pub mod install;
 pub mod list;
+pub mod rm_repo;
 pub mod search;
 pub mod uninstall;
 pub mod update;
-pub mod add_repo;
-pub mod rm_repo;
 
 // endregion: MODULES
 
@@ -69,4 +69,20 @@ macro_rules! home {
             None => panic!("Impossible to get your home dir!"),
         }
     };
+}
+
+#[macro_export]
+macro_rules! ensure_path {
+    () => {
+        let mut file = home!();
+        file.push(".paxy");
+        if !file.is_dir() {
+            ::std::fs::create_dir_all(file).expect("Inufficient permissions");
+        }
+    };
+    ($path:ident) => {
+        if !$path.is_dir() {
+            ::std::fs::create_dir_all($path.clone()).expect("Inufficient permissions");
+        }
+    }
 }

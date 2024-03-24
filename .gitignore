@@ -16,6 +16,7 @@ Cargo.lock
 
 # Visual Studio Code
 *.code-workspace
+/.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
