@@ -36,4 +36,3 @@ use snafu::Snafu;
 
 // endregion: RE-EXPORTS
 mod config;
-mod manifest;

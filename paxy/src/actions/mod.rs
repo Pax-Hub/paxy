@@ -28,15 +28,19 @@ pub enum Error {
 
 // region: IMPORTS
 
+use std::path::PathBuf;
+
 use snafu::Snafu;
 
 // endregion: IMPORTS
 
 // region: MODULES
 
+pub mod add_repo;
 pub mod downgrade;
 pub mod install;
 pub mod list;
+pub mod rm_repo;
 pub mod search;
 pub mod uninstall;
 pub mod update;
@@ -59,3 +63,34 @@ pub use uninstall::*;
 pub use update::*;
 
 // endregion: RE-EXPORTS
+#[macro_export]
+macro_rules! home {
+    () => {
+        match home::home_dir() {
+            Some(path) => path,
+            None => panic!("Impossible to get your home dir!"),
+        }
+    };
+}
+
+#[inline]
+pub fn ensure_path(path: Option<&PathBuf>) {
+    if path.is_none() {
+        let mut file = home!();
+        file.push(".paxy");
+        if !file.is_dir() {
+            ::std::fs::create_dir_all(file).expect("Inufficient permissions");
+        }
+    } else {
+        if !path
+            .unwrap()
+            .is_dir()
+        {
+            ::std::fs::create_dir_all(
+                path.unwrap()
+                    .clone(),
+            )
+            .expect("Inufficient permissions");
+        }
+    }
+}
