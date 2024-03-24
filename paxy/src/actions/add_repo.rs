@@ -4,13 +4,13 @@ use bson::{doc, Document};
 use git2::Repository;
 use log::{info, warn};
 
-use crate::{ensure_path, home};
+use crate::{actions::ensure_path, home};
 
 #[allow(unused)]
 fn add_repo(repo: &str, name: &str) {
     let mut file = home!();
     file.push(".paxy");
-    ensure_path!();
+    ensure_path(None);
     file.push("repos.bson");
     let mut doc = if !file.is_file() {
         warn!("file not found. Creating");
@@ -32,7 +32,7 @@ fn add_repo(repo: &str, name: &str) {
     file.pop();
     file.push("repos");
     file.push(name);
-    ensure_path!(file);
+    ensure_path(Some(&file));
     Repository::clone(repo, file).unwrap();
 }
 

@@ -28,6 +28,8 @@ pub enum Error {
 
 // region: IMPORTS
 
+use std::path::PathBuf;
+
 use snafu::Snafu;
 
 // endregion: IMPORTS
@@ -71,18 +73,17 @@ macro_rules! home {
     };
 }
 
-#[macro_export]
-macro_rules! ensure_path {
-    () => {
+#[inline]
+pub fn ensure_path(path: Option<&PathBuf>) {
+    if path.is_none() {
         let mut file = home!();
         file.push(".paxy");
         if !file.is_dir() {
             ::std::fs::create_dir_all(file).expect("Inufficient permissions");
         }
-    };
-    ($path:ident) => {
-        if !$path.is_dir() {
-            ::std::fs::create_dir_all($path.clone()).expect("Inufficient permissions");
+    } else {
+        if !path.unwrap().is_dir() {
+            ::std::fs::create_dir_all(path.unwrap().clone()).expect("Inufficient permissions");
         }
-    };
+    }
 }
