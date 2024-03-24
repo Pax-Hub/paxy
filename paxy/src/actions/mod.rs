@@ -82,8 +82,15 @@ pub fn ensure_path(path: Option<&PathBuf>) {
             ::std::fs::create_dir_all(file).expect("Inufficient permissions");
         }
     } else {
-        if !path.unwrap().is_dir() {
-            ::std::fs::create_dir_all(path.unwrap().clone()).expect("Inufficient permissions");
+        if !path
+            .unwrap()
+            .is_dir()
+        {
+            ::std::fs::create_dir_all(
+                path.unwrap()
+                    .clone(),
+            )
+            .expect("Inufficient permissions");
         }
     }
 }
