@@ -2,7 +2,7 @@ FROM archlinux:latest
 
 ENV RUSTC_WRAPPER=/root/.cargo/bin/sccache
 ENV CARGO_INCREMENTAL=0
-ENV CARGO_TARGET_DIR=/paxy/target
+ENV CARGO_TARGET_DIR=/paxy/podman-target
 
 # Install Rust
 RUN pacman -Sy --noconfirm rustup cargo
