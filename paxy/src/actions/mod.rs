@@ -84,5 +84,5 @@ macro_rules! ensure_path {
         if !$path.is_dir() {
             ::std::fs::create_dir_all($path.clone()).expect("Inufficient permissions");
         }
-    }
+    };
 }
