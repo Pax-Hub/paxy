@@ -74,6 +74,7 @@ macro_rules! home {
 }
 
 #[inline]
+#[allow(clippy::unnecessary_unwrap)]
 pub fn ensure_path(path: Option<&PathBuf>) {
     if path.is_none() {
         let mut file = home!();
@@ -81,16 +82,14 @@ pub fn ensure_path(path: Option<&PathBuf>) {
         if !file.is_dir() {
             ::std::fs::create_dir_all(file).expect("Inufficient permissions");
         }
-    } else {
-        if !path
-            .unwrap()
-            .is_dir()
-        {
-            ::std::fs::create_dir_all(
-                path.unwrap()
-                    .clone(),
-            )
-            .expect("Inufficient permissions");
-        }
+    } else if !path
+        .unwrap()
+        .is_dir()
+    {
+        ::std::fs::create_dir_all(
+            path.unwrap()
+                .clone(),
+        )
+        .expect("Inufficient permissions");
     }
 }

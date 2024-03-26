@@ -9,6 +9,7 @@ use extism::{Manifest, PluginBuilder, Wasm};
 use crate::{actions::ensure_path, home};
 
 #[allow(unused)]
+#[allow(clippy::boxed_local)]
 pub(crate) fn plugin(manifest: Box<Path>) -> Wasm {
     let mut file = home!();
     file.push(".paxy");
@@ -38,13 +39,14 @@ pub(crate) fn plugin(manifest: Box<Path>) -> Wasm {
     Wasm::file(plugin)
 }
 
-pub fn call_plugin(wasm: Wasm, pkg: Box<PathBuf>) {
+#[allow(unused)]
+pub fn call_plugin(wasm: Wasm, pkg: PathBuf) {
     let mut tmp = home!();
     tmp.push(".paxy");
     tmp.push("tmp");
     ensure_path(Some(&tmp));
     let manifest = Manifest::new([wasm]).with_allowed_paths(
-        [(tmp, PathBuf::from("/tmp")), (*pkg, PathBuf::from("/pkg"))]
+        [(tmp, PathBuf::from("/tmp")), (pkg, PathBuf::from("/pkg"))]
             .iter()
             .cloned(),
     );
@@ -52,5 +54,7 @@ pub fn call_plugin(wasm: Wasm, pkg: Box<PathBuf>) {
     let mut plugin = plugin
         .build()
         .unwrap();
-    plugin.call::<&str, &str>("process", "").unwrap();
+    plugin
+        .call::<&str, &str>("process", "")
+        .unwrap();
 }
