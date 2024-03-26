@@ -3,7 +3,7 @@
 members = [
     "paxy",
     "paxy-cli",
-    "paxy-gui",
+    "paxy-gui", "paxy-plugin",
 
     "tests",
 ]

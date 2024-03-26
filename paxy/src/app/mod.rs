@@ -49,5 +49,6 @@ pub use config::*;
 pub use i18n::*;
 #[allow(unused_imports)]
 pub use logging::*;
+mod plugins;
 
 // endregion: RE-EXPORTS
