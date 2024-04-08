@@ -51,7 +51,7 @@ mod cli_template {
     )]
     pub struct CliTemplate {
         #[command(flatten)]
-        pub global_arguments: ui::cli_template::GlobalArguments<clap_verbosity_flag::InfoLevel>,
+        pub global_arguments: ui::cli_template::GlobalArgs<clap_verbosity_flag::InfoLevel>,
 
         #[command(subcommand)]
         pub entity: Option<EntitySubcommand>,

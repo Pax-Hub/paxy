@@ -242,7 +242,7 @@ use crate::app::{self, config, logging};
 pub mod cli_template {
     #[derive(Clone, Debug, Args)]
     #[command(next_display_order = usize::MAX - 100)]
-    pub struct GlobalArguments<L>
+    pub struct GlobalArgs<L>
     where
         L: clap_verbosity_flag::LogLevel,
     {
