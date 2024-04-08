@@ -51,7 +51,7 @@ mod cli_template {
     )]
     pub struct CliTemplate {
         #[command(flatten)]
-        pub global_arguments: GlobalArguments<clap_verbosity_flag::InfoLevel>,
+        pub global_arguments: ui::cli_template::GlobalArguments<clap_verbosity_flag::InfoLevel>,
 
         #[command(subcommand)]
         pub entity: Option<EntitySubcommand>,
@@ -98,65 +98,6 @@ mod cli_template {
                 .global_arguments
                 .verbose
         }
-    }
-
-    #[derive(Clone, Debug, Args)]
-    #[command(next_display_order = usize::MAX - 100)]
-    pub struct GlobalArguments<L>
-    where
-        L: clap_verbosity_flag::LogLevel,
-    {
-        #[arg(
-            long = "config",
-            short = 'c',
-            help = "Path to the configuration file to use.",
-            global = true,
-            display_order = usize::MAX - 6
-        )]
-        pub config_file: Option<PathBuf>,
-
-        #[arg(
-            long = "json",
-            help = "Output in the JSON format for machine readability and scripting purposes.",
-            global = true,
-            display_order = usize::MAX - 5
-        )]
-        pub json_flag: bool,
-
-        #[arg(
-            long = "plain",
-            help = "Output as plain text without extra information, for machine readability and scripting purposes.",
-            global = true,
-            display_order = usize::MAX - 4
-        )]
-        pub plain_flag: bool,
-
-        #[arg(
-            long = "debug",
-            help = "Output debug messages.",
-            global = true,
-            display_order = usize::MAX - 3
-        )]
-        pub debug_flag: bool,
-
-        #[arg(
-            long = "no-color",
-            help = "Disable output coloring.",
-            global = true,
-            display_order = usize::MAX - 2
-        )]
-        pub no_color_flag: bool,
-
-        #[arg(
-            long = "test",
-            help = "Avoid destructive modifications and show all output subject to the commandline filters. Useful for dry-runs and for developers.",
-            global = true,
-            display_order = usize::MAX - 1
-        )]
-        pub test_flag: bool,
-
-        #[command(flatten)]
-        pub verbose: clap_verbosity_flag::Verbosity<L>,
     }
 
     #[derive(Debug, Subcommand)]

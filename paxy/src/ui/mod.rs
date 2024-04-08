@@ -239,8 +239,80 @@ use crate::app::{self, config, logging};
 
 // region: MODULES
 
+pub mod cli_template {
+    #[derive(Clone, Debug, Args)]
+    #[command(next_display_order = usize::MAX - 100)]
+    pub struct GlobalArguments<L>
+    where
+        L: clap_verbosity_flag::LogLevel,
+    {
+        #[arg(
+            long = "config",
+            short = 'c',
+            help = "Path to the configuration file to use.",
+            global = true,
+            display_order = usize::MAX - 6
+        )]
+        pub config_file: Option<PathBuf>,
+
+        #[arg(
+            long = "json",
+            help = "Output in the JSON format for machine readability and scripting purposes.",
+            global = true,
+            display_order = usize::MAX - 5
+        )]
+        pub json_flag: bool,
+
+        #[arg(
+            long = "plain",
+            help = "Output as plain text without extra information, for machine readability and scripting purposes.",
+            global = true,
+            display_order = usize::MAX - 4
+        )]
+        pub plain_flag: bool,
+
+        #[arg(
+            long = "debug",
+            help = "Output debug messages.",
+            global = true,
+            display_order = usize::MAX - 3
+        )]
+        pub debug_flag: bool,
+
+        #[arg(
+            long = "no-color",
+            help = "Disable output coloring.",
+            global = true,
+            display_order = usize::MAX - 2
+        )]
+        pub no_color_flag: bool,
+
+        #[arg(
+            long = "test",
+            help = "Avoid destructive modifications and show all output subject to the commandline filters. Useful for dry-runs and for developers.",
+            global = true,
+            display_order = usize::MAX - 1
+        )]
+        pub test_flag: bool,
+
+        #[command(flatten)]
+        pub verbose: clap_verbosity_flag::Verbosity<L>,
+    }
+
+    // region: IMPORTS
+
+    use std::path::PathBuf;
+
+    use clap::Args;
+
+    // endregion: IMPORTS
+}
+
 // endregion: MODULES
 
 // region: RE-EXPORTS
+
+#[allow(unused_imports)]
+pub use cli_template::*;
 
 // endregion: RE-EXPORTS
