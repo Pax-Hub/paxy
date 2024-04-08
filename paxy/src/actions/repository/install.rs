@@ -1,11 +1,3 @@
-use std::fs::{write, File};
-
-use bson::{doc, Document};
-use git2::Repository;
-use log::{info, warn};
-
-use crate::{actions::ensure_path, home};
-
 #[allow(unused)]
 fn add_repo(repo: &str, name: &str) {
     let mut file = home!();
@@ -36,6 +28,36 @@ fn add_repo(repo: &str, name: &str) {
     Repository::clone(repo, file).unwrap();
 }
 
+#[allow(dead_code)]
+#[allow(unused_variables)]
+fn plugin(manifest: PathBuf) -> PathBuf {
+    todo!()
+}
+
+#[derive(Debug, Snafu)]
+#[non_exhaustive]
+pub enum Error {
+    #[non_exhaustive]
+    #[snafu(display(""))]
+    Dummy {},
+}
+
+// region: IMPORTS
+
+use std::{
+    fs::{write, File},
+    path::PathBuf,
+};
+
+use bson::{doc, Document};
+use git2::Repository;
+use log::{info, warn};
+use snafu::Snafu;
+
+// endregion: IMPORTS
+
+// region: TESTS
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -53,3 +75,5 @@ mod tests {
         );
     }
 }
+
+// endregion: TESTS

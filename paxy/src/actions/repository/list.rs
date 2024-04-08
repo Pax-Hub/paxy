@@ -2,8 +2,8 @@
 #[non_exhaustive]
 pub enum Error {
     #[non_exhaustive]
-    #[snafu(display(""), visibility(pub))]
-    I18nDummy {},
+    #[snafu(display(""))]
+    Dummy {},
 }
 
 // region: IMPORTS
