@@ -4,13 +4,18 @@ where
     C: clap::Parser + CliModifier + fmt::Debug,
     <C as GlobalArguments>::L: LogLevel,
 {
-    // Obtain user configuration
-    let (config, config_filepaths) = config::init_config()
-        .context(app::ConfigSnafu {})
-        .context(crate::AppSnafu)?;
-
     // Obtain CLI arguments
     let cli_input = C::parse();
+
+    // Obtain user configuration
+    let (config, config_filepaths) = config::init_config(
+        cli_input
+            .config_file()
+            .as_ref()
+            .map(|f| PathBuf::as_path(&f)),
+    )
+    .context(app::ConfigSnafu {})
+    .context(crate::AppSnafu)?;
 
     // Turn off colors if needed
     let mut is_cli_uncolored = cli_input.is_uncolored();
@@ -126,7 +131,7 @@ where
     tracing::debug!(
         "{} {} {:?}",
         console::Emoji("📂", ""),
-        "Config Filepath(s):".magenta(),
+        "Config Filepath(s) (without file extensions):".magenta(),
         config_filepaths,
     );
     tracing::debug!(
