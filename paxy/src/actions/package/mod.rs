@@ -28,8 +28,6 @@ pub enum Error {
 
 // region: IMPORTS
 
-use std::path::PathBuf;
-
 use snafu::Snafu;
 
 // endregion: IMPORTS

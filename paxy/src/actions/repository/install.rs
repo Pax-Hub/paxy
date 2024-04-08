@@ -1,6 +1,6 @@
 #[allow(unused)]
 fn add_repo(repo: &str, name: &str) {
-    let mut file = home!();
+    let mut file = super::home!();
     file.push(".paxy");
     ensure_path(None);
     file.push("repos.bson");
@@ -53,6 +53,8 @@ use bson::{doc, Document};
 use git2::Repository;
 use log::{info, warn};
 use snafu::Snafu;
+
+use crate::actions::repository::ensure_path;
 
 // endregion: IMPORTS
 

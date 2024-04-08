@@ -1,3 +1,35 @@
+#[macro_export]
+macro_rules! home {
+    () => {
+        match home::home_dir() {
+            Some(path) => path,
+            None => panic!("Impossible to get your home dir!"),
+        }
+    };
+}
+
+#[inline]
+pub fn ensure_path(path: Option<&PathBuf>) {
+    if path.is_none() {
+        let mut file = home!();
+        file.push(".paxy");
+        if !file.is_dir() {
+            ::std::fs::create_dir_all(file).expect("Inufficient permissions");
+        }
+    } else {
+        if !path
+            .unwrap()
+            .is_dir()
+        {
+            ::std::fs::create_dir_all(
+                path.unwrap()
+                    .clone(),
+            )
+            .expect("Inufficient permissions");
+        }
+    }
+}
+
 #[derive(Debug, Snafu)]
 #[non_exhaustive]
 pub enum Error {
@@ -47,6 +79,8 @@ pub mod update;
 
 // region: RE-EXPORTS
 
+pub(crate) use home;
+
 #[allow(unused_imports)]
 pub use downgrade::*;
 #[allow(unused_imports)]
@@ -61,34 +95,5 @@ pub use uninstall::*;
 pub use update::*;
 
 // endregion: RE-EXPORTS
-#[macro_export]
-macro_rules! home {
-    () => {
-        match home::home_dir() {
-            Some(path) => path,
-            None => panic!("Impossible to get your home dir!"),
-        }
-    };
-}
 
-#[inline]
-pub fn ensure_path(path: Option<&PathBuf>) {
-    if path.is_none() {
-        let mut file = home!();
-        file.push(".paxy");
-        if !file.is_dir() {
-            ::std::fs::create_dir_all(file).expect("Inufficient permissions");
-        }
-    } else {
-        if !path
-            .unwrap()
-            .is_dir()
-        {
-            ::std::fs::create_dir_all(
-                path.unwrap()
-                    .clone(),
-            )
-            .expect("Inufficient permissions");
-        }
-    }
-}
+
