@@ -96,15 +96,17 @@ where
         "███".bright_white()
     );
 
-    // Test messages
-    tracing::trace!(target:"TEST", "{} Testing trace!...", console::Emoji("🧪", ""));
-    tracing::debug!(target:"TEST", "{} Testing debug!...", console::Emoji("🧪", ""));
-    tracing::info!(target:"TEST", "{} Testing info!...", console::Emoji("🧪", ""));
-    tracing::warn!(target:"TEST", "{} Testing warn!...", console::Emoji("🧪", ""));
-    tracing::error!(target:"TEST", "{} Testing error!...", console::Emoji("🧪", ""));
+    if cli_input.is_test() {
+        // Test messages
+        tracing::trace!(target:"TEST", "{} Testing trace!...", console::Emoji("🧪", ""));
+        tracing::debug!(target:"TEST", "{} Testing debug!...", console::Emoji("🧪", ""));
+        tracing::info!(target:"TEST", "{} Testing info!...", console::Emoji("🧪", ""));
+        tracing::warn!(target:"TEST", "{} Testing warn!...", console::Emoji("🧪", ""));
+        tracing::error!(target:"TEST", "{} Testing error!...", console::Emoji("🧪", ""));
 
-    tracing::info!(target:"JSON", "{} Testing: {}", console::Emoji("🧪", ""), "{\"JSON\": \"Target\"}");
-    tracing::info!(target:"PLAIN", "{} Testing: Plain Target", console::Emoji("🧪", ""));
+        tracing::info!(target:"JSON", "{} Testing: {}", console::Emoji("🧪", ""), "{\"JSON\": \"Target\"}");
+        tracing::info!(target:"PLAIN", "{} Testing: Plain Target", console::Emoji("🧪", ""));
+    }
 
     tracing::debug!(
         "{}  The {} is {}... {}",
@@ -237,81 +239,8 @@ use crate::app::{self, config, logging};
 
 // region: MODULES
 
-mod cli_template {
-    #[derive(Clone, Debug, Args)]
-    #[clap(args_conflicts_with_subcommands = true, next_display_order = usize::MAX - 100)]
-    pub struct GlobalArgs<L>
-    where
-        L: clap_verbosity_flag::LogLevel,
-    {
-        #[clap(
-            long = "config",
-            short = 'c',
-            help = "Path to the configuration file to use.",
-            global = true,
-            display_order = usize::MAX - 6
-        )]
-        pub config_file: Option<PathBuf>,
-
-        #[clap(
-            long = "json",
-            help = "Output in the JSON format for machine readability and scripting purposes.",
-            global = true,
-            display_order = usize::MAX - 5
-        )]
-        pub json_flag: bool,
-
-        #[clap(
-            long = "plain",
-            help = "Output as plain text without extra information, for machine readability and scripting purposes.",
-            global = true,
-            display_order = usize::MAX - 4
-        )]
-        pub plain_flag: bool,
-
-        #[clap(
-            long = "debug",
-            help = "Output debug messages.",
-            global = true,
-            display_order = usize::MAX - 3
-        )]
-        pub debug_flag: bool,
-
-        #[clap(
-            long = "no-color",
-            help = "Disable output coloring.",
-            global = true,
-            display_order = usize::MAX - 2
-        )]
-        pub no_color_flag: bool,
-
-        #[clap(
-            long = "test",
-            help = "Avoid destructive modifications and show all output subject to the commandline filters. Useful for dry-runs and for developers.",
-            global = true,
-            display_order = usize::MAX - 1
-        )]
-        pub test_flag: bool,
-
-        #[clap(flatten)]
-        pub verbose: Verbosity<L>,
-    }
-
-    // region: IMPORTS
-
-    use std::path::PathBuf;
-
-    use clap::Args;
-    use clap_verbosity_flag::Verbosity;
-
-    // endregion: IMPORTS
-}
-
 // endregion: MODULES
 
 // region: RE-EXPORTS
-
-#[allow(unused_imports)]
-pub use cli_template::*;
 
 // endregion: RE-EXPORTS
