@@ -79,10 +79,9 @@ pub mod update;
 
 // region: RE-EXPORTS
 
-pub(crate) use home;
-
 #[allow(unused_imports)]
 pub use downgrade::*;
+pub(crate) use home;
 #[allow(unused_imports)]
 pub use install::*;
 #[allow(unused_imports)]
@@ -95,5 +94,3 @@ pub use uninstall::*;
 pub use update::*;
 
 // endregion: RE-EXPORTS
-
-
