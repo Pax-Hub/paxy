@@ -8,7 +8,7 @@ where
     let cli_input = C::parse();
 
     // Obtain user configuration
-    let (config, config_filepaths) = config::init_config(
+    let (figment, config_filepaths) = config::init_config(
         cli_input
             .config_file()
             .as_ref()
@@ -16,6 +16,17 @@ where
     )
     .context(app::ConfigSnafu {})
     .context(crate::AppSnafu)?;
+
+    if cli_input.is_uncolored() {
+        figment.admerge(("no_color", true));
+        anstream::ColorChoice::Never.write_global();
+        owo_colors::set_override(false);
+    }
+    if let Some(log_level_filter) = cli_input.verbosity_filter() {
+        figment.admerge(("log_level_filter", log_level_filter));
+    }
+
+
 
     // Turn off colors if needed
     let mut is_cli_uncolored = cli_input.is_uncolored();
@@ -204,7 +215,7 @@ pub trait GlobalArguments {
 
     fn config_file(&self) -> &Option<PathBuf>;
 
-    fn is_json(&self) -> bool;
+    fn is_json(&self) -> &Option<bool>;
 
     fn is_plain(&self) -> bool;
 
@@ -237,6 +248,7 @@ use owo_colors::OwoColorize;
 use snafu::{ResultExt, Snafu};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::filter::LevelFilter;
+use figment;
 
 use crate::app::{self, config, logging};
 

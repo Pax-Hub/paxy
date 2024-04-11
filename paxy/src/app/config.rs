@@ -3,7 +3,11 @@
 /// local paths. overridden by environment variables starting with `PAXY_`,
 /// overridden by the configuration file specified by the commandline.
 /// Values from only files with supported file extensions would be merged.
-pub fn init_config(config_filepath: Option<&Path>) -> Result<(Config, Vec<PathBuf>), Error> {
+pub fn init_config<C>(cli_modifier: C) -> Result<(Config, Vec<PathBuf>), Error>
+where
+    C: clap::Parser + ui::CliModifier + fmt::Debug,
+    <C as ui::GlobalArguments>::L: LogLevel,
+{
     let mut candidate_config_filepath_stubs: Vec<PathBuf> = Vec::new();
 
     // Global directories
@@ -41,10 +45,11 @@ pub fn init_config(config_filepath: Option<&Path>) -> Result<(Config, Vec<PathBu
     // Merge configuration values from environment variables
     figment = figment.admerge(Env::prefixed(&format!("{}_", *app::APP_NAME)));
 
-    // Merge configuration values from config filepath specified at the CLI
-    if let Some(config_filepath) = config_filepath {
-        if let Some(parent) = config_filepath.parent() {
-            if let Some(stem) = config_filepath.file_stem() {
+    // Merge configuration values from additional config filepaths (usually 
+    // specified through CLI)
+    if let Some(additional_config_filepath) = cli_modifier.config_file() {
+        if let Some(parent) = additional_config_filepath.parent() {
+            if let Some(stem) = additional_config_filepath.file_stem() {
                 let mut stub = PathBuf::from(parent);
                 stub.push(stem);
                 figment = admerge_from_stub(&stub, figment);
@@ -53,14 +58,21 @@ pub fn init_config(config_filepath: Option<&Path>) -> Result<(Config, Vec<PathBu
         }
     }
 
+    // Merge configuration values from the CLI
+    // These are not set to be optional, so only action-required states are
+    // merged with the configuration
+    if cli_modifier.is_uncolored() {
+        figment.admerge(("no_color", true));
+    }
+    if let Some(log_level_filter) = cli_input.verbosity_filter() {
+        figment.admerge(("log_level_filter", log_level_filter));
+    }
+
     Ok((
         figment
             .extract()
             .context(ExtractConfigSnafu {})?,
         candidate_config_filepath_stubs
-            .iter()
-            .map(PathBuf::from)
-            .collect(),
     ))
 }
 
@@ -152,6 +164,6 @@ use figment::{
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt, Snafu};
 
-use crate::app;
+use crate::{ui, app};
 
 // endregion: IMPORTS
