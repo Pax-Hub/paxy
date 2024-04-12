@@ -91,6 +91,8 @@ fn admerge_from_stub(candidate_config_filepath_stub: &PathBuf, mut figment: Figm
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
+    pub paths: app::Paths,
+
     pub log_directory: Option<String>,
 
     pub log_level_filter: Option<LevelFilter>,
@@ -128,6 +130,29 @@ impl Provider for Config {
     }
 }
 
+// region: IMPORTS
+
+use std::path::PathBuf;
+
+use figment::{
+    providers::{Env, Format, Json, Toml, Yaml},
+    value::{Dict, Map},
+    Figment,
+    Metadata,
+    Profile,
+    Provider,
+};
+use log::LevelFilter;
+use serde::{Deserialize, Serialize};
+use snafu::{OptionExt, ResultExt, Snafu};
+
+use crate::app;
+use crate::app::ui;
+
+// endregion: IMPORTS
+
+// region: ERRORS
+
 #[derive(Debug, Snafu)]
 #[non_exhaustive]
 pub enum Error {
@@ -146,22 +171,4 @@ pub enum Error {
     ExtractConfig { source: figment::Error },
 }
 
-// region: IMPORTS
-
-use std::path::PathBuf;
-
-use figment::{
-    providers::{Env, Format, Json, Toml, Yaml},
-    value::{Dict, Map},
-    Figment,
-    Metadata,
-    Profile,
-    Provider,
-};
-use serde::{Deserialize, Serialize};
-use snafu::{OptionExt, ResultExt, Snafu};
-use log::LevelFilter;
-
-use crate::{app, ui};
-
-// endregion: IMPORTS
+// endregion: ERRORS

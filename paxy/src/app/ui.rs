@@ -32,9 +32,10 @@ where
                 .parse()
                 .ok()
         });
-    let (mut handle, log_filepath) = logging::init_log(config_log_dirpath, config_verbosity_filter.into())
-        .context(app::LoggingSnafu {})
-        .context(crate::AppSnafu {})?;
+    let (mut handle, log_filepath) =
+        logging::init_log(config_log_dirpath, config_verbosity_filter.into())
+            .context(app::LoggingSnafu {})
+            .context(crate::AppSnafu {})?;
 
     // Modify logging behavior if Plain or Json output is desired
     if cli_input.is_json() {
@@ -153,6 +154,51 @@ fn emit_test_messages() {
     tracing::info!(target:"PLAIN", "{} Testing: Plain Target", console::Emoji("🧪", ""));
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CliFormat {
+    pub output_mode: Option<CliOutputMode>,
+    verbosity_level_filter: log::LevelFilter,
+    pub is_colored: Option<bool>,
+}
+
+impl CliFormat {
+    pub fn try_set_max_verbosity_level(suggested_max_verbosity_level: log::LevelFilter) -> Result<(),> {
+        return match self.output_mode.unwrap_or_default() {
+            CliOutputMode::Regular => suggested_max_verbosity_level.as_str().parse().unwrap(),
+            CliOutputMode::Plain => todo!(),
+            CliOutputMode::Json => todo!(),
+            CliOutputMode::Test => todo!(),
+        };
+    }
+    pub fn max_verbosity_level(&self) -> log::LevelFilter {
+        return verbosity_level_filter;
+    }
+}
+
+impl Default for CliFormat {
+    fn default() -> Self {
+        Self {
+            output_mode: Default::default(),
+            verbosity_level_filter: log::LevelFilter::Info,
+            is_colored: Some(true), 
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum CliOutputMode {
+    Regular,
+    Plain,
+    Json,
+    Test,
+}
+
+impl Default for CliOutputMode {
+    fn default() -> Self {
+        CliOutputMode::Regular
+    }
+}
+
 impl<T> CliModifier for T
 where
     T: GlobalArguments,
@@ -165,22 +211,21 @@ where
     <Self as GlobalArguments>::L: LogLevel,
 {
     fn verbosity_filter(&self) -> Option<LevelFilter> {
-        if self.is_plain() || self.is_json() {
-            return Some(LevelFilter::Info);
-        }
-
         let verbosity_flag_filter = self
             .verbosity()
             .log_level_filter();
 
-        if verbosity_flag_filter < clap_verbosity_flag::LevelFilter::Debug && self.is_debug() {
+        if self.is_plain() || self.is_json() {
+            return Some(LevelFilter::Info);
+        } else if verbosity_flag_filter < clap_verbosity_flag::LevelFilter::Debug && self.is_debug()
+        {
             return Some(LevelFilter::Debug);
+        } else {
+            return verbosity_flag_filter
+                .as_str()
+                .parse()
+                .ok();
         }
-
-        verbosity_flag_filter
-            .as_str()
-            .parse()
-            .ok()
     }
 
     fn is_uncolored(&self) -> bool {
@@ -233,10 +278,12 @@ use core::fmt;
 use std::{env, path::PathBuf};
 
 use clap_verbosity_flag::LogLevel;
-use owo_colors::OwoColorize;
-use snafu::{ResultExt, Snafu};
-use tracing_appender::non_blocking::WorkerGuard;
 use log::LevelFilter;
+use owo_colors::OwoColorize;
+use serde::{Deserialize, Serialize};
+use snafu::{ResultExt, Snafu};
+use tracing::Level;
+use tracing_appender::non_blocking::WorkerGuard;
 
 use crate::app::{self, config, logging};
 

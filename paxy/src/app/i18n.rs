@@ -1,3 +1,13 @@
+// TODO: The module code goes here
+
+// region: IMPORTS
+
+use snafu::Snafu;
+
+// endregion: IMPORTS
+
+// region: ERRORS
+
 #[derive(Debug, Snafu)]
 #[non_exhaustive]
 pub enum Error {
@@ -6,8 +16,4 @@ pub enum Error {
     I18nDummy {},
 }
 
-// region: IMPORTS
-
-use snafu::Snafu;
-
-// endregion: IMPORTS
+// endregion: ERRORS
