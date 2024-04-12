@@ -3,10 +3,10 @@
 /// local paths. overridden by environment variables starting with `PAXY_`,
 /// overridden by the configuration file specified by the commandline.
 /// Values from only files with supported file extensions would be merged.
-pub fn init_config<C>(cli_modifier: C) -> Result<(Config, Vec<PathBuf>), Error>
+pub fn init_config<C>(cli_modifier: &C) -> Result<(Config, Vec<PathBuf>), Error>
 where
-    C: clap::Parser + ui::CliModifier + fmt::Debug,
-    <C as ui::GlobalArguments>::L: LogLevel,
+    C: ui::CliModifier,
+    <C as ui::GlobalArguments>::L: clap_verbosity_flag::LogLevel,
 {
     let mut candidate_config_filepath_stubs: Vec<PathBuf> = Vec::new();
 
@@ -35,17 +35,14 @@ where
     // Merge configuration values from global and local filepaths
     figment = candidate_config_filepath_stubs
         .iter()
-        .fold(
-            figment,
-            move |figment, candidate_config_filepath_stub| {
-                admerge_from_stub(candidate_config_filepath_stub, figment)
-            },
-        );
+        .fold(figment, move |figment, candidate_config_filepath_stub| {
+            admerge_from_stub(candidate_config_filepath_stub, figment)
+        });
 
     // Merge configuration values from environment variables
     figment = figment.admerge(Env::prefixed(&format!("{}_", *app::APP_NAME)));
 
-    // Merge configuration values from additional config filepaths (usually 
+    // Merge configuration values from additional config filepaths (usually
     // specified through CLI)
     if let Some(additional_config_filepath) = cli_modifier.config_file() {
         if let Some(parent) = additional_config_filepath.parent() {
@@ -62,17 +59,17 @@ where
     // These are not set to be optional, so only action-required states are
     // merged with the configuration
     if cli_modifier.is_uncolored() {
-        figment.admerge(("no_color", true));
+        figment = figment.admerge(("no_color", true));
     }
-    if let Some(log_level_filter) = cli_input.verbosity_filter() {
-        figment.admerge(("log_level_filter", log_level_filter));
+    if let Some(log_level_filter) = cli_modifier.verbosity_filter() {
+        figment = figment.admerge(("log_level_filter", log_level_filter));
     }
 
     Ok((
         figment
             .extract()
             .context(ExtractConfigSnafu {})?,
-        candidate_config_filepath_stubs
+        candidate_config_filepath_stubs,
     ))
 }
 
@@ -96,7 +93,7 @@ fn admerge_from_stub(candidate_config_filepath_stub: &PathBuf, mut figment: Figm
 pub struct Config {
     pub log_directory: Option<String>,
 
-    pub log_level_filter: Option<log::LevelFilter>,
+    pub log_level_filter: Option<LevelFilter>,
 
     pub no_color: Option<bool>,
 }
@@ -111,7 +108,7 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             log_directory: None,
-            log_level_filter: Some(log::LevelFilter::Info),
+            log_level_filter: Some(LevelFilter::Info),
             no_color: Some(false),
         }
     }
@@ -151,7 +148,7 @@ pub enum Error {
 
 // region: IMPORTS
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use figment::{
     providers::{Env, Format, Json, Toml, Yaml},
@@ -163,7 +160,8 @@ use figment::{
 };
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt, Snafu};
+use log::LevelFilter;
 
-use crate::{ui, app};
+use crate::{app, ui};
 
 // endregion: IMPORTS
