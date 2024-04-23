@@ -157,21 +157,16 @@ fn emit_test_messages() {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CliFormat {
     pub output_mode: Option<CliOutputMode>,
-    verbosity_level_filter: log::LevelFilter,
+    pub requested_verbosity: Option<log::LevelFilter>,
     pub is_colored: Option<bool>,
 }
 
 impl CliFormat {
-    pub fn try_set_max_verbosity_level(suggested_max_verbosity_level: log::LevelFilter) -> Result<(),> {
-        return match self.output_mode.unwrap_or_default() {
-            CliOutputMode::Regular => suggested_max_verbosity_level.as_str().parse().unwrap(),
-            CliOutputMode::Plain => todo!(),
-            CliOutputMode::Json => todo!(),
-            CliOutputMode::Test => todo!(),
-        };
-    }
-    pub fn max_verbosity_level(&self) -> log::LevelFilter {
-        return verbosity_level_filter;
+    pub fn resolve_max_verbosity_level() -> LevelFilter {
+        match self.output_mode {
+            Some(CliOutputMode::Plain) | Some(CliOutputMode::Json) => return Some(LevelFilter::Info),
+            _ => return verbosity_level_filter,
+        }
     }
 }
 
