@@ -16,16 +16,12 @@ Cargo.lock
 
 # Visual Studio Code
 *.code-workspace
-/.vscode
-.vscode/*
-!.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 .history/
 *.vsix
-.vscode
 
 # Packaging
 /packaging/**/pkg

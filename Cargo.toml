@@ -4,8 +4,7 @@ members = [
     "paxy",
     "paxy-cli",
     "paxy-gui", "paxy-plugin",
-
-    "tests",
+    "tests", "semver"
 ]
 
 resolver = "2"
