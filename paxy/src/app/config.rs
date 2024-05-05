@@ -3,10 +3,10 @@
 /// local paths. overridden by environment variables starting with `PAXY_`,
 /// overridden by the configuration file specified by the commandline.
 /// Values from only files with supported file extensions would be merged.
-pub fn init_config<C>(cli_modifier: &C) -> Result<(Config, Vec<PathBuf>), Error>
+pub fn init_config<G>(cli_global_arguments: G) -> Result<(Config, Vec<PathBuf>), Error>
 where
-    C: ui::CliModifier,
-    <C as ui::GlobalArguments>::L: clap_verbosity_flag::LogLevel,
+    G: ui::GlobalArguments,
+    <G as ui::GlobalArguments>::L: clap_verbosity_flag::LogLevel,
 {
     let mut candidate_config_filepath_stubs: Vec<PathBuf> = Vec::new();
 
@@ -44,7 +44,7 @@ where
 
     // Merge configuration values from additional config filepaths (usually
     // specified through CLI)
-    if let Some(additional_config_filepath) = cli_modifier.config_file() {
+    if let Some(additional_config_filepath) = preferred_config_filepath {
         if let Some(parent) = additional_config_filepath.parent() {
             if let Some(stem) = additional_config_filepath.file_stem() {
                 let mut stub = PathBuf::from(parent);
@@ -58,10 +58,10 @@ where
     // Merge configuration values from the CLI
     // These are not set to be optional, so only action-required states are
     // merged with the configuration
-    if cli_modifier.is_uncolored() {
+    if cli_global_arguments.is_uncolored() {
         figment = figment.admerge(("no_color", true));
     }
-    if let Some(log_level_filter) = cli_modifier.verbosity_filter() {
+    if let Some(log_level_filter) = cli_global_arguments.verbosity_filter() {
         figment = figment.admerge(("log_level_filter", log_level_filter));
     }
 
@@ -91,13 +91,11 @@ fn admerge_from_stub(candidate_config_filepath_stub: &PathBuf, mut figment: Figm
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub paths: app::Paths,
+    pub config_dirpaths: Vec<PathBuf>,
 
-    pub log_directory: Option<String>,
+    pub log_dirpath: PathBuf,
 
-    pub log_level_filter: Option<LevelFilter>,
-
-    pub no_color: Option<bool>,
+    pub cli_output_format: ui::CliOutputFormat,
 }
 
 impl Config {
@@ -108,10 +106,11 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Config {
-            log_directory: None,
-            log_level_filter: Some(LevelFilter::Info),
-            no_color: Some(false),
+        Self {
+            config_dirpaths: None,
+            log_dirpath: None,
+            log_directory: todo!(),
+            cli_output_format: todo!(),
         }
     }
 }

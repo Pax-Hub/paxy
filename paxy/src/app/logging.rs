@@ -1,14 +1,9 @@
-pub fn init_log(
-    preferred_log_dirpath: Option<PathBuf>,
-    preferred_log_level_filter: Option<log::LevelFilter>,
-) -> Result<(Handle, PathBuf), Error> {
+pub fn init_log(max_output_verbosity: log::LevelFilter) -> Result<(Handle, PathBuf), Error> {
     let log_filename = format!("{}.log", *app::APP_NAME);
     let log_dirpath = obtain_log_dirpath(preferred_log_dirpath)?;
     let log_file_appender =
         tracing_appender::rolling::daily(log_dirpath.clone(), log_filename.clone());
-    let log_level_filter = tracing_level_filter_from_log_level_filter(
-        preferred_log_level_filter.unwrap_or(log::LevelFilter::Info),
-    );
+    let log_level_filter = tracing_level_filter_from_log_level_filter(max_output_verbosity);
 
     // Obtain writers to various logging destinations and worker guards (for
     // keeping the streams alive)

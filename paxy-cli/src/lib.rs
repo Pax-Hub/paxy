@@ -1,5 +1,12 @@
+//! Has the [`run_cli`] function and the commandline interface template
+//! [`cli_template::CliTemplate`]
+
+/// Calls the [`ui::run_common::<C>`] function supplying it with the commandline
+///  interface template as a type. Any errors are thrown back to the calling
+/// function. A debug message is then displayed conveying that the program is
+/// being run in the CLI mode.
 pub fn run_cli() -> Result<(), paxy::Error> {
-    let (_cli_input, _worker_guards) = ui::run_common::<CliTemplate>()?;
+    let (_cli_input, _logging_worker_guards) = ui::run_common::<CliTemplate>()?;
 
     tracing::debug!(
         "Running in {} mode... {}",
@@ -408,6 +415,6 @@ mod cli_template {
 
 // region: RE-EXPORTS
 
-pub use cli_template::*;
+pub use cli_template::*; // Flatten the module heirarchy for easier access
 
 // endregion: RE-EXPORTS

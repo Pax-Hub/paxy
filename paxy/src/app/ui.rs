@@ -1,65 +1,94 @@
 #[tracing::instrument(level = "trace")]
 pub fn run_common<C>() -> Result<(C, Vec<WorkerGuard>), crate::Error>
 where
-    C: clap::Parser + CliModifier + fmt::Debug,
+    C: clap::Parser + GlobalArguments + fmt::Debug,
     <C as GlobalArguments>::L: LogLevel,
 {
     // Obtain CLI arguments
     let cli_input = C::parse();
 
     // Obtain user configuration
-    let (config, config_filepaths) = config::init_config(&cli_input)
+    let (config, config_filepath_stubs) = config::init_config(&cli_input.config_file())
         .context(app::ConfigSnafu {})
         .context(crate::AppSnafu)?;
 
-    // Turn off colors if needed
-    if let Some(no_color) = config.no_color {
-        if no_color {
-            anstream::ColorChoice::Never.write_global();
-            owo_colors::set_override(false);
-        }
-    }
+    // Begin logging
+    let (mut logging_handle, log_filepath) = logging::init_log(&config.)
+        .context(app::LoggingSnafu {})
+        .context(crate::AppSnafu {})?;
 
-    // Begin logging with preferred log directory and preferred verbosity
-    let config_log_dirpath = config
-        .log_directory
-        .as_ref()
-        .map(PathBuf::from);
-    let config_verbosity_filter: Option<LevelFilter> = config
-        .log_level_filter
-        .and_then(|lf| {
-            lf.as_str()
-                .parse()
-                .ok()
-        });
-    let (mut handle, log_filepath) =
-        logging::init_log(config_log_dirpath, config_verbosity_filter.into())
-            .context(app::LoggingSnafu {})
-            .context(crate::AppSnafu {})?;
-
-    // Modify logging behavior if Plain or Json output is desired
-    if cli_input.is_json() {
-        handle
-            .switch_to_json()
-            .context(app::LoggingSnafu {})
-            .context(crate::AppSnafu {})?;
-    } else if cli_input.is_plain() {
-        handle
-            .switch_to_plain()
-            .context(app::LoggingSnafu {})
-            .context(crate::AppSnafu {})?;
-    } else if cli_input.is_test() {
-        handle
-            .switch_to_test()
-            .context(app::LoggingSnafu {})
-            .context(crate::AppSnafu {})?;
-    }
+    // Adjust output formatting if requested
+    adjust_output_formatting(&config.cli_output_format, &logging_handle);
 
     emit_welcome_messages();
-    emit_diagnostic_messages(config_filepaths, log_filepath, &cli_input);
+
+    emit_diagnostic_messages(config_filepath_stubs, log_filepath, &cli_input);
+
     emit_test_messages();
 
-    Ok((cli_input, handle.worker_guards))
+    Ok((cli_input, logging_handle.worker_guards))
+}
+
+fn resolve_max_output_verbosity<G: GlobalArguments>(cli_output_format: &CliOutputFormat, cli_global_arguments: G) {
+    let verbosity_flag_filter = cli_output_format
+        .verbosity()
+        .log_level_filter();
+
+    if matches!(
+        cli_output_format.output_mode,
+        CliOutputMode::Plain | CliOutputMode::Json
+    ){
+        return Some(LevelFilter::Info);
+    } else if verbosity_flag_filter < clap_verbosity_flag::LevelFilter::Debug && cli_global_arguments.is_debug()
+    {
+        return Some(LevelFilter::Debug);
+    } else {
+        return verbosity_flag_filter
+            .as_str()
+            .parse()
+            .ok();
+    }
+}
+
+fn adjust_output_formatting(
+    cli_output_format: &CliOutputFormat,
+    mut logging_handle: &logging::Handle,
+) {
+    // Turn off colors if requested
+    if matches!(
+        cli_output_format.output_mode,
+        CliOutputMode::Plain | CliOutputMode::Json
+    ) || cli_output_format.no_color
+        || is_env_variable_set("NO_COLOR")
+        || is_env_variable_set(format!(
+            "{}_NO_COLOR",
+            String::from(*app::APP_NAME).to_uppercase()
+        ))
+    {
+        anstream::ColorChoice::Never.write_global();
+        owo_colors::set_override(false);
+    }
+
+    // Change output mode if requested
+    match cli_output_format.output_mode {
+        CliOutputMode::Plain => logging_handle
+            .switch_to_plain()
+            .context(app::LoggingSnafu {})
+            .context(crate::AppSnafu {})?,
+        CliOutputMode::Json => logging_handle
+            .switch_to_json()
+            .context(app::LoggingSnafu {})
+            .context(crate::AppSnafu {})?,
+        CliOutputMode::Test => logging_handle
+            .switch_to_test()
+            .context(app::LoggingSnafu {})
+            .context(crate::AppSnafu {})?,
+        _ => {}
+    }
+}
+
+fn is_env_variable_set<S: AsRef<str>>(env_variable_name: S) -> bool {
+    env::var(env_variable_name.as_ref()).map_or(false, |value| !value.is_empty())
 }
 
 fn emit_welcome_messages() {
@@ -77,8 +106,11 @@ fn emit_welcome_messages() {
     );
 }
 
-fn emit_diagnostic_messages<C>(config_filepaths: Vec<PathBuf>, log_filepath: PathBuf, cli_input: &C)
-where
+fn emit_diagnostic_messages<C>(
+    config_filepath_stubs: Vec<PathBuf>,
+    log_filepath: PathBuf,
+    cli_input: &C,
+) where
     C: clap::Parser + CliModifier + fmt::Debug,
     <C as GlobalArguments>::L: LogLevel,
 {
@@ -101,8 +133,9 @@ where
         "{} {} {:?}",
         console::Emoji("📂", ""),
         "Config Filepath(s) (without file extensions):".magenta(),
-        config_filepaths,
+        config_dirpaths,
     );
+
     tracing::debug!(
         "{} {} {:?}",
         console::Emoji("📂", ""),
@@ -155,27 +188,31 @@ fn emit_test_messages() {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CliFormat {
-    pub output_mode: Option<CliOutputMode>,
-    pub requested_verbosity: Option<log::LevelFilter>,
-    pub is_colored: Option<bool>,
+pub struct CliOutputFormat {
+    pub output_mode: CliOutputMode,
+
+    pub requested_verbosity: log::LevelFilter,
+
+    pub no_color: bool,
 }
 
-impl CliFormat {
+impl CliOutputFormat {
     pub fn resolve_max_verbosity_level() -> LevelFilter {
         match self.output_mode {
-            Some(CliOutputMode::Plain) | Some(CliOutputMode::Json) => return Some(LevelFilter::Info),
+            Some(CliOutputMode::Plain) | Some(CliOutputMode::Json) => {
+                return Some(LevelFilter::Info)
+            }
             _ => return verbosity_level_filter,
         }
     }
 }
 
-impl Default for CliFormat {
+impl Default for CliOutputFormat {
     fn default() -> Self {
         Self {
             output_mode: Default::default(),
-            verbosity_level_filter: log::LevelFilter::Info,
-            is_colored: Some(true), 
+            requested_verbosity: Some(log::LevelFilter::Info),
+            is_colored: Some(true),
         }
     }
 }
@@ -286,6 +323,8 @@ use crate::app::{self, config, logging};
 
 // region: MODULES
 
+/// Common commandline interface template for global arguments, intended to be
+/// shared between the GUI and CLI programs.
 pub mod cli_template {
     #[derive(Clone, Debug, Args)]
     #[command(next_display_order = usize::MAX - 100)]
@@ -360,6 +399,6 @@ pub mod cli_template {
 // region: RE-EXPORTS
 
 #[allow(unused_imports)]
-pub use cli_template::*;
+pub use cli_template::*; // Flatten the module heirarchy for easier access
 
 // endregion: RE-EXPORTS

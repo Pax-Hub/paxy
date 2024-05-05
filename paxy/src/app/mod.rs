@@ -2,12 +2,6 @@ lazy_static! {
     pub static ref APP_NAME: &'static str = "paxy";
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Paths {
-    pub config_dirpaths: Vec<PathBuf>,
-    pub log_dirpath: PathBuf,
-}
-
 // region: IMPORTS
 
 use std::path::PathBuf;

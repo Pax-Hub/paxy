@@ -1,5 +1,12 @@
+//! Has the [`run_gui`] function and the commandline interface template
+//! [`gui_cli_template::CliTemplate`]
+
+/// Calls the [`ui::run_common::<C>`] function supplying it with the commandline
+///  interface template as a type. Any errors are thrown back to the calling
+/// function. A debug message is then displayed conveying that the program is
+/// being run in the GUI mode.
 pub fn run_gui() -> Result<(), paxy::Error> {
-    let (_cli_input, _worker_guards) = ui::run_common::<CliTemplate>()?;
+    let (_cli_input, _logging_worker_guards) = ui::run_common::<CliTemplate>()?;
 
     tracing::debug!(
         "Running in {} mode... {}",
@@ -15,7 +22,7 @@ pub fn run_gui() -> Result<(), paxy::Error> {
 pub enum Error {
     #[non_exhaustive]
     #[snafu(display(""), visibility(pub))]
-    GuiDummy {},
+    GuiDummy {}, // No errors implemented yet
 }
 
 // region: IMPORTS
@@ -28,7 +35,11 @@ use snafu::Snafu;
 
 // region: MODULES
 
+/// The commandline interface for the GUI program. Allows one to specify flags
+/// that control output on a console.
 mod gui_cli_template {
+
+    /// The base commandline template consists of global arguments
     #[derive(Parser, Debug)]
     #[command(version, author, about, args_conflicts_with_subcommands = true)]
     pub struct CliTemplate {
@@ -36,6 +47,8 @@ mod gui_cli_template {
         pub global_args: ui::cli_template::GlobalArgs<clap_verbosity_flag::InfoLevel>,
     }
 
+    /// Implement a trait that can extract standard global arguments from our
+    /// own CLI template
     impl ui::GlobalArguments for CliTemplate {
         type L = clap_verbosity_flag::InfoLevel;
 
@@ -91,6 +104,6 @@ mod gui_cli_template {
 
 // region: RE-EXPORTS
 
-pub use gui_cli_template::*;
+pub use gui_cli_template::*; // Flatten the module heirarchy for easier access
 
 // endregion: RE-EXPORTS
