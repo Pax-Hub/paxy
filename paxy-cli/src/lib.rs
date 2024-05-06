@@ -58,7 +58,7 @@ mod cli_template {
     )]
     pub struct CliTemplate {
         #[command(flatten)]
-        pub global_arguments: ui::cli_template::GlobalArgs<clap_verbosity_flag::InfoLevel>,
+        pub global_args: ui::cli_template::GlobalArgs<clap_verbosity_flag::InfoLevel>,
 
         #[command(subcommand)]
         pub entity: Option<EntitySubcommand>,
@@ -67,43 +67,39 @@ mod cli_template {
     /// Implement a trait that can extract standard global arguments from our
     /// own CLI template
     impl ui::GlobalArguments for CliTemplate {
-        type L = clap_verbosity_flag::InfoLevel;
-
-        fn config_file(&self) -> &Option<PathBuf> {
-            &self
-                .global_arguments
-                .config_file
+        fn config_filepath(&self) -> &Option<PathBuf> {
+            self.global_args
+                .config_filepath()
         }
 
         fn is_json(&self) -> bool {
-            self.global_arguments
-                .json_flag
+            self.global_args
+                .is_json()
         }
 
         fn is_plain(&self) -> bool {
-            self.global_arguments
-                .plain_flag
+            self.global_args
+                .is_plain()
         }
 
         fn is_debug(&self) -> bool {
-            self.global_arguments
-                .debug_flag
-        }
-
-        fn is_no_color(&self) -> bool {
-            self.global_arguments
-                .no_color_flag
+            self.global_args
+                .is_debug()
         }
 
         fn is_test(&self) -> bool {
-            self.global_arguments
-                .test_flag
+            self.global_args
+                .is_test()
         }
 
-        fn verbosity(&self) -> &clap_verbosity_flag::Verbosity<Self::L> {
-            &self
-                .global_arguments
-                .verbose
+        fn is_no_color(&self) -> bool {
+            self.global_args
+                .is_no_color()
+        }
+
+        fn verbosity_filter(&self) -> &log::LevelFilter {
+            self.global_args
+                .verbosity_filter()
         }
     }
 

@@ -50,43 +50,39 @@ mod gui_cli_template {
     /// Implement a trait that can extract standard global arguments from our
     /// own CLI template
     impl ui::GlobalArguments for CliTemplate {
-        type L = clap_verbosity_flag::InfoLevel;
-
-        fn config_file(&self) -> &Option<PathBuf> {
-            &self
-                .global_args
-                .config_file
+        fn config_filepath(&self) -> &Option<PathBuf> {
+            self.global_args
+                .config_filepath()
         }
 
         fn is_json(&self) -> bool {
             self.global_args
-                .json_flag
+                .is_json()
         }
 
         fn is_plain(&self) -> bool {
             self.global_args
-                .plain_flag
+                .is_plain()
         }
 
         fn is_debug(&self) -> bool {
             self.global_args
-                .debug_flag
-        }
-
-        fn is_no_color(&self) -> bool {
-            self.global_args
-                .no_color_flag
+                .is_debug()
         }
 
         fn is_test(&self) -> bool {
             self.global_args
-                .test_flag
+                .is_test()
         }
 
-        fn verbosity(&self) -> &clap_verbosity_flag::Verbosity<Self::L> {
-            &self
-                .global_args
-                .verbose
+        fn is_no_color(&self) -> bool {
+            self.global_args
+                .is_no_color()
+        }
+
+        fn verbosity_filter(&self) -> &log::LevelFilter {
+            self.global_args
+                .verbosity_filter()
         }
     }
 

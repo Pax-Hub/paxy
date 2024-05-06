@@ -89,43 +89,102 @@ fn admerge_from_stub(candidate_config_filepath_stub: &PathBuf, mut figment: Figm
     figment
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub config_dirpaths: Vec<PathBuf>,
-
-    pub log_dirpath: PathBuf,
-
-    pub cli_output_format: ui::CliOutputFormat,
+    pub figment: Figment,
 }
 
 impl Config {
     pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
         Self {
-            config_dirpaths: None,
-            log_dirpath: None,
-            log_directory: todo!(),
-            cli_output_format: todo!(),
+            figment: Figment::from(ConfigTemplate::default()),
         }
     }
+
+    pub fn with_overriding_file<P: AsRef<Path>>(&mut self, filepath: P) -> &mut Self {
+        let filepath: &Path = filepath.as_ref();
+        if let Some(file_extension) = filepath.extension() {
+            file_extension = file_extension
+                .to_string_lossy()
+                .to_lowercase();
+            match (file_extension) {
+                "toml" => {
+                    self.figment = self
+                        .figment
+                        .admerge(Toml::file(filepath));
+                }
+                "json" => {
+                    self.figment = self
+                        .figment
+                        .admerge(Json::file(filepath));
+                }
+                "yaml" | "yml" => {
+                    self.figment = self
+                        .figment
+                        .admerge(Yaml::file(filepath));
+                }
+            }
+        }
+
+        self
+    }
+
+    pub fn with_overriding_files<P, I>(&mut self, filepaths: I) -> &mut Self
+    where
+        P: AsRef<Path>,
+        I: Iterator<Item = P>,
+    {
+        filepaths.for_each(|filepath| self.with_overriding_file(filepath));
+
+        self
+    }
+
+    pub fn with_overriding_env<S: AsRef<str>>(prefix: S) -> &mut Self {
+        let prefix = prefix.as_ref();
+        self.figment = self
+            .figment
+            .admerge(Env::prefixed(prefix));
+
+        self
+    }
+
+    pub fn with_overriding_env_var<S: AsRef<str>>(env_var_name: S) -> &mut Self {
+        let env_var_name = env_var_name.as_ref();
+        self.figment = self
+            .figment
+            .admerge(Env::raw().only(&[env_var_name]));
+
+        self
+    }
+
+    pub fn with_overriding_args<A: ui::GlobalArguments>(&mut self, arguments: A) -> &mut Self {
+        if let Some(path) = arguments.config_filepath() {
+            self.figment = self.figment.admerge(("config_filepaths", path));
+        }
+
+        self
+    }
+
+    pub fn object(&self) -> Result<ConfigTemplate, Error> {
+        self.figment
+            .extract()
+            .context(ExtractConfigSnafu {})?
+    }
 }
 
-impl Provider for Config {
-    fn metadata(&self) -> Metadata {
-        Metadata::named("Library Config")
-    }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigTemplate {
+    pub config_filepaths: Vec<PathBuf>,
+    pub log_filepath_stub: PathBuf,
+    pub console_output_format: ConsoleOutputFormat,
+}
 
-    fn data(&self) -> Result<Map<Profile, Dict>, figment::Error> {
-        figment::providers::Serialized::defaults(Config::default()).data()
-    }
-
-    fn profile(&self) -> Option<Profile> {
-        None
+impl Default for ConfigTemplate {
+    fn default() -> Self {
+        Self {
+            config_filepaths: Vec::new(),
+            log_filepath_stub: PathBuf::default(),
+            console_output_format: ConsoleOutputFormat::default(),
+        }
     }
 }
 
@@ -145,6 +204,7 @@ use log::LevelFilter;
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt, Snafu};
 
+use super::ui::GlobalArguments;
 use crate::app;
 use crate::app::ui;
 

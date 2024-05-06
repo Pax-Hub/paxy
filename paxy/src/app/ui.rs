@@ -13,9 +13,13 @@ where
         .context(crate::AppSnafu)?;
 
     // Begin logging
-    let (mut logging_handle, log_filepath) = logging::init_log(&config.)
-        .context(app::LoggingSnafu {})
-        .context(crate::AppSnafu {})?;
+    let (mut logging_handle, log_filepath) = logging::init_log(
+        &config
+            .cli_output_format
+            .requested_verbosity,
+    )
+    .context(app::LoggingSnafu {})
+    .context(crate::AppSnafu {})?;
 
     // Adjust output formatting if requested
     adjust_output_formatting(&config.cli_output_format, &logging_handle);
@@ -29,17 +33,19 @@ where
     Ok((cli_input, logging_handle.worker_guards))
 }
 
-fn resolve_max_output_verbosity<G: GlobalArguments>(cli_output_format: &CliOutputFormat, cli_global_arguments: G) {
-    let verbosity_flag_filter = cli_output_format
-        .verbosity()
-        .log_level_filter();
+fn resolve_max_output_verbosity<G: GlobalArguments>(
+    cli_output_format: &CliOutputFormat,
+    cli_global_arguments: G,
+) -> log::LevelFilter {
+    let verbosity_flag_filter = cli_output_format.requested_verbosity;
 
     if matches!(
         cli_output_format.output_mode,
         CliOutputMode::Plain | CliOutputMode::Json
-    ){
+    ) {
         return Some(LevelFilter::Info);
-    } else if verbosity_flag_filter < clap_verbosity_flag::LevelFilter::Debug && cli_global_arguments.is_debug()
+    } else if verbosity_flag_filter < clap_verbosity_flag::LevelFilter::Debug
+        && cli_global_arguments.is_debug()
     {
         return Some(LevelFilter::Debug);
     } else {
@@ -188,54 +194,36 @@ fn emit_test_messages() {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CliOutputFormat {
-    pub output_mode: CliOutputMode,
+pub struct ConsoleOutputFormat {
+    pub output_mode: ConsoleOutputMode,
 
-    pub requested_verbosity: log::LevelFilter,
+    pub max_verbosity: log::LevelFilter,
 
     pub no_color: bool,
 }
 
-impl CliOutputFormat {
-    pub fn resolve_max_verbosity_level() -> LevelFilter {
-        match self.output_mode {
-            Some(CliOutputMode::Plain) | Some(CliOutputMode::Json) => {
-                return Some(LevelFilter::Info)
-            }
-            _ => return verbosity_level_filter,
-        }
-    }
-}
-
-impl Default for CliOutputFormat {
+impl Default for ConsoleOutputFormat {
     fn default() -> Self {
         Self {
-            output_mode: Default::default(),
-            requested_verbosity: Some(log::LevelFilter::Info),
-            is_colored: Some(true),
+            output_mode: ConsoleOutputMode::default(),
+            max_verbosity: log::LevelFilter::Info,
+            no_color: false,
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum CliOutputMode {
+pub enum ConsoleOutputMode {
     Regular,
     Plain,
     Json,
     Test,
 }
 
-impl Default for CliOutputMode {
+impl Default for ConsoleOutputMode {
     fn default() -> Self {
         CliOutputMode::Regular
     }
-}
-
-impl<T> CliModifier for T
-where
-    T: GlobalArguments,
-    <T as GlobalArguments>::L: LogLevel,
-{
 }
 
 pub trait CliModifier: GlobalArguments
@@ -277,9 +265,7 @@ where
 }
 
 pub trait GlobalArguments {
-    type L;
-
-    fn config_file(&self) -> &Option<PathBuf>;
+    fn config_filepath(&self) -> &Option<PathBuf>;
 
     fn is_json(&self) -> bool;
 
@@ -291,9 +277,38 @@ pub trait GlobalArguments {
 
     fn is_test(&self) -> bool;
 
-    fn verbosity(&self) -> &clap_verbosity_flag::Verbosity<Self::L>
-    where
-        Self::L: LogLevel;
+    fn verbosity_filter(&self) -> &log::LevelFilter;
+
+    fn console_output_mode(&self) -> ConsoleOutputMode {
+        if self.is_json() {
+            ConsoleOutputMode::Json
+        } else if self.is_plain() {
+            ConsoleOutputMode::Plain
+        } else if self.is_test() {
+            ConsoleOutputMode::Test
+        } else {
+            ConsoleOutputMode::Regular
+        }
+    }
+
+    fn max_output_verbosity(&self) -> log::LevelFilter {
+        let verbosity_flag_filter = cli_output_format.requested_verbosity;
+        if matches!(
+            cli_output_format.output_mode,
+            CliOutputMode::Plain | CliOutputMode::Json
+        ) {
+            return Some(LevelFilter::Info);
+        } else if verbosity_flag_filter < clap_verbosity_flag::LevelFilter::Debug
+            && cli_global_arguments.is_debug()
+        {
+            return Some(LevelFilter::Debug);
+        } else {
+            return verbosity_flag_filter
+                .as_str()
+                .parse()
+                .ok();
+        }
+    }
 }
 
 #[derive(Debug, Snafu)]
@@ -309,7 +324,6 @@ pub enum Error {
 use core::fmt;
 use std::{env, path::PathBuf};
 
-use clap_verbosity_flag::LogLevel;
 use log::LevelFilter;
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
@@ -382,7 +396,45 @@ pub mod cli_template {
         pub test_flag: bool,
 
         #[command(flatten)]
-        pub verbose: clap_verbosity_flag::Verbosity<L>,
+        pub verbosity: clap_verbosity_flag::Verbosity<L>,
+    }
+
+    impl<L> GlobalArguments for GlobalArgs<L> {
+        fn config_filepath(&self) -> &Option<PathBuf> {
+            self.config_filepath
+        }
+
+        fn is_json(&self) -> bool {
+            self.json_flag
+        }
+
+        fn is_plain(&self) -> bool {
+            self.plain_flag
+        }
+
+        fn is_debug(&self) -> bool {
+            self.debug_flag
+        }
+
+        fn is_test(&self) -> bool {
+            self.test_flag
+        }
+
+        fn is_no_color(&self) -> bool {
+            self.no_color_flag
+        }
+
+        fn verbosity_filter(&self) -> &log::LevelFilter {
+            self.verbosity
+                .log_level_filter()
+                .and_then(|log_level_filter| {
+                    log_level_filter
+                        .as_str()
+                        .parse()
+                        .ok()
+                })
+                .unwrap_or(log::LevelFilter::Info)
+        }
     }
 
     // region: IMPORTS
@@ -390,6 +442,8 @@ pub mod cli_template {
     use std::path::PathBuf;
 
     use clap::Args;
+
+    use super::GlobalArguments;
 
     // endregion: IMPORTS
 }
