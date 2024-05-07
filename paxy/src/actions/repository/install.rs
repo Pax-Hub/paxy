@@ -6,7 +6,7 @@ fn add_repo(repo: &str, name: &str) {
     file.push("repos.bson");
     let mut doc = if !file.is_file() {
         warn!("file not found. Creating");
-        let doc = doc! {"paxy-official": "https://github.com/Pax-Hub/paxy-pkg-repository.git"};
+        let doc = doc! {"paxy-pkgs": "https://github.com/Pax-Hub/paxy-pkg-repository.git"};
         let mut buf = vec![];
         doc.to_writer(&mut buf)
             .unwrap();
@@ -65,18 +65,25 @@ use crate::actions::ensure_path;
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use super::*;
+    use serial_test::serial;
 
     #[test]
-    fn add_repo_norm_test() {
+    #[serial]
+    fn repo_add_norm() {
+        let mut repo_file = home!();
+        repo_file.push(".paxy");
+        repo_file.push("repos.bson");
+        if repo_file.is_file() {
+            fs::remove_file(&repo_file).unwrap();
+        }
         add_repo("https://github.com/Pax-Hub/paxy-pkg-repository.git", "paxy");
-        let mut file = home!();
-        file.push(".paxy");
-        file.push("repos.bson");
-        let doc = Document::from_reader(File::open(file.clone()).unwrap()).unwrap();
+        let doc = Document::from_reader(File::open(repo_file.clone()).unwrap()).unwrap();
         assert_eq!(
             doc,
-            doc! {"paxy-official": "https://github.com/Pax-Hub/paxy-pkg-repository.git", "paxy": "https://github.com/Pax-Hub/paxy-pkg-repository.git"}
+            doc! {"paxy-pkgs": "https://github.com/Pax-Hub/paxy-pkg-repository.git", "paxy": "https://github.com/Pax-Hub/paxy-pkg-repository.git"}
         );
     }
 }

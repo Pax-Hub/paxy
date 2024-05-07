@@ -42,9 +42,16 @@ pub fn ensure_path(path: Option<&PathBuf>) {
     }
 }
 
+#[inline]
+pub(crate) fn ensure_file<F: Fn(File)>(file: &PathBuf, f: F) {
+    if !file.is_file() {
+        f(File::create(file).unwrap())
+    }
+}
+
 // region: IMPORTS
 
-use std::path::PathBuf;
+use std::{fs::File, path::{Path, PathBuf}};
 
 use snafu::Snafu;
 
