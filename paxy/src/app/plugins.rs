@@ -1,6 +1,7 @@
 use std::{
     fs::{write, File},
     path::{Path, PathBuf},
+    str::FromStr,
 };
 
 use bson::{doc, Document};
@@ -10,7 +11,7 @@ use crate::{actions::ensure_path, home};
 
 #[allow(unused)]
 #[allow(clippy::boxed_local)]
-pub(crate) fn plugin(manifest: Box<Path>) -> Wasm {
+pub(crate) fn plugin(manifest: Box<Path>) -> (Wasm, PathBuf) {
     let mut file = home!();
     file.push(".paxy");
     file.push("plugins");
@@ -18,7 +19,7 @@ pub(crate) fn plugin(manifest: Box<Path>) -> Wasm {
     file.push("plugins.bson");
     let plugins = if !file.is_file() {
         let mut buf = vec![];
-        let doc = doc! {"pax": "paxy.wasm"};
+        let doc = doc! {"px": "paxy.wasm"};
         doc.to_writer(&mut buf)
             .unwrap();
         write(file, buf).unwrap();
@@ -36,7 +37,7 @@ pub(crate) fn plugin(manifest: Box<Path>) -> Wasm {
         )
         .unwrap()
         .to_string();
-    Wasm::file(plugin)
+    (Wasm::file(&plugin), PathBuf::from_str(&plugin).unwrap())
 }
 
 #[allow(unused)]
@@ -45,10 +46,17 @@ pub fn call_plugin(wasm: Wasm, pkg: PathBuf) {
     tmp.push(".paxy");
     tmp.push("tmp");
     ensure_path(Some(&tmp));
+    tmp.pop();
+    tmp.push("fakeroot");
+    ensure_path(Some(&tmp));
     let manifest = Manifest::new([wasm]).with_allowed_paths(
-        [(tmp, PathBuf::from("/tmp")), (pkg, PathBuf::from("/pkg"))]
-            .iter()
-            .cloned(),
+        [
+            (tmp.clone(), PathBuf::from("/tmp")),
+            (pkg, PathBuf::from("/pkg")),
+            (tmp, PathBuf::from("/")),
+        ]
+        .iter()
+        .cloned(),
     );
     let plugin = PluginBuilder::new(manifest).with_wasi(true);
     let mut plugin = plugin

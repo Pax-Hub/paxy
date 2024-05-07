@@ -1,4 +1,4 @@
-use std::fs::{write, File};
+use std::fs::{remove_dir_all, write, File};
 
 use bson::{doc, Document};
 use git2::Repository;
@@ -33,7 +33,10 @@ fn add_repo(repo: &str, name: &str) {
     file.push("repos");
     file.push(name);
     ensure_path(Some(&file));
-    Repository::clone(repo, file).unwrap();
+    if Repository::clone(repo, file.clone()).is_err() {
+        remove_dir_all(file.clone()).unwrap();
+        Repository::clone(repo, file);
+    }
 }
 
 #[cfg(test)]

@@ -1,3 +1,4 @@
+cargo-features = ["per-package-target"]
 [package]
 name = "paxy-plugin"
 version.workspace = true
@@ -12,5 +13,14 @@ documentation.workspace = true
 readme.workspace = true
 edition.workspace = true
 license.workspace = true
+default-target = "wasm32-wasi"
 
 [dependencies]
+extism-pdk = "1.1.0"
+semver = {version = "1.0.22", features = ["serde"]}
+serde = { workspace = true, features = ["derive"] }
+toml = "0.8.12"
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+
+[lib]
+crate_type = ["cdylib"]
