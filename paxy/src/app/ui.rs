@@ -40,7 +40,7 @@ fn resolve_max_output_verbosity<G: GlobalArguments>(
     let verbosity_flag_filter = cli_output_format.requested_verbosity;
 
     if matches!(
-        cli_output_format.output_mode,
+        cli_output_format.mode,
         CliOutputMode::Plain | CliOutputMode::Json
     ) {
         return Some(LevelFilter::Info);
@@ -62,7 +62,7 @@ fn adjust_output_formatting(
 ) {
     // Turn off colors if requested
     if matches!(
-        cli_output_format.output_mode,
+        cli_output_format.mode,
         CliOutputMode::Plain | CliOutputMode::Json
     ) || cli_output_format.no_color
         || is_env_variable_set("NO_COLOR")
@@ -76,7 +76,7 @@ fn adjust_output_formatting(
     }
 
     // Change output mode if requested
-    match cli_output_format.output_mode {
+    match cli_output_format.mode {
         CliOutputMode::Plain => logging_handle
             .switch_to_plain()
             .context(app::LoggingSnafu {})
@@ -195,7 +195,7 @@ fn emit_test_messages() {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsoleOutputFormat {
-    pub output_mode: ConsoleOutputMode,
+    pub mode: ConsoleOutputMode,
 
     pub max_verbosity: log::LevelFilter,
 
@@ -205,7 +205,7 @@ pub struct ConsoleOutputFormat {
 impl Default for ConsoleOutputFormat {
     fn default() -> Self {
         Self {
-            output_mode: ConsoleOutputMode::default(),
+            mode: ConsoleOutputMode::default(),
             max_verbosity: log::LevelFilter::Info,
             no_color: false,
         }
@@ -277,7 +277,7 @@ pub trait GlobalArguments {
 
     fn is_test(&self) -> bool;
 
-    fn verbosity_filter(&self) -> &log::LevelFilter;
+    fn verbosity_filter(&self) -> log::LevelFilter;
 
     fn console_output_mode(&self) -> ConsoleOutputMode {
         if self.is_json() {
@@ -292,21 +292,12 @@ pub trait GlobalArguments {
     }
 
     fn max_output_verbosity(&self) -> log::LevelFilter {
-        let verbosity_flag_filter = cli_output_format.requested_verbosity;
-        if matches!(
-            cli_output_format.output_mode,
-            CliOutputMode::Plain | CliOutputMode::Json
-        ) {
-            return Some(LevelFilter::Info);
-        } else if verbosity_flag_filter < clap_verbosity_flag::LevelFilter::Debug
-            && cli_global_arguments.is_debug()
-        {
-            return Some(LevelFilter::Debug);
+        if self.is_plain() || self.is_json() {
+            log::LevelFilter::Info
+        } else if self.is_debug() && log::LevelFilter::Debug > self.verbosity_filter() {
+            log::LevelFilter::Debug
         } else {
-            return verbosity_flag_filter
-                .as_str()
-                .parse()
-                .ok();
+            self.verbosity_filter()
         }
     }
 }
@@ -424,7 +415,7 @@ pub mod cli_template {
             self.no_color_flag
         }
 
-        fn verbosity_filter(&self) -> &log::LevelFilter {
+        fn verbosity_filter(&self) -> log::LevelFilter {
             self.verbosity
                 .log_level_filter()
                 .and_then(|log_level_filter| {

@@ -80,7 +80,7 @@ mod gui_cli_template {
                 .is_no_color()
         }
 
-        fn verbosity_filter(&self) -> &log::LevelFilter {
+        fn verbosity_filter(&self) -> log::LevelFilter {
             self.global_args
                 .verbosity_filter()
         }

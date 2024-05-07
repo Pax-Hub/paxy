@@ -89,6 +89,23 @@ fn admerge_from_stub(candidate_config_filepath_stub: &PathBuf, mut figment: Figm
     figment
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigTemplate {
+    pub config_filepaths: Vec<PathBuf>,
+    pub log_filepath_stub: PathBuf,
+    pub console_output_format: ConsoleOutputFormat,
+}
+
+impl Default for ConfigTemplate {
+    fn default() -> Self {
+        Self {
+            config_filepaths: Vec::new(),
+            log_filepath_stub: PathBuf::default(),
+            console_output_format: ConsoleOutputFormat::default(),
+        }
+    }
+}
+
 pub struct Config {
     pub figment: Figment,
 }
@@ -147,18 +164,51 @@ impl Config {
         self
     }
 
-    pub fn with_overriding_env_var<S: AsRef<str>>(env_var_name: S) -> &mut Self {
-        let env_var_name = env_var_name.as_ref();
-        self.figment = self
+    pub fn with_overriding_args<A: ui::GlobalArguments>(&mut self, cli_arguments: A) -> &mut Self {
+        if let Some(path) = cli_arguments.config_filepath() {
+            self.figment = self
+                .figment
+                .admerge(("config_filepaths", path));
+        }
+
+        let console_output_mode = cli_arguments.console_output_mode();
+        if console_output_mode != ConsoleOutputMode::Regular {
+            self.figment = self
+                .figment
+                .admerge(("console_output_format.mode", console_output_mode));
+        }
+
+        let current_max_verbosity = self
             .figment
-            .admerge(Env::raw().only(&[env_var_name]));
+            .extract_inner::<log::LevelFilter>("console_output_format.max_verbosity");
+        let requested_max_verbosity = cli_arguments.max_output_verbosity();
+        if let Ok(current_max_verbosity) = current_max_verbosity {
+            if cli_requested_max_verbosity > current_max_verbosity {
+                self.figment = self
+                    .figment
+                    .admerge((
+                        "console_output_format.max_verbosity",
+                        requested_max_verbosity,
+                    ))
+            }
+        }
 
-        self
-    }
-
-    pub fn with_overriding_args<A: ui::GlobalArguments>(&mut self, arguments: A) -> &mut Self {
-        if let Some(path) = arguments.config_filepath() {
-            self.figment = self.figment.admerge(("config_filepaths", path));
+        let current_no_color = self
+            .figment
+            .extract_inner::<log::LevelFilter>("console_output_format.no_color");
+        let requested_no_color =
+            cli_arguments.is_no_color() || cli_arguments.is_plain() || cli_arguments.is_json();
+        let env_no_color = env::var("NO_COLOR").is_ok()
+            || env::var(format!(
+                "{}_NO_COLOR",
+                String::from(*app::APP_NAME).to_uppercase()
+            ))
+            .is_ok()
+            || env::var("TERM").is_ok_and(|env_term_value| env_term_value.to_lowercase == "dumb");
+        if !current_no_color && (requested_no_color || env_no_color) {
+            self.figment = self
+                .figment
+                .admerge(("console_output_format.no_color", true));
         }
 
         self
@@ -168,23 +218,6 @@ impl Config {
         self.figment
             .extract()
             .context(ExtractConfigSnafu {})?
-    }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ConfigTemplate {
-    pub config_filepaths: Vec<PathBuf>,
-    pub log_filepath_stub: PathBuf,
-    pub console_output_format: ConsoleOutputFormat,
-}
-
-impl Default for ConfigTemplate {
-    fn default() -> Self {
-        Self {
-            config_filepaths: Vec::new(),
-            log_filepath_stub: PathBuf::default(),
-            console_output_format: ConsoleOutputFormat::default(),
-        }
     }
 }
 
@@ -204,7 +237,7 @@ use log::LevelFilter;
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt, Snafu};
 
-use super::ui::GlobalArguments;
+use super::ui::{ConsoleOutputMode, GlobalArguments};
 use crate::app;
 use crate::app::ui;
 
