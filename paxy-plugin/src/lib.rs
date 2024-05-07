@@ -1,7 +1,4 @@
-use std::{
-    fs,
-    process::Command,
-};
+use std::{fs, process::Command};
 
 use extism_pdk::{plugin_fn, FnResult, Json};
 use semver::{Version, VersionReq};
@@ -44,9 +41,11 @@ fn exec_inst(commands: String) {
         cmd.args(args);
         let mut handle = match cmd.spawn() {
             Ok(c) => c,
-            Err(_) => panic!("Illegal expression: {stmt}")
+            Err(_) => panic!("Illegal expression: {stmt}"),
         };
-        handle.wait().unwrap();
+        handle
+            .wait()
+            .unwrap();
     }
 }
 

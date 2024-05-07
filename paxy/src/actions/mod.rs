@@ -44,8 +44,9 @@ pub fn ensure_path(path: Option<&PathBuf>) {
 
 // region: IMPORTS
 
-use snafu::Snafu;
 use std::path::PathBuf;
+
+use snafu::Snafu;
 
 // endregion: IMPORTS
 

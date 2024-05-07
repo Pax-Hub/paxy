@@ -31,12 +31,9 @@ pub fn init_config(config_filepath: Option<&Path>) -> Result<(Config, Vec<PathBu
     // Merge configuration values from global and local filepaths
     figment = candidate_config_filepath_stubs
         .iter()
-        .fold(
-            figment,
-            move |figment, candidate_config_filepath_stub| {
-                admerge_from_stub(candidate_config_filepath_stub, figment)
-            },
-        );
+        .fold(figment, move |figment, candidate_config_filepath_stub| {
+            admerge_from_stub(candidate_config_filepath_stub, figment)
+        });
 
     // Merge configuration values from environment variables
     figment = figment.admerge(Env::prefixed(&format!("{}_", *app::APP_NAME)));

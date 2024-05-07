@@ -48,7 +48,7 @@ pub enum Error {
 // region: IMPORTS
 
 use std::{
-    fs::{write, File, remove_dir_all},
+    fs::{remove_dir_all, write, File},
     path::PathBuf,
 };
 
