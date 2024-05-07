@@ -3,13 +3,13 @@ members = [
     "paxy",
     "paxy-cli",
     "paxy-gui", "paxy-plugin",
-    "tests", "semver"
+    "tests"
 ]
 default-members = [
     "paxy",
     "paxy-cli",
     "paxy-gui",
-    "tests", "semver"
+    "tests"
 ]
 resolver = "1"
 
@@ -54,7 +54,8 @@ snafu = "0.8"
 
 # Data
 lazy_static = "1.4"
-serde = { version = "1.0", features = ["derive"] }
+semver = {git = "https://github.com/FerrisWasTaken/semver.git", features = ["extism_support"]}
+serde = { version = "1.0.200", features = ["derive"] }
 serde-aux = "4.5"
 serde_yaml = "0.9"
 tracing-serde = "0.1"
