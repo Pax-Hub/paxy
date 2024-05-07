@@ -1,58 +1,57 @@
-pub fn init_config() -> Result<(Config, Vec<PathBuf>), Error> {
-    let xdg_app_dirs =
-        directories::BaseDirs::new().context(RetreiveConfigUserAppBaseDirectoriesSnafu {})?;
+/// Initializes a layered configuration deriving values from the app-wide
+/// defaults, overridden by values from global paths, overridden by values from
+/// local paths. overridden by environment variables starting with `PAXY_`,
+/// overridden by the configuration file specified by the commandline.
+/// Values from only files with supported file extensions would be merged.
+pub fn init_config(config_filepath: Option<&Path>) -> Result<(Config, Vec<PathBuf>), Error> {
+    let mut candidate_config_filepath_stubs: Vec<PathBuf> = Vec::new();
 
-    #[cfg(target_os = "linux")]
-    let candidate_config_filepath_stubs = [
-        format!("/etc/xdg/{}", *app::APP_NAME),
-        format!("/etc/{}", *app::APP_NAME),
-        format!(
-            "{}/{}",
-            xdg_app_dirs
-                .config_dir()
-                .to_string_lossy(),
-            *app::APP_NAME
-        ),
-    ];
+    // Global directories
+    #[cfg(target_family = "unix")]
+    candidate_config_filepath_stubs.extend(["/etc/xdg".into(), "/etc".into()]);
+    #[cfg(target_os = "windows")]
+    candidate_config_filepath_stubs.extend([""]);
 
-    #[cfg(any(target_os = "windows", target_os = "macos"))]
-    let candidate_config_filepath_stubs = [format!(
-        "{}/{}",
-        xdg_app_dirs
+    // Local directories
+    candidate_config_filepath_stubs.push(
+        directories::BaseDirs::new()
+            .context(RetreiveConfigUserAppBaseDirectoriesSnafu {})?
             .config_dir()
-            .to_string_lossy(),
-        *app::APP_NAME
-    )];
+            .to_path_buf(),
+    );
 
+    // Append filename to create filepath stubs
+    candidate_config_filepath_stubs
+        .iter_mut()
+        .for_each(|f| f.push(*app::APP_NAME));
 
+    // Initialize configuration with app-wide defaults
     let mut figment = Figment::from(Config::default());
 
+    // Merge configuration values from global and local filepaths
     figment = candidate_config_filepath_stubs
         .iter()
         .fold(
             figment,
-            move |mut figment, candidate_config_filepath_stub| {
-                figment = figment.admerge(Toml::file(format!(
-                    "{}.toml",
-                    candidate_config_filepath_stub
-                )));
-                figment = figment.admerge(Json::file(format!(
-                    "{}.json",
-                    candidate_config_filepath_stub
-                )));
-                figment = figment.admerge(Yaml::file(format!(
-                    "{}.yml",
-                    candidate_config_filepath_stub
-                )));
-                figment = figment.admerge(Yaml::file(format!(
-                    "{}.yaml",
-                    candidate_config_filepath_stub
-                )));
-                figment
+            move |figment, candidate_config_filepath_stub| {
+                admerge_from_stub(candidate_config_filepath_stub, figment)
             },
         );
 
-    figment = figment.admerge(Env::prefixed("PAXY_"));
+    // Merge configuration values from environment variables
+    figment = figment.admerge(Env::prefixed(&format!("{}_", *app::APP_NAME)));
+
+    // Merge configuration values from config filepath specified at the CLI
+    if let Some(config_filepath) = config_filepath {
+        if let Some(parent) = config_filepath.parent() {
+            if let Some(stem) = config_filepath.file_stem() {
+                let mut stub = PathBuf::from(parent);
+                stub.push(stem);
+                figment = admerge_from_stub(&stub, figment);
+                candidate_config_filepath_stubs.push(stub);
+            }
+        }
+    }
 
     Ok((
         figment
@@ -63,6 +62,22 @@ pub fn init_config() -> Result<(Config, Vec<PathBuf>), Error> {
             .map(PathBuf::from)
             .collect(),
     ))
+}
+
+fn admerge_from_stub(candidate_config_filepath_stub: &PathBuf, mut figment: Figment) -> Figment {
+    figment = figment.admerge(Toml::file(
+        candidate_config_filepath_stub.with_extension("toml"),
+    ));
+    figment = figment.admerge(Json::file(
+        candidate_config_filepath_stub.with_extension("json"),
+    ));
+    figment = figment.admerge(Yaml::file(
+        candidate_config_filepath_stub.with_extension("yml"),
+    ));
+    figment = figment.admerge(Yaml::file(
+        candidate_config_filepath_stub.with_extension("yaml"),
+    ));
+    figment
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -124,7 +139,7 @@ pub enum Error {
 
 // region: IMPORTS
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use figment::{
     providers::{Env, Format, Json, Toml, Yaml},

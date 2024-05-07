@@ -27,109 +27,195 @@ use snafu::Snafu;
 
 // region: MODULES
 
-/// Groups together all the data structures that make up the `derive` interface
-/// of the `clap` library. This is separate from any of the helper functions
-/// that are used as part of the commandline interface.
+/// This module is a [*derive* interface template](https://docs.rs/clap/latest/clap/_derive/_tutorial/chapter_0/index.html) specifically for
+/// use with the `clap` library. Any other commandline-related code that is not
+/// part of the `clap` derive template will not be in this module.
+/// The CLI is designed to (as much as possible,) follow the guidelines in
+/// https://clig.dev/ . As a consequence, the command structure follows the
+/// 'application_name noun verb' order of subcommands. For example:
+/// `paxy package list [args]`, `paxy repo add [args]`
 mod cli_template {
-    #[derive(Parser, Debug)]
-    #[command(version, author, about, args_conflicts_with_subcommands = true)]
+
+    /// The base commandline template consists of global arguments, a subcommand
+    /// that denotes the entity that is being operated upon (like a package or
+    /// repository), and optionally, arguments for the default subcommand (in
+    /// this case, the 'package' entity is assumed chosen to act on, by
+    /// default).
+    #[derive(Debug, Parser)]
+    #[command(
+        version,
+        author,
+        about,
+        args_conflicts_with_subcommands = true,
+        propagate_version = true
+    )]
     pub struct CliTemplate {
-        #[clap(flatten)]
-        pub global_args: GlobalArgs<clap_verbosity_flag::InfoLevel>,
+        #[command(flatten)]
+        pub global_arguments: ui::cli_template::GlobalArgs<clap_verbosity_flag::InfoLevel>,
 
-        #[clap(subcommand)]
-        pub command: Option<ActionCommand>,
-
-        #[clap(flatten)]
-        pub arguments: ListActionArguments,
+        #[command(subcommand)]
+        pub entity: Option<EntitySubcommand>,
     }
 
+    /// Implement a trait that can extract standard global arguments from our
+    /// own CLI template
     impl ui::GlobalArguments for CliTemplate {
         type L = clap_verbosity_flag::InfoLevel;
 
         fn config_file(&self) -> &Option<PathBuf> {
             &self
-                .global_args
+                .global_arguments
                 .config_file
         }
 
         fn is_json(&self) -> bool {
-            self.global_args
+            self.global_arguments
                 .json_flag
         }
 
         fn is_plain(&self) -> bool {
-            self.global_args
+            self.global_arguments
                 .plain_flag
         }
 
         fn is_debug(&self) -> bool {
-            self.global_args
+            self.global_arguments
                 .debug_flag
         }
 
         fn is_no_color(&self) -> bool {
-            self.global_args
+            self.global_arguments
                 .no_color_flag
         }
 
         fn is_test(&self) -> bool {
-            self.global_args
+            self.global_arguments
                 .test_flag
         }
 
         fn verbosity(&self) -> &clap_verbosity_flag::Verbosity<Self::L> {
             &self
-                .global_args
+                .global_arguments
                 .verbose
         }
     }
 
     #[derive(Debug, Subcommand)]
-    #[clap(args_conflicts_with_subcommands = true)]
-    pub enum ActionCommand {
-        #[clap(name = "list", about = "List installed packages.", display_order = 1)]
-        List(ListActionArguments),
+    #[command(args_conflicts_with_subcommands = true)]
+    pub enum EntitySubcommand {
+        #[command(
+            name = "package",
+            about = "Perform actions on package(s).",
+            subcommand,
+            display_order = 1
+        )]
+        Package(PackageSubcommand),
 
-        #[clap(
+        #[command(
+            subcommand,
+            name = "repository",
+            alias = "repo",
+            about = "Perform actions on repository(-ies).",
+            display_order = 2
+        )]
+        Repository(RepositorySubcommand),
+    }
+
+    #[derive(Debug, Subcommand)]
+    #[command(args_conflicts_with_subcommands = true)]
+    pub enum PackageSubcommand {
+        #[command(name = "list", about = "List installed packages.", display_order = 1)]
+        List(PackageListArguments),
+
+        #[command(
             name = "search",
             alias = "find",
             about = "Search for available packages.",
             display_order = 2
         )]
-        Search(SearchActionArguments),
+        Search(PackageSearchArguments),
 
-        #[clap(
+        #[command(
             name = "install",
             alias = "add",
             about = "Install packages.",
             display_order = 3
         )]
-        Install(InstallActionArguments),
+        Install(PackageInstallArguments),
 
-        #[clap(
+        #[command(
             name = "update",
             alias = "upgrade",
             about = "Update packages.",
             display_order = 4
         )]
-        Update(UpdateActionArguments),
+        Update(PackageUpdateArguments),
 
-        #[clap(
+        #[command(
             name = "uninstall",
             alias = "remove",
             about = "Uninstall packages.",
             display_order = 5
         )]
-        Uninstall(UninstallActionArguments),
+        Uninstall(PackageUninstallArguments),
 
-        #[clap(name = "downgrade", about = "Downgrade a package.", display_order = 5)]
-        Downgrade(DowngradeActionArguments),
+        #[command(name = "downgrade", about = "Downgrade a package.", display_order = 5)]
+        Downgrade(PackageDowngradeArguments),
+    }
+
+    #[derive(Debug, Subcommand)]
+    #[command(args_conflicts_with_subcommands = true)]
+    pub enum RepositorySubcommand {
+        #[command(
+            name = "list",
+            about = "List installed repositories.",
+            display_order = 1
+        )]
+        List(RepositoryListArguments),
+
+        #[command(
+            name = "search",
+            alias = "find",
+            about = "Search for available repositories.",
+            display_order = 2
+        )]
+        Search(RepositorySearchArguments),
+
+        #[command(
+            name = "install",
+            alias = "add",
+            about = "Install repositories.",
+            display_order = 3
+        )]
+        Install(RepositoryInstallArguments),
+
+        #[command(
+            name = "update",
+            alias = "upgrade",
+            about = "Update repositories.",
+            display_order = 4
+        )]
+        Update(RepositoryUpdateArguments),
+
+        #[command(
+            name = "uninstall",
+            alias = "remove",
+            about = "Uninstall repositories.",
+            display_order = 5
+        )]
+        Uninstall(RepositoryUninstallArguments),
+
+        #[command(
+            name = "downgrade",
+            about = "Downgrade a repositories.",
+            display_order = 5
+        )]
+        Downgrade(RepositoryDowngradeArguments),
     }
 
     #[derive(Debug, Args)]
-    pub struct ListActionArguments {
-        #[clap(
+    pub struct PackageListArguments {
+        #[arg(
             long = "exclude",
             alias = "ignore",
             short = 'e',
@@ -138,16 +224,16 @@ mod cli_template {
         )]
         pub excluded_partial_package_names: Vec<String>,
 
-        #[clap(
+        #[arg(
             help = "Partial or full name(s) of the packages to search among the installed packages. Not specifying this argument will list all packages.",
-            display_order = usize::MAX - 1
+            display_order = usize::MAX - 1,
         )]
-        pub partial_package_name: Option<String>, // This should always be the last argument
+        pub partial_package_name: Vec<String>,
     }
 
     #[derive(Debug, Args)]
-    pub struct SearchActionArguments {
-        #[clap(
+    pub struct PackageSearchArguments {
+        #[arg(
             long = "exclude",
             alias = "ignore",
             short = 'e',
@@ -156,22 +242,23 @@ mod cli_template {
         )]
         pub excluded_partial_package_names: Vec<String>,
 
-        #[clap(
+        #[arg(
             help = "Partial or full name(s) of the packages to search among available packages.",
+            last = true,
             display_order = usize::MAX - 1
         )]
-        pub partial_package_name: String, // This should always be the last argument
+        pub partial_package_name: Vec<String>,
     }
 
     #[derive(Debug, Args)]
-    pub struct InstallActionArguments {
-        #[clap(help = "Full name(s) of the packages to install.", display_order = usize::MAX - 1)]
-        pub package_names: Vec<String>, // This should always be the last argument
+    pub struct PackageInstallArguments {
+        #[arg(help = "Full name(s) of the packages to install.", display_order = usize::MAX - 1)]
+        pub package_names: Vec<String>,
     }
 
     #[derive(Debug, Args)]
-    pub struct UpdateActionArguments {
-        #[clap(
+    pub struct PackageUpdateArguments {
+        #[arg(
             long = "exclude",
             alias = "ignore",
             short = 'e',
@@ -180,25 +267,27 @@ mod cli_template {
         )]
         pub excluded_package_names: Vec<String>,
 
-        #[clap(
+        #[arg(
             help = "Full name(s) of the packages to update. Not specifying this argument will update all packages",
+            last = true,
             display_order = usize::MAX - 1
         )]
-        pub package_names: Vec<String>, // This should always be the last argument
+        pub package_names: Vec<String>,
     }
 
     #[derive(Debug, Args)]
-    pub struct UninstallActionArguments {
-        #[clap(
+    pub struct PackageUninstallArguments {
+        #[arg(
             help = "Full name(s) of the packages to uninstall.",
+            last = true,
             display_order = usize::MAX - 1
         )]
-        pub package_names: Vec<String>, // This should always be the last argument
+        pub package_names: Vec<String>,
     }
 
     #[derive(Debug, Args)]
-    pub struct DowngradeActionArguments {
-        #[clap(
+    pub struct PackageDowngradeArguments {
+        #[arg(
             long = "version",
             alias = "ver",
             help = "The version to downgrade to.",
@@ -206,11 +295,103 @@ mod cli_template {
         )]
         pub version: Option<String>,
 
-        #[clap(
+        #[arg(
             help = "Full name of the package to downgrade.",
+            last = true,
             display_order = usize::MAX - 1
         )]
-        pub package_name: String, // This should always be the last argument
+        pub package_name: String,
+    }
+
+    #[derive(Debug, Args)]
+    pub struct RepositoryListArguments {
+        #[arg(
+            long = "exclude",
+            alias = "ignore",
+            short = 'e',
+            help = "Partial or full name(s) of repositories to exclude from the search among the installed repositories.",
+            display_order = 1
+        )]
+        pub excluded_partial_repository_names: Vec<String>,
+
+        #[arg(
+            help = "Partial or full name(s) of the repositories to search among the installed repositories. Not specifying this argument will list all repositories.",
+            last = true,
+            display_order = usize::MAX - 1,
+        )]
+        pub partial_repository_name: Vec<String>,
+    }
+
+    #[derive(Debug, Args)]
+    pub struct RepositorySearchArguments {
+        #[arg(
+            long = "exclude",
+            alias = "ignore",
+            short = 'e',
+            help = "Partial or full name(s) of repositories to exclude from the search among available repositories.",
+            display_order = 1
+        )]
+        pub excluded_partial_repository_names: Vec<String>,
+
+        #[arg(
+            help = "Partial or full name(s) of the repositories to search among available repositories.",
+            last = true,
+            display_order = usize::MAX - 1
+        )]
+        pub partial_repository_name: String,
+    }
+
+    #[derive(Debug, Args)]
+    pub struct RepositoryInstallArguments {
+        #[arg(help = "Full name(s) of the repositories to install.", display_order = usize::MAX - 1)]
+        pub repository_names: Vec<String>,
+    }
+
+    #[derive(Debug, Args)]
+    pub struct RepositoryUpdateArguments {
+        #[arg(
+            long = "exclude",
+            alias = "ignore",
+            short = 'e',
+            help = "Full name(s) of repositories to exclude from updating.",
+            display_order = 1
+        )]
+        pub excluded_repository_names: Vec<String>,
+
+        #[arg(
+            help = "Full name(s) of the repositories to update. Not specifying this argument will update all repositories",
+            last = true,
+            display_order = usize::MAX - 1
+        )]
+        pub repository_names: Vec<String>,
+    }
+
+    #[derive(Debug, Args)]
+    pub struct RepositoryUninstallArguments {
+        #[arg(
+            help = "Full name(s) of the repositories to uninstall.",
+            last = true,
+            display_order = usize::MAX - 1
+        )]
+        pub repository_names: Vec<String>,
+    }
+
+    #[derive(Debug, Args)]
+    pub struct RepositoryDowngradeArguments {
+        #[arg(
+            long = "version",
+            alias = "ver",
+            help = "The version to downgrade to.",
+            display_order = 1
+        )]
+        pub version: Option<String>,
+
+        #[arg(
+            help = "Full name of the repository to downgrade.",
+            last = true,
+            display_order = usize::MAX - 1
+        )]
+        pub repository_name: String,
     }
 
     // region: IMPORTS
@@ -218,7 +399,7 @@ mod cli_template {
     use std::path::PathBuf;
 
     use clap::{Args, Parser, Subcommand};
-    use paxy::ui::{self, GlobalArgs};
+    use paxy::ui;
 
     // endregion: IMPORTS
 }

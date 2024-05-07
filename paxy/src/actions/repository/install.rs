@@ -1,14 +1,6 @@
-use std::fs::{remove_dir_all, write, File};
-
-use bson::{doc, Document};
-use git2::Repository;
-use log::{info, warn};
-
-use crate::{actions::ensure_path, home};
-
 #[allow(unused)]
 fn add_repo(repo: &str, name: &str) {
-    let mut file = home!();
+    let mut file = super::home!();
     file.push(".paxy");
     ensure_path(None);
     file.push("repos.bson");
@@ -39,6 +31,38 @@ fn add_repo(repo: &str, name: &str) {
     }
 }
 
+#[allow(dead_code)]
+#[allow(unused_variables)]
+fn plugin(manifest: PathBuf) -> PathBuf {
+    todo!()
+}
+
+#[derive(Debug, Snafu)]
+#[non_exhaustive]
+pub enum Error {
+    #[non_exhaustive]
+    #[snafu(display(""))]
+    Dummy {},
+}
+
+// region: IMPORTS
+
+use std::{
+    fs::{write, File, remove_dir_all},
+    path::PathBuf,
+};
+
+use bson::{doc, Document};
+use git2::Repository;
+use log::{info, warn};
+use snafu::Snafu;
+
+use crate::actions::ensure_path;
+
+// endregion: IMPORTS
+
+// region: TESTS
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -56,3 +80,5 @@ mod tests {
         );
     }
 }
+
+// endregion: TESTS

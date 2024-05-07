@@ -33,7 +33,7 @@ mod gui_cli_template {
     #[command(version, author, about, args_conflicts_with_subcommands = true)]
     pub struct CliTemplate {
         #[clap(flatten)]
-        pub global_args: ui::GlobalArgs<clap_verbosity_flag::InfoLevel>,
+        pub global_args: ui::cli_template::GlobalArgs<clap_verbosity_flag::InfoLevel>,
     }
 
     impl ui::GlobalArguments for CliTemplate {
