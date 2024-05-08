@@ -3,13 +3,13 @@ members = [
     "paxy",
     "paxy-cli",
     "paxy-gui", "paxy-plugin",
-    "tests", "semver"
+    "tests"
 ]
 default-members = [
     "paxy",
     "paxy-cli",
     "paxy-gui",
-    "tests", "semver"
+    "tests"
 ]
 resolver = "1"
 

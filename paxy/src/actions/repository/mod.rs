@@ -24,6 +24,10 @@ pub enum Error {
     #[non_exhaustive]
     #[snafu(display("Could not downgrade:\n  {source}"))]
     CouldNotDowngrade { source: downgrade::Error },
+
+    #[non_exhaustive]
+    #[snafu(display("Could not remove:\n  {source}"))]
+    CouldNotRemove { source: rm_repo::Error }
 }
 
 // region: IMPORTS
@@ -42,6 +46,7 @@ pub mod list;
 pub mod search;
 pub mod uninstall;
 pub mod update;
+pub mod rm_repo;
 
 // endregion: MODULES
 
@@ -60,5 +65,7 @@ pub use search::*;
 pub use uninstall::*;
 #[allow(unused_imports)]
 pub use update::*;
+#[allow(unused_imports)]
+pub use rm_repo::*;
 
 // endregion: RE-EXPORTS
