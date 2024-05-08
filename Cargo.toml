@@ -62,9 +62,6 @@ tracing-serde = "0.1"
 speedy = "0.8"
 log = "0.4"
 
-#versioning
-semver = { git = "https://github.com/FerrisWasTaken/semver.git", path = "semver" }
-
 # Internationalization
 fluent = "0.16"
 
