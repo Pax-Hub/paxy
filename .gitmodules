@@ -1,3 +1,0 @@
-[submodule "semver"]
-	path = semver
-	url = git@github.com:FerrisWasTaken/semver.git
