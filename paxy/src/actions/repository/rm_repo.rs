@@ -5,16 +5,16 @@ use std::{
     path::PathBuf,
     io::Write,
 };
-use snafu::{Snafu,ensure};
+use snafu::{Snafu,ensure,OptionExt,ResultExt};
 //endregion: IMPORTS
 
 #[derive(Debug, Snafu)]
 pub enum Error {
-    #[snafu(display("failed to serialize repo data into byte stream"))]
-    FailedToSerialize {},
+    #[snafu(display("failed to serialize repo data into byte stream {source}"))]
+    FailedToSerialize {source: bson::ser::Error},
     
-    #[snafu(display("failed to write to repo data file"))]
-    FailedToWriteData {},
+    #[snafu(display("failed to write to repo data file {source}"))]
+    FailedToWriteData {source: std::io::Error},
 
     #[snafu(display("repo not found"))]
     FailedToFindRepo {},
@@ -25,12 +25,12 @@ fn delete_repo(repo_name: &str) -> Result<(),Error> {
     let mut config = load_conf();
     let mut readable_data = config.repositories;
     
-    ensure!(readable_data.get(repo_name).ok_or(()).is_ok(),FailedToFindRepoSnafu{});
+    readable_data.get(repo_name).context(FailedToFindRepoSnafu{})?;
     readable_data.remove(repo_name);
     let mut buf = vec![];
     let rbd_result = readable_data.to_writer(&mut buf);
 
-    ensure!(rbd_result.is_ok(),FailedToSerializeSnafu {});
+    rbd_result.context(FailedToSerializeSnafu{})?;
 
     let mut repos_file_path: PathBuf = match home::home_dir() {
 	Some(path) => path,
@@ -41,7 +41,7 @@ fn delete_repo(repo_name: &str) -> Result<(),Error> {
     let mut file = std::fs::OpenOptions::new().write(true).truncate(true).open(repos_file_path).unwrap();
     let ftw_result = file.write_all(&buf);
 
-    ensure!(ftw_result.is_ok(),FailedToWriteDataSnafu {});
+    ftw_result.context(FailedToWriteDataSnafu{})?;
 
     config.repositories = readable_data;
 
