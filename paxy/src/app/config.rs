@@ -8,16 +8,16 @@ where
     G: ui::GlobalArguments,
     <G as ui::GlobalArguments>::L: clap_verbosity_flag::LogLevel,
 {
-    let mut candidate_config_filepath_stubs: Vec<PathBuf> = Vec::new();
+    let mut candidate_config_filepaths: Vec<PathBuf> = Vec::new();
 
     // Global directories
     #[cfg(target_family = "unix")]
-    candidate_config_filepath_stubs.extend(["/etc/xdg".into(), "/etc".into()]);
+    candidate_config_filepaths.extend(["/etc/xdg".into(), "/etc".into()]);
     #[cfg(target_os = "windows")]
     candidate_config_filepath_stubs.extend([""]);
 
     // Local directories
-    candidate_config_filepath_stubs.push(
+    candidate_config_filepaths.push(
         directories::BaseDirs::new()
             .context(RetreiveConfigUserAppBaseDirectoriesSnafu {})?
             .config_dir()
@@ -25,22 +25,22 @@ where
     );
 
     // Append filename to create filepath stubs
-    candidate_config_filepath_stubs
+    candidate_config_filepaths
         .iter_mut()
         .for_each(|f| f.push(*app::APP_NAME));
 
+    candidate_config_filepaths = candidate_config_filepaths
+        .iter()
+        .cartesian_product(["toml", "TOML", "json", "JSON", "yaml", "YAML", "yml", "YML"]);
+
     // Initialize configuration with app-wide defaults
-    let mut figment = Figment::from(Config::default());
+    let mut config = Config::new();
 
     // Merge configuration values from global and local filepaths
-    figment = candidate_config_filepath_stubs
-        .iter()
-        .fold(figment, move |figment, candidate_config_filepath_stub| {
-            admerge_from_stub(candidate_config_filepath_stub, figment)
-        });
+    config = config.with_overriding_files(candidate_config_filepaths);
 
     // Merge configuration values from environment variables
-    figment = figment.admerge(Env::prefixed(&format!("{}_", *app::APP_NAME)));
+    config = config.with_overriding_env(&format!("{}_", *app::APP_NAME));
 
     // Merge configuration values from additional config filepaths (usually
     // specified through CLI)
@@ -145,6 +145,13 @@ impl Config {
         self
     }
 
+    pub fn with_overriding_filepath_stub<P: Into<PathBuf>>(&mut self, filepath_stub: P) -> &mut Self {
+        let filepath_stub: PathBuf = filepath_stub.into();
+        
+
+        self
+    }
+
     pub fn with_overriding_files<P, I>(&mut self, filepaths: I) -> &mut Self
     where
         P: AsRef<Path>,
@@ -155,7 +162,7 @@ impl Config {
         self
     }
 
-    pub fn with_overriding_env<S: AsRef<str>>(prefix: S) -> &mut Self {
+    pub fn with_overriding_env<S: AsRef<str>>(&mut self, prefix: S) -> &mut Self {
         let prefix = prefix.as_ref();
         self.figment = self
             .figment
@@ -233,6 +240,7 @@ use figment::{
     Profile,
     Provider,
 };
+use itertools::Itertools;
 use log::LevelFilter;
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt, Snafu};

@@ -20,6 +20,7 @@ edition.workspace = true
 tracing = { workspace = true }
 tracing-appender = { workspace = true }
 tracing-subscriber = { workspace = true }
+log = { workspace = true, features = ["serde"] }
 
 # Configuration
 figment = { workspace = true, features = ["toml", "json", "yaml", "env"] }
@@ -37,7 +38,7 @@ serde-aux = { workspace = true }
 serde_yaml = { workspace = true }
 tracing-serde = { workspace = true }
 speedy = { workspace = true }
-log = { workspace = true, features = ["serde"] }
+itertools = { workspace = true }
 
 # Internationalization
 fluent = { workspace = true }
