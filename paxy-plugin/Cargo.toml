@@ -18,7 +18,7 @@ default-target = "wasm32-wasi"
 [dependencies]
 extism-pdk = "1.1.0"
 toml = "0.8.12"
-semver = { workspace = true, features = ["extism_support"]}
+semver = {git = "https://github.com/FerrisWasTaken/semver.git", features = ["extism_support"]}
 reqwest = { version = "0.11", features = ["blocking", "json"] }
 
 [lib]

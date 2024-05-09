@@ -54,7 +54,6 @@ snafu = "0.8"
 
 # Data
 lazy_static = "1.4"
-semver = {git = "https://github.com/FerrisWasTaken/semver.git", features = ["extism_support"]}
 serde = { version = "1.0.200", features = ["derive"] }
 serde-aux = "4.5"
 serde_yaml = "0.9"
