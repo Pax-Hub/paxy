@@ -1,35 +1,3 @@
-#[macro_export]
-macro_rules! home {
-    () => {
-        match home::home_dir() {
-            Some(path) => path,
-            None => panic!("Impossible to get your home dir!"),
-        }
-    };
-}
-
-#[inline]
-pub fn ensure_path(path: Option<&PathBuf>) {
-    if path.is_none() {
-        let mut file = home!();
-        file.push(".paxy");
-        if !file.is_dir() {
-            ::std::fs::create_dir_all(file).expect("Inufficient permissions");
-        }
-    } else {
-        if !path
-            .unwrap()
-            .is_dir()
-        {
-            ::std::fs::create_dir_all(
-                path.unwrap()
-                    .clone(),
-            )
-            .expect("Inufficient permissions");
-        }
-    }
-}
-
 #[derive(Debug, Snafu)]
 #[non_exhaustive]
 pub enum Error {
@@ -56,6 +24,10 @@ pub enum Error {
     #[non_exhaustive]
     #[snafu(display("Could not downgrade:\n  {source}"))]
     CouldNotDowngrade { source: downgrade::Error },
+
+    #[non_exhaustive]
+    #[snafu(display("Could not remove:\n  {source}"))]
+    CouldNotRemove { source: rm_repo::Error }
 }
 
 // region: IMPORTS
@@ -74,6 +46,7 @@ pub mod list;
 pub mod search;
 pub mod uninstall;
 pub mod update;
+pub mod rm_repo;
 
 // endregion: MODULES
 
@@ -92,5 +65,7 @@ pub use search::*;
 pub use uninstall::*;
 #[allow(unused_imports)]
 pub use update::*;
+#[allow(unused_imports)]
+pub use rm_repo::*;
 
 // endregion: RE-EXPORTS

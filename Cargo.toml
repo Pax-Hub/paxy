@@ -1,15 +1,17 @@
 [workspace]
-
 members = [
     "paxy",
     "paxy-cli",
-    "paxy-gui",
-
-    "tests",
+    "paxy-gui", "paxy-plugin",
+    "tests"
 ]
-
-resolver = "2"
-
+default-members = [
+    "paxy",
+    "paxy-cli",
+    "paxy-gui",
+    "tests"
+]
+resolver = "1"
 
 [workspace.package]
 
@@ -20,7 +22,7 @@ homepage = "https://pax-hub.github.io/"
 authors = [
     "shivanandvp <pvshvp.oss@gmail.com, shivanandvp@rebornos.org>",
     "lylythechosenone",
-    "ferriswastaken",
+    "Ishaan S <ishaans.code@gmail.com>",
     "flyingcakes85",
 ]
 keywords = ["package", "package-manager", "paxy", "packager"]
@@ -40,6 +42,7 @@ paxy = { path = "paxy" }
 tracing = "0.1"
 tracing-appender = "0.2"
 tracing-subscriber = "0.3"
+log = "0.4"
 
 # Configuration
 figment = "0.10"
@@ -52,12 +55,12 @@ snafu = "0.8"
 
 # Data
 lazy_static = "1.4"
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0.200", features = ["derive"] }
 serde-aux = "4.5"
 serde_yaml = "0.9"
 tracing-serde = "0.1"
 speedy = "0.8"
-log = "0.4"
+itertools = "0.12"
 
 # Internationalization
 fluent = "0.16"

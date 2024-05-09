@@ -1,0 +1,13 @@
+name = "Paxy"
+repo = "https://github.com/Pax-Hub/paxy"
+
+[[version]]
+ver = "0.1.0"
+src = "https://github.com/Pax-hub/paxy/releases/tag/0.1.0"
+dependencies = ["rust >= 1.72.0"]
+install_inst = "mv pkg/paxy /usr/bin"
+
+[[version]]
+ver = "0.1.1"
+src = "https://github.com/Pax-hub/paxy/releases/tag/0.1.1"
+install_inst = "mv /pkg/paxy /usr/bin"

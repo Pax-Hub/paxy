@@ -1,0 +1,25 @@
+cargo-features = ["per-package-target"]
+[package]
+name = "paxy-plugin"
+version.workspace = true
+description.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+keywords.workspace = true
+exclude.workspace = true
+categories.workspace = true
+documentation.workspace = true
+readme.workspace = true
+edition.workspace = true
+license.workspace = true
+default-target = "wasm32-wasi"
+
+[dependencies]
+extism-pdk = "1.1.0"
+toml = "0.8.12"
+semver = {git = "https://github.com/FerrisWasTaken/semver.git", features = ["extism_support"]}
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+
+[lib]
+crate-type = ["cdylib"]
