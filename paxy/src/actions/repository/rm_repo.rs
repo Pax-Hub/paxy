@@ -32,10 +32,7 @@ fn delete_repo(repo_name: &str) -> Result<(),Error> {
 
     rbd_result.context(FailedToSerializeSnafu{})?;
 
-    let mut repos_file_path: PathBuf = match home::home_dir() {
-	Some(path) => path,
-	None => panic!("Impossible to get your home dir!"),
-    };
+    let mut repos_file_path: PathBuf = home!();
     repos_file_path.push(".paxy");
     repos_file_path.push("repos.bson");
     let mut file = std::fs::OpenOptions::new().write(true).truncate(true).open(repos_file_path).unwrap();
@@ -45,10 +42,7 @@ fn delete_repo(repo_name: &str) -> Result<(),Error> {
 
     config.repositories = readable_data;
 
-    let mut config_toml_path: PathBuf = match home::home_dir() {
-	Some(path) => path,
-	None => panic!("Impossible to get your home dir!"),
-    };
+    let mut config_toml_path: PathBuf = home!();
 
     config_toml_path.push(".paxy");
     config_toml_path.push("config.toml");
