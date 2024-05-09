@@ -2,6 +2,18 @@ lazy_static! {
     pub static ref APP_NAME: &'static str = "paxy";
 }
 
+// region: IMPORTS
+
+use std::path::PathBuf;
+
+use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
+use snafu::Snafu;
+
+// endregion: IMPORTS
+
+// region: ERRORS
+
 #[derive(Debug, Snafu)]
 #[non_exhaustive]
 pub enum Error {
@@ -20,6 +32,13 @@ pub enum Error {
     },
 
     #[non_exhaustive]
+    #[snafu(display("in the UI: {source}"), visibility(pub))]
+    Ui {
+        #[snafu(backtrace)]
+        source: ui::Error,
+    },
+
+    #[non_exhaustive]
     #[snafu(display("in internationalization: {source}"), visibility(pub))]
     Internationalization {
         #[snafu(backtrace)]
@@ -27,17 +46,14 @@ pub enum Error {
     },
 }
 
-// region: IMPORTS
-use lazy_static::lazy_static;
-use snafu::Snafu;
+// endregion: ERRORS
 
-// endregion: IMPORTS
-
-// region: MODULES
+// region: EXTERNAL-SUBMODULES
 
 pub mod config;
 pub mod i18n;
 pub mod logging;
+pub mod ui;
 
 // endregion: MODULES
 

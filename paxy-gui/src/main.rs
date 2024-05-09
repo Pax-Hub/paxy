@@ -1,3 +1,10 @@
+//! Starts execution at the [`main`] function. Offloads the implemenation
+//! details to its corresponding library crate.
+
+/// Calls the [`paxy_gui::run_gui`] function and captures the returned
+/// [`Result`]. If there was an error, the error message chain is printed to the
+///  standard error stream (`stderr`). The program then returns an `0` or `1`
+/// corresponding to "no error" or "error" based on the result.   
 fn main() -> process::ExitCode {
     let return_value = paxy_gui::run_gui();
     match return_value {
