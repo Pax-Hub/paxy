@@ -79,7 +79,7 @@ pub enum InstallType {
 }
 
 #[allow(dead_code)]
-fn load_conf() -> Config {
+pub fn load_conf() -> Config {
     let mut conf_path: PathBuf = home!();
     conf_path.push(".paxy");
     conf_path.push("config.toml");

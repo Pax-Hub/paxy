@@ -22,7 +22,7 @@ Cargo.lock
 !.vscode/*.code-snippets
 .history/
 *.vsix
-.vscode/
+/.vscode/
 
 # Packaging
 /packaging/**/pkg
