@@ -1,12 +1,9 @@
-pub fn init_log(
-    preferred_log_dirpath: Option<PathBuf>,
-    preferred_log_level_filter: Option<LevelFilter>,
-) -> Result<(Handle, PathBuf), Error> {
+pub fn init_log(max_output_verbosity: log::LevelFilter) -> Result<(Handle, PathBuf), Error> {
     let log_filename = format!("{}.log", *app::APP_NAME);
     let log_dirpath = obtain_log_dirpath(preferred_log_dirpath)?;
     let log_file_appender =
         tracing_appender::rolling::daily(log_dirpath.clone(), log_filename.clone());
-    let log_level_filter = preferred_log_level_filter.unwrap_or(LevelFilter::INFO);
+    let log_level_filter = tracing_level_filter_from_log_level_filter(max_output_verbosity);
 
     // Obtain writers to various logging destinations and worker guards (for
     // keeping the streams alive)
@@ -186,6 +183,17 @@ fn obtain_log_dirpath(preferred_log_dirpath: Option<PathBuf>) -> Result<PathBuf,
         }
         None => obtain_fallback_log_dirpath()?,
     })
+}
+
+fn tracing_level_filter_from_log_level_filter(level_filter: log::LevelFilter) -> LevelFilter {
+    match level_filter {
+        log::LevelFilter::Off => LevelFilter::OFF,
+        log::LevelFilter::Error => LevelFilter::ERROR,
+        log::LevelFilter::Warn => LevelFilter::WARN,
+        log::LevelFilter::Info => LevelFilter::INFO,
+        log::LevelFilter::Debug => LevelFilter::DEBUG,
+        log::LevelFilter::Trace => LevelFilter::TRACE,
+    }
 }
 
 type OutputModeSwitchFunction = Box<dyn FnOnce(LoggingMode) -> Result<(), Error>>;
