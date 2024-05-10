@@ -2,24 +2,19 @@
 pub fn run_common<C>() -> Result<(C, Vec<WorkerGuard>), crate::Error>
 where
     C: clap::Parser + GlobalArguments + fmt::Debug,
-    <C as GlobalArguments>::L: LogLevel,
 {
     // Obtain CLI arguments
-    let cli_input = C::parse();
+    let console_input = C::parse();
 
     // Obtain user configuration
-    let (config, config_filepath_stubs) = config::init_config(&cli_input.config_file())
+    let (config, config_filepath_stubs) = config::init_config(&console_input)
         .context(app::ConfigSnafu {})
         .context(crate::AppSnafu)?;
 
     // Begin logging
-    let (mut logging_handle, log_filepath) = logging::init_log(
-        &config
-            .cli_output_format
-            .requested_verbosity,
-    )
-    .context(app::LoggingSnafu {})
-    .context(crate::AppSnafu {})?;
+    let (mut logging_handle, log_filepath) = logging::init_log(console_input)
+        .context(app::LoggingSnafu {})
+        .context(crate::AppSnafu {})?;
 
     // Adjust output formatting if requested
     adjust_output_formatting(&config.cli_output_format, &logging_handle);
@@ -31,70 +26,6 @@ where
     emit_test_messages();
 
     Ok((cli_input, logging_handle.worker_guards))
-}
-
-fn resolve_max_output_verbosity<G: GlobalArguments>(
-    cli_output_format: &CliOutputFormat,
-    cli_global_arguments: G,
-) -> log::LevelFilter {
-    let verbosity_flag_filter = cli_output_format.requested_verbosity;
-
-    if matches!(
-        cli_output_format.mode,
-        CliOutputMode::Plain | CliOutputMode::Json
-    ) {
-        return Some(LevelFilter::Info);
-    } else if verbosity_flag_filter < clap_verbosity_flag::LevelFilter::Debug
-        && cli_global_arguments.is_debug()
-    {
-        return Some(LevelFilter::Debug);
-    } else {
-        return verbosity_flag_filter
-            .as_str()
-            .parse()
-            .ok();
-    }
-}
-
-fn adjust_output_formatting(
-    cli_output_format: &CliOutputFormat,
-    mut logging_handle: &logging::Handle,
-) {
-    // Turn off colors if requested
-    if matches!(
-        cli_output_format.mode,
-        CliOutputMode::Plain | CliOutputMode::Json
-    ) || cli_output_format.no_color
-        || is_env_variable_set("NO_COLOR")
-        || is_env_variable_set(format!(
-            "{}_NO_COLOR",
-            String::from(*app::APP_NAME).to_uppercase()
-        ))
-    {
-        anstream::ColorChoice::Never.write_global();
-        owo_colors::set_override(false);
-    }
-
-    // Change output mode if requested
-    match cli_output_format.mode {
-        CliOutputMode::Plain => logging_handle
-            .switch_to_plain()
-            .context(app::LoggingSnafu {})
-            .context(crate::AppSnafu {})?,
-        CliOutputMode::Json => logging_handle
-            .switch_to_json()
-            .context(app::LoggingSnafu {})
-            .context(crate::AppSnafu {})?,
-        CliOutputMode::Test => logging_handle
-            .switch_to_test()
-            .context(app::LoggingSnafu {})
-            .context(crate::AppSnafu {})?,
-        _ => {}
-    }
-}
-
-fn is_env_variable_set<S: AsRef<str>>(env_variable_name: S) -> bool {
-    env::var(env_variable_name.as_ref()).map_or(false, |value| !value.is_empty())
 }
 
 fn emit_welcome_messages() {
@@ -196,9 +127,7 @@ fn emit_test_messages() {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsoleOutputFormat {
     pub mode: ConsoleOutputMode,
-
     pub max_verbosity: log::LevelFilter,
-
     pub no_color: bool,
 }
 

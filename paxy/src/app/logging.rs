@@ -1,4 +1,6 @@
-pub fn init_log(max_output_verbosity: log::LevelFilter) -> Result<(Handle, PathBuf), Error> {
+pub fn init_log(
+    console_output_format: &ui::ConsoleOutputFormat,
+) -> Result<(Handle, PathBuf), Error> {
     let log_filename = format!("{}.log", *app::APP_NAME);
     let log_dirpath = obtain_log_dirpath(preferred_log_dirpath)?;
     let log_file_appender =
@@ -150,6 +152,65 @@ pub fn init_log(max_output_verbosity: log::LevelFilter) -> Result<(Handle, PathB
             log_filepath
         },
     ))
+}
+
+fn resolve_max_output_verbosity(
+    console_output_format: &ui::ConsoleOutputFormat,
+) -> log::LevelFilter {
+    let verbosity_flag_filter = console_output_format.max_verbosity;
+
+    if matches!(
+        console_output_format.mode,
+        &ui::ConsoleOutputMode::Plain | &ui::ConsoleOutputMode::Json
+    ) {
+        return Some(log::LevelFilter::Info);
+    } else if verbosity_flag_filter < clap_verbosity_flag::LevelFilter::Debug
+        && cli_global_arguments.is_debug()
+    {
+        return Some(LevelFilter::Debug);
+    } else {
+        return verbosity_flag_filter
+            .as_str()
+            .parse()
+            .ok();
+    }
+}
+
+fn adjust_output_formatting(
+    cli_output_format: &CliOutputFormat,
+    mut logging_handle: &logging::Handle,
+) {
+    // Turn off colors if requested
+    if matches!(
+        cli_output_format.mode,
+        CliOutputMode::Plain | CliOutputMode::Json
+    ) || cli_output_format.no_color
+        || is_env_variable_set("NO_COLOR")
+        || is_env_variable_set(format!(
+            "{}_NO_COLOR",
+            String::from(*app::APP_NAME).to_uppercase()
+        ))
+    {
+        anstream::ColorChoice::Never.write_global();
+        owo_colors::set_override(false);
+    }
+
+    // Change output mode if requested
+    match cli_output_format.mode {
+        CliOutputMode::Plain => logging_handle
+            .switch_to_plain()
+            .context(app::LoggingSnafu {})
+            .context(crate::AppSnafu {})?,
+        CliOutputMode::Json => logging_handle
+            .switch_to_json()
+            .context(app::LoggingSnafu {})
+            .context(crate::AppSnafu {})?,
+        CliOutputMode::Test => logging_handle
+            .switch_to_test()
+            .context(app::LoggingSnafu {})
+            .context(crate::AppSnafu {})?,
+        _ => {}
+    }
 }
 
 fn obtain_log_dirpath(preferred_log_dirpath: Option<PathBuf>) -> Result<PathBuf, Error> {
@@ -322,6 +383,7 @@ use tracing_subscriber::{
     Layer,
 };
 
+use super::ui;
 use crate::app;
 
 // endregion: IMPORTS
