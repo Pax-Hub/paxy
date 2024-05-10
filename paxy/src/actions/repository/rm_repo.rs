@@ -16,6 +16,9 @@ pub enum Error {
     #[snafu(display("failed to write to repo data file {source}"))]
     FailedToWriteData {source: std::io::Error},
 
+    #[snafu(display("failed to delete directory {source}"))]
+    FailedToDeleteDirectory {source: std::io::Error},
+    
     #[snafu(display("repo not found"))]
     FailedToFindRepo {},
 }
@@ -26,6 +29,7 @@ fn delete_repo(repo_name: &str) -> Result<(),Error> {
     let mut readable_data = config.repositories;
     
     readable_data.get(repo_name).context(FailedToFindRepoSnafu{})?;
+    println!("{:?}",readable_data);
     readable_data.remove(repo_name);
     let mut buf = vec![];
     let rbd_result = readable_data.to_writer(&mut buf);
@@ -54,6 +58,15 @@ fn delete_repo(repo_name: &str) -> Result<(),Error> {
             .as_bytes(),
     )
         .expect("Permission error");
+
+    let mut repos_directory_path =  home!();
+    repos_directory_path.push(".paxy");
+    repos_directory_path.push("repos");
+    repos_directory_path.push(repo_name);
+    let repo_folder_path = repos_directory_path.as_path();
+    // ⚠⚠⚠SECURITY VULNERABILITY INCOMING⚠⚠⚠
+    let delete_dir_result = std::fs::remove_dir_all(repo_folder_path);
+    delete_dir_result.context(FailedToDeleteDirectorySnafu{})?;
     
     Ok(())
 }
