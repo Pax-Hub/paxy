@@ -1,6 +1,6 @@
 pub fn init_log(config: &config::ConfigTemplate) -> Result<(Handle, PathBuf), Error> {
     let log_filename = format!("{}.log", *app::APP_NAME);
-    let log_dirpath = obtain_log_dirpath(config.log_dirpath)?;
+    let log_dirpath = obtain_log_dirpath(config.log_dirpath.clone())?;
     let log_file_appender =
         tracing_appender::rolling::daily(log_dirpath.clone(), log_filename.clone());
     let log_level_filter = tracing_level_filter_from_log_level_filter(
@@ -156,7 +156,7 @@ pub fn init_log(config: &config::ConfigTemplate) -> Result<(Handle, PathBuf), Er
     ))
 }
 
-fn obtain_log_dirpath(preferred_log_dirpath: Option<PathBuf>) -> Result<PathBuf, Error> {
+fn obtain_log_dirpath(preferred_log_dirpath: PathBuf) -> Result<PathBuf, Error> {
     let obtain_fallback_log_dirpath = || {
         let xdg_app_dirs =
             directories::BaseDirs::new().context(RetreiveLoggingUserAppBaseDirectoriesSnafu {})?;
@@ -173,20 +173,16 @@ fn obtain_log_dirpath(preferred_log_dirpath: Option<PathBuf>) -> Result<PathBuf,
             .data_dir()
             .to_owned())
     };
-    Ok(match preferred_log_dirpath {
-        Some(preferred_log_dirpath) => {
-            if !fs::metadata(&preferred_log_dirpath)
-                .map(|m| m.permissions())
-                .map(|p| p.readonly())
-                .unwrap_or(true)
-            {
-                preferred_log_dirpath
-            } else {
-                obtain_fallback_log_dirpath()?
-            }
-        }
-        None => obtain_fallback_log_dirpath()?,
-    })
+
+    if !fs::metadata(&preferred_log_dirpath)
+    .map(|m| m.permissions())
+    .map(|p| p.readonly())
+    .unwrap_or(true)
+    {
+        Ok(preferred_log_dirpath)
+    } else {
+        Ok(obtain_fallback_log_dirpath()?)
+    }
 }
 
 fn tracing_level_filter_from_log_level_filter(level_filter: log::LevelFilter) -> LevelFilter {

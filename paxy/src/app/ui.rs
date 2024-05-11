@@ -17,7 +17,7 @@ where
         .context(crate::AppSnafu {})?;
 
     // Adjust output formatting if requested
-    adjust_output_formatting(&config.console_output_format, &logging_handle);
+    adjust_output_formatting(&config.console_output_format, &mut logging_handle);
 
     emit_welcome_messages();
 
@@ -48,8 +48,7 @@ fn emit_diagnostic_messages<C>(
     log_filepath: PathBuf,
     console_input: &C,
 ) where
-    C: clap::Parser + CliModifier + fmt::Debug,
-    <C as GlobalArguments>::L: LogLevel,
+    C: clap::Parser + fmt::Debug,
 {
     tracing::debug!(
         "{}  The {} is {}... {}",
@@ -126,8 +125,8 @@ fn emit_test_messages() {
 
 fn adjust_output_formatting(
     internally_consistent_console_output_format: &ConsoleOutputFormat,
-    mut logging_handle: &logging::Handle,
-) {
+    logging_handle: &mut logging::Handle,
+) -> Result<(), crate::Error> {
     // Turn off colors if requested
     if internally_consistent_console_output_format.no_color {
         anstream::ColorChoice::Never.write_global();
@@ -136,20 +135,22 @@ fn adjust_output_formatting(
 
     // Change output mode if requested
     match internally_consistent_console_output_format.mode {
-        &ConsoleOutputMode::Plain => logging_handle
+        ConsoleOutputMode::Plain => logging_handle
             .switch_to_plain()
             .context(app::LoggingSnafu {})
             .context(crate::AppSnafu {})?,
-        &ConsoleOutputMode::Json => logging_handle
+        ConsoleOutputMode::Json => logging_handle
             .switch_to_json()
             .context(app::LoggingSnafu {})
             .context(crate::AppSnafu {})?,
-        &ConsoleOutputMode::Test => logging_handle
+        ConsoleOutputMode::Test => logging_handle
             .switch_to_test()
             .context(app::LoggingSnafu {})
             .context(crate::AppSnafu {})?,
         _ => {}
-    }
+    };
+
+    Ok(())
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -215,7 +216,7 @@ impl ConsoleOutputFormat {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ConsoleOutputMode {
     Regular,
     Plain,
@@ -225,45 +226,7 @@ pub enum ConsoleOutputMode {
 
 impl Default for ConsoleOutputMode {
     fn default() -> Self {
-        CliOutputMode::Regular
-    }
-}
-
-pub trait CliModifier: GlobalArguments
-where
-    <Self as GlobalArguments>::L: LogLevel,
-{
-    fn verbosity_filter(&self) -> Option<LevelFilter> {
-        let verbosity_flag_filter = self
-            .verbosity()
-            .log_level_filter();
-
-        if self.is_plain() || self.is_json() {
-            return Some(LevelFilter::Info);
-        } else if verbosity_flag_filter < clap_verbosity_flag::LevelFilter::Debug && self.is_debug()
-        {
-            return Some(LevelFilter::Debug);
-        } else {
-            return verbosity_flag_filter
-                .as_str()
-                .parse()
-                .ok();
-        }
-    }
-
-    fn is_uncolored(&self) -> bool {
-        self.is_plain()
-            || self.is_json()
-            || self.is_no_color()
-            || env::var(format!(
-                "{}_NO_COLOR",
-                String::from(*app::APP_NAME).to_uppercase()
-            ))
-            .map_or(false, |value| !value.is_empty())
-    }
-
-    fn is_colored(&self) -> bool {
-        !self.is_uncolored()
+        ConsoleOutputMode::Regular
     }
 }
 
@@ -316,9 +279,8 @@ pub enum Error {
 // region: IMPORTS
 
 use core::fmt;
-use std::{env, path::PathBuf};
+use std::path::PathBuf;
 
-use log::LevelFilter;
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 use snafu::{ResultExt, Snafu};
@@ -392,9 +354,9 @@ pub mod cli_template {
         pub verbosity: clap_verbosity_flag::Verbosity<L>,
     }
 
-    impl<L> GlobalArguments for GlobalArgs<L> {
+    impl<L: clap_verbosity_flag::LogLevel> GlobalArguments for GlobalArgs<L> {
         fn config_filepath(&self) -> &Option<PathBuf> {
-            self.config_filepath
+            &self.config_file
         }
 
         fn is_json(&self) -> bool {
@@ -420,13 +382,6 @@ pub mod cli_template {
         fn verbosity_filter(&self) -> log::LevelFilter {
             self.verbosity
                 .log_level_filter()
-                .and_then(|log_level_filter| {
-                    log_level_filter
-                        .as_str()
-                        .parse()
-                        .ok()
-                })
-                .unwrap_or(log::LevelFilter::Info)
         }
     }
 
