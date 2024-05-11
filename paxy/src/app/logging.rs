@@ -1,6 +1,10 @@
 pub fn init_log(config: &config::ConfigTemplate) -> Result<(Handle, PathBuf), Error> {
     let log_filename = format!("{}.log", *app::APP_NAME);
-    let log_dirpath = obtain_log_dirpath(config.log_dirpath.clone())?;
+    let log_dirpath = obtain_log_dirpath(
+        config
+            .log_dirpath
+            .clone(),
+    )?;
     let log_file_appender =
         tracing_appender::rolling::daily(log_dirpath.clone(), log_filename.clone());
     let log_level_filter = tracing_level_filter_from_log_level_filter(
@@ -175,9 +179,9 @@ fn obtain_log_dirpath(preferred_log_dirpath: PathBuf) -> Result<PathBuf, Error> 
     };
 
     if !fs::metadata(&preferred_log_dirpath)
-    .map(|m| m.permissions())
-    .map(|p| p.readonly())
-    .unwrap_or(true)
+        .map(|m| m.permissions())
+        .map(|p| p.readonly())
+        .unwrap_or(true)
     {
         Ok(preferred_log_dirpath)
     } else {

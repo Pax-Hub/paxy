@@ -268,6 +268,36 @@ pub trait GlobalArguments {
     }
 }
 
+impl<T:GlobalArguments> GlobalArguments for &T {
+    fn config_filepath(&self) -> &Option<PathBuf> {
+        (**self).config_filepath()
+    }
+
+    fn is_json(&self) -> bool {
+        (**self).is_json()
+    }
+
+    fn is_plain(&self) -> bool {
+        (**self).is_plain()
+    }
+
+    fn is_debug(&self) -> bool {
+        (**self).is_debug()
+    }
+
+    fn is_no_color(&self) -> bool {
+        (**self).is_no_color()
+    }
+
+    fn is_test(&self) -> bool {
+        (**self).is_test()
+    }
+
+    fn verbosity_filter(&self) -> log::LevelFilter {
+        (**self).verbosity_filter()
+    }
+}
+
 #[derive(Debug, Snafu)]
 #[non_exhaustive]
 pub enum Error {
@@ -354,9 +384,13 @@ pub mod cli_template {
         pub verbosity: clap_verbosity_flag::Verbosity<L>,
     }
 
-    impl<L: clap_verbosity_flag::LogLevel> GlobalArguments for GlobalArgs<L> {
+    impl<L> GlobalArguments for GlobalArgs<L>
+    where
+        L: clap_verbosity_flag::LogLevel
+    {
         fn config_filepath(&self) -> &Option<PathBuf> {
-            &self.config_file
+            &self
+                .config_file
         }
 
         fn is_json(&self) -> bool {
@@ -387,7 +421,7 @@ pub mod cli_template {
 
     // region: IMPORTS
 
-    use std::path::PathBuf;
+    use std::{path::PathBuf};
 
     use clap::Args;
 

@@ -66,39 +66,47 @@ mod cli_template {
 
     /// Implement a trait that can extract standard global arguments from our
     /// own CLI template
-    impl ui::GlobalArguments for CliTemplate {
+    impl ui::GlobalArguments for CliTemplate
+    {
         fn config_filepath(&self) -> &Option<PathBuf> {
-            self.global_args
+            self
+                .global_args
                 .config_filepath()
         }
 
         fn is_json(&self) -> bool {
-            self.global_args
+            self
+                .global_args
                 .is_json()
         }
 
         fn is_plain(&self) -> bool {
-            self.global_args
+            self
+                .global_args
                 .is_plain()
         }
 
         fn is_debug(&self) -> bool {
-            self.global_args
+            self
+                .global_args
                 .is_debug()
         }
 
         fn is_test(&self) -> bool {
-            self.global_args
+            self
+                .global_args
                 .is_test()
         }
 
         fn is_no_color(&self) -> bool {
-            self.global_args
+            self
+                .global_args
                 .is_no_color()
         }
 
         fn verbosity_filter(&self) -> log::LevelFilter {
-            self.global_args
+            self
+                .global_args
                 .verbosity_filter()
         }
     }

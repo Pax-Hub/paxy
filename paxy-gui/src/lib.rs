@@ -49,7 +49,8 @@ mod gui_cli_template {
 
     /// Implement a trait that can extract standard global arguments from our
     /// own CLI template
-    impl ui::GlobalArguments for CliTemplate {
+    impl ui::GlobalArguments for CliTemplate
+    {
         fn config_filepath(&self) -> &Option<PathBuf> {
             self.global_args
                 .config_filepath()

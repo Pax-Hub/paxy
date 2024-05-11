@@ -7,9 +7,7 @@ lazy_static! {
 /// local paths. overridden by environment variables starting with `PAXY_`,
 /// overridden by the configuration file specified by the commandline.
 /// Values from only files with supported file extensions would be merged.
-pub fn init_config<G>(console_global_arguments: &G) -> Result<(ConfigTemplate, Vec<PathBuf>), Error>
-where
-    G: ui::GlobalArguments,
+pub fn init_config<G: GlobalArguments>(console_global_arguments: G) -> Result<(ConfigTemplate, Vec<PathBuf>), Error>
 {
     let mut candidate_config_filepaths: Vec<PathBuf> = Vec::new();
 
@@ -53,11 +51,7 @@ where
     // Merge configuration values from the CLI
     config = config.with_overriding_args(console_global_arguments);
 
-    Ok((
-        config
-            .object()?,
-        candidate_config_filepaths,
-    ))
+    Ok((config.object()?, candidate_config_filepaths))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -121,7 +115,11 @@ impl Config {
         P: AsRef<Path>,
         I: IntoIterator<Item = P>,
     {
-        filepaths.into_iter().fold(self, |config, filepath| config.with_overriding_file(filepath))
+        filepaths
+            .into_iter()
+            .fold(self, |config, filepath| {
+                config.with_overriding_file(filepath)
+            })
     }
 
     pub fn with_overriding_filepath_stubs<I1, I2, S, P>(
@@ -180,7 +178,8 @@ impl Config {
     pub fn with_overriding_args<A: ui::GlobalArguments>(mut self, console_arguments: A) -> Self {
         // Incorporate the extra config file specified through arguments
         if let Some(path) = console_arguments.config_filepath() {
-            self.figment = self.figment
+            self.figment = self
+                .figment
                 .admerge(("config_filepaths", path));
         }
 
@@ -188,7 +187,8 @@ impl Config {
         // non-regular output mode is explicitly specified
         let console_output_mode = console_arguments.console_output_mode();
         if console_output_mode != ConsoleOutputMode::Regular {
-            self.figment = self.figment
+            self.figment = self
+                .figment
                 .admerge(("console_output_format.mode", console_output_mode));
         }
 
@@ -200,7 +200,8 @@ impl Config {
         let requested_max_verbosity = console_arguments.max_output_verbosity();
         if let Ok(current_max_verbosity) = current_max_verbosity {
             if requested_max_verbosity > current_max_verbosity {
-                self.figment = self.figment
+                self.figment = self
+                    .figment
                     .admerge((
                         "console_output_format.max_verbosity",
                         requested_max_verbosity,
@@ -225,7 +226,8 @@ impl Config {
             .is_ok()
             || env::var("TERM").is_ok_and(|env_term_value| env_term_value.to_lowercase() == "dumb");
         if (requested_no_color || env_no_color) && !current_no_color.unwrap_or(false) {
-            self.figment = self.figment
+            self.figment = self
+                .figment
                 .admerge(("console_output_format.no_color", true));
         }
 
@@ -263,7 +265,7 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt, Snafu};
 
-use super::ui::ConsoleOutputMode;
+use super::ui::{ConsoleOutputMode, GlobalArguments};
 use crate::app;
 use crate::app::ui;
 
