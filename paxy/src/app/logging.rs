@@ -1,4 +1,4 @@
-pub fn init_log(config: &ConfigTemplate) -> Result<(Handle, PathBuf), Error> {
+pub fn init_log(config: &config::ConfigTemplate) -> Result<(Handle, PathBuf), Error> {
     let log_filename = format!("{}.log", *app::APP_NAME);
     let log_dirpath = obtain_log_dirpath(config.log_dirpath)?;
     let log_file_appender =
@@ -326,6 +326,6 @@ use tracing_subscriber::{
     Layer,
 };
 
-use crate::app;
+use crate::app::{self, config};
 
 // endregion: IMPORTS

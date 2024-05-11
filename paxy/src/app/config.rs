@@ -32,7 +32,7 @@ where
         .iter_mut()
         .for_each(|f| f.push(*app::APP_NAME));
 
-    let lowercase_config_file_extensions = *config::CONFIG_FILE_EXTENSIONS.iter();
+    let lowercase_config_file_extensions = *CONFIG_FILE_EXTENSIONS.iter();
     let uppercase_config_file_extensions = lowercase_config_file_extensions.map(str::to_uppercase);
 
     candidate_config_filepaths = candidate_config_filepaths
@@ -143,7 +143,7 @@ impl Config {
         self
     }
 
-    pub fn with_overriding_filepath_stubs<I1, I2, P>(
+    pub fn with_overriding_filepath_stubs<I1, I2, S, P>(
         &mut self,
         file_extensions: I1,
         filepath_stubs: I2,
@@ -171,7 +171,7 @@ impl Config {
         self
     }
 
-    pub fn with_overriding_filepath_stub<I, P>(
+    pub fn with_overriding_filepath_stub<I, S, P>(
         &mut self,
         file_extensions: I,
         filepath_stub: P,
@@ -276,8 +276,11 @@ impl Config {
 
 // region: IMPORTS
 
-use std::iter;
-use std::path::{Path, PathBuf};
+use std::{
+    env,
+    iter,
+    path::{Path, PathBuf},
+};
 
 use figment::{
     providers::{Env, Format, Json, Toml, Yaml},

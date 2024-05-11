@@ -7,7 +7,7 @@ where
     let console_input = C::parse();
 
     // Obtain user configuration
-    let (config, config_filepath_stubs) = config::init_config(&console_input)
+    let (config, config_filepaths) = config::init_config(&console_input)
         .context(app::ConfigSnafu {})
         .context(crate::AppSnafu)?;
 
@@ -21,11 +21,11 @@ where
 
     emit_welcome_messages();
 
-    emit_diagnostic_messages(config_filepath_stubs, log_filepath, &cli_input);
+    emit_diagnostic_messages(config_filepaths, log_filepath, &console_input);
 
     emit_test_messages();
 
-    Ok((cli_input, logging_handle.worker_guards))
+    Ok((console_input, logging_handle.worker_guards))
 }
 
 fn emit_welcome_messages() {
@@ -44,9 +44,9 @@ fn emit_welcome_messages() {
 }
 
 fn emit_diagnostic_messages<C>(
-    config_filepath_stubs: Vec<PathBuf>,
+    config_filepaths: Vec<PathBuf>,
     log_filepath: PathBuf,
-    cli_input: &C,
+    console_input: &C,
 ) where
     C: clap::Parser + CliModifier + fmt::Debug,
     <C as GlobalArguments>::L: LogLevel,
@@ -69,8 +69,8 @@ fn emit_diagnostic_messages<C>(
     tracing::debug!(
         "{} {} {:?}",
         console::Emoji("📂", ""),
-        "Config Filepath(s) (without file extensions):".magenta(),
-        config_dirpaths,
+        "Config Filepath(s):".magenta(),
+        config_filepaths,
     );
 
     tracing::debug!(
@@ -86,7 +86,7 @@ fn emit_diagnostic_messages<C>(
         "CLI input arguments:"
             .magenta()
             .dimmed(),
-        cli_input.dimmed()
+        console_input.dimmed()
     );
 }
 
@@ -175,7 +175,7 @@ impl ConsoleOutputFormat {
     /// mode - there should be no color in plain and json modes.
     /// 2. Adjust the max verbosity to be consistent with the console output
     /// mode - decrease the max verbosity if in plain or json modes.
-    pub fn internally_consistent(&mut self) -> &self {
+    pub fn internally_consistent(&mut self) -> &Self {
         self.internally_consistent_color();
         self.internally_consistent_verbosity();
 
@@ -186,8 +186,8 @@ impl ConsoleOutputFormat {
     /// mode - there should be no color in plain and json modes.
     /// If color is already disabled, do not enable it. Otherwise toggle
     /// no-color based on the console output mode.
-    fn internally_consistent_color(&mut self) {
-        if !no_color
+    fn internally_consistent_color(&mut self) -> &Self {
+        if !self.no_color
             && matches!(
                 self.mode,
                 ConsoleOutputMode::Plain | ConsoleOutputMode::Json
@@ -201,7 +201,7 @@ impl ConsoleOutputFormat {
 
     /// Adjust the max verbosity to be consistent with the console output
     /// mode - decrease the max verbosity if in plain or json modes.
-    fn internally_consistent_verbosity(&mut self) {
+    fn internally_consistent_verbosity(&mut self) -> &Self {
         if self.max_verbosity > log::LevelFilter::Info
             && matches!(
                 self.mode,
