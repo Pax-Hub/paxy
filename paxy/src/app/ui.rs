@@ -12,12 +12,12 @@ where
         .context(crate::AppSnafu)?;
 
     // Begin logging
-    let (mut logging_handle, log_filepath) = logging::init_log(console_input)
+    let (mut logging_handle, log_filepath) = logging::init_log(&config)
         .context(app::LoggingSnafu {})
         .context(crate::AppSnafu {})?;
 
     // Adjust output formatting if requested
-    adjust_output_formatting(&config.cli_output_format, &logging_handle);
+    adjust_output_formatting(&config.console_output_format, &logging_handle);
 
     emit_welcome_messages();
 
@@ -124,6 +124,34 @@ fn emit_test_messages() {
     tracing::info!(target:"PLAIN", "{} Testing: Plain Target", console::Emoji("🧪", ""));
 }
 
+fn adjust_output_formatting(
+    internally_consistent_console_output_format: &ConsoleOutputFormat,
+    mut logging_handle: &logging::Handle,
+) {
+    // Turn off colors if requested
+    if internally_consistent_console_output_format.no_color {
+        anstream::ColorChoice::Never.write_global();
+        owo_colors::set_override(false);
+    }
+
+    // Change output mode if requested
+    match internally_consistent_console_output_format.mode {
+        &ConsoleOutputMode::Plain => logging_handle
+            .switch_to_plain()
+            .context(app::LoggingSnafu {})
+            .context(crate::AppSnafu {})?,
+        &ConsoleOutputMode::Json => logging_handle
+            .switch_to_json()
+            .context(app::LoggingSnafu {})
+            .context(crate::AppSnafu {})?,
+        &ConsoleOutputMode::Test => logging_handle
+            .switch_to_test()
+            .context(app::LoggingSnafu {})
+            .context(crate::AppSnafu {})?,
+        _ => {}
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsoleOutputFormat {
     pub mode: ConsoleOutputMode,
@@ -138,6 +166,52 @@ impl Default for ConsoleOutputFormat {
             max_verbosity: log::LevelFilter::Info,
             no_color: false,
         }
+    }
+}
+
+impl ConsoleOutputFormat {
+    /// Make the console output format internally consistent.
+    /// 1. Adjust the no-color setting to be consistent with the console output
+    /// mode - there should be no color in plain and json modes.
+    /// 2. Adjust the max verbosity to be consistent with the console output
+    /// mode - decrease the max verbosity if in plain or json modes.
+    pub fn internally_consistent(&mut self) -> &self {
+        self.internally_consistent_color();
+        self.internally_consistent_verbosity();
+
+        self
+    }
+
+    /// Adjust the no-color setting to be consistent with the console output
+    /// mode - there should be no color in plain and json modes.
+    /// If color is already disabled, do not enable it. Otherwise toggle
+    /// no-color based on the console output mode.
+    fn internally_consistent_color(&mut self) {
+        if !no_color
+            && matches!(
+                self.mode,
+                ConsoleOutputMode::Plain | ConsoleOutputMode::Json
+            )
+        {
+            self.no_color = false;
+        }
+
+        self
+    }
+
+    /// Adjust the max verbosity to be consistent with the console output
+    /// mode - decrease the max verbosity if in plain or json modes.
+    fn internally_consistent_verbosity(&mut self) {
+        if self.max_verbosity > log::LevelFilter::Info
+            && matches!(
+                self.mode,
+                ConsoleOutputMode::Plain | ConsoleOutputMode::Json
+            )
+        {
+            self.max_verbosity = log::LevelFilter::Info;
+        }
+
+        self
     }
 }
 

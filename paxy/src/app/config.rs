@@ -198,13 +198,19 @@ impl Config {
     /// Merge configuration values from the CLI
     /// These are not set to be optional, so only action-required states are
     /// merged with the configuration
-    pub fn with_overriding_args<A: ui::GlobalArguments>(&mut self, console_arguments: A) -> &mut Self {
+    pub fn with_overriding_args<A: ui::GlobalArguments>(
+        &mut self,
+        console_arguments: A,
+    ) -> &mut Self {
+        // Incorporate the extra config file specified through arguments
         if let Some(path) = console_arguments.config_filepath() {
             self.figment = self
                 .figment
                 .admerge(("config_filepaths", path));
         }
 
+        // Override console output mode from console arguments only if a
+        // non-regular output mode is explicitly specified
         let console_output_mode = console_arguments.console_output_mode();
         if console_output_mode != ConsoleOutputMode::Regular {
             self.figment = self
@@ -212,6 +218,8 @@ impl Config {
                 .admerge(("console_output_format.mode", console_output_mode));
         }
 
+        // Override max verbosity from console arguments only if a greater
+        // output verbosity is explicitly specified
         let current_max_verbosity = self
             .figment
             .extract_inner::<log::LevelFilter>("console_output_format.max_verbosity");
@@ -227,8 +235,12 @@ impl Config {
             }
         }
 
-        let requested_no_color =
-            console_arguments.is_no_color() || console_arguments.is_plain() || console_arguments.is_json();
+        // Override no-color only if no-color is not already enabled and if
+        // either the environment or the console arguments indicate either
+        // directly or indirectly that no-color is to be enabled
+        let requested_no_color = console_arguments.is_no_color()
+            || console_arguments.is_plain()
+            || console_arguments.is_json();
         let current_no_color = self
             .figment
             .extract_inner::<bool>("console_output_format.no_color");
@@ -239,24 +251,26 @@ impl Config {
             ))
             .is_ok()
             || env::var("TERM").is_ok_and(|env_term_value| env_term_value.to_lowercase == "dumb");
-        if (requested_no_color || env_no_color) && !current_no_color.unwrap_or(false)  {
+        if (requested_no_color || env_no_color) && !current_no_color.unwrap_or(false) {
             self.figment = self
                 .figment
                 .admerge(("console_output_format.no_color", true));
         }
-    
+
         self
     }
 
     pub fn object(&self) -> Result<ConfigTemplate, Error> {
-        let config_object = self.figment
+        let mut config_object = self
+            .figment
             .extract()
             .context(ExtractConfigSnafu {})?;
 
-        let current_max_verbosity = config_object
-
-
         config_object
+            .console_output_format
+            .internally_consistent();
+
+        Ok(config_object)
     }
 }
 
