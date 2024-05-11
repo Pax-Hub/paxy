@@ -326,7 +326,6 @@ use tracing_subscriber::{
     Layer,
 };
 
-use super::{config::ConfigTemplate, ui};
 use crate::app;
 
 // endregion: IMPORTS

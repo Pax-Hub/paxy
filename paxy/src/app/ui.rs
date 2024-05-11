@@ -322,7 +322,6 @@ use log::LevelFilter;
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 use snafu::{ResultExt, Snafu};
-use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 
 use crate::app::{self, config, logging};

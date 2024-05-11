@@ -111,7 +111,7 @@ impl Config {
             file_extension = file_extension
                 .to_string_lossy()
                 .to_lowercase();
-            match (file_extension) {
+            match file_extension {
                 "toml" => {
                     self.figment = self
                         .figment
@@ -277,19 +277,14 @@ impl Config {
 // region: IMPORTS
 
 use std::iter;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use figment::{
     providers::{Env, Format, Json, Toml, Yaml},
-    value::{Dict, Map},
     Figment,
-    Metadata,
-    Profile,
-    Provider,
 };
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use log::LevelFilter;
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt, Snafu};
 
