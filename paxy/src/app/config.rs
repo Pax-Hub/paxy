@@ -1,5 +1,5 @@
 lazy_static! {
-    pub static ref CONFIG_FILE_EXTENSIONS: [&'static str] = ["toml", "json", "yaml", "yml"];
+    pub static ref CONFIG_FILE_EXTENSIONS: &'static [&'static str] = &["toml", "json", "yaml", "yml"];
 }
 
 /// Initializes a layered configuration deriving values from the app-wide
@@ -7,8 +7,9 @@ lazy_static! {
 /// local paths. overridden by environment variables starting with `PAXY_`,
 /// overridden by the configuration file specified by the commandline.
 /// Values from only files with supported file extensions would be merged.
-pub fn init_config<G: GlobalArguments>(console_global_arguments: G) -> Result<(ConfigTemplate, Vec<PathBuf>), Error>
-{
+pub fn init_config<G: GlobalArguments>(
+    console_global_arguments: G,
+) -> Result<(ConfigTemplate, Vec<PathBuf>), Error> {
     let mut candidate_config_filepaths: Vec<PathBuf> = Vec::new();
 
     // Global directories
@@ -30,14 +31,18 @@ pub fn init_config<G: GlobalArguments>(console_global_arguments: G) -> Result<(C
         .iter_mut()
         .for_each(|f| f.push(*app::APP_NAME));
 
-    let lowercase_config_file_extensions = *CONFIG_FILE_EXTENSIONS.iter();
-    let uppercase_config_file_extensions = lowercase_config_file_extensions.map(str::to_uppercase);
+    let lowercase_config_file_extensions = CONFIG_FILE_EXTENSIONS.iter().copied().map(str::to_string);
+    let uppercase_config_file_extensions = CONFIG_FILE_EXTENSIONS.iter()
+        .map(|extension| {
+            extension
+                .to_uppercase()
+        });
 
     candidate_config_filepaths = candidate_config_filepaths
-        .iter()
-        .cartesian_product(
-            lowercase_config_file_extensions.chain(uppercase_config_file_extensions),
-        );
+        .into_iter()
+        .cartesian_product(lowercase_config_file_extensions.chain(uppercase_config_file_extensions))
+        .map(|(filepath_stub, extension)| filepath_stub.with_extension(extension))
+        .collect();
 
     // Initialize configuration with app-wide defaults
     let mut config = Config::new();
@@ -85,10 +90,10 @@ impl Config {
     pub fn with_overriding_file<P: AsRef<Path>>(mut self, filepath: P) -> Self {
         let filepath: &Path = filepath.as_ref();
         if let Some(file_extension) = filepath.extension() {
-            file_extension = file_extension
+            let file_extension = file_extension
                 .to_string_lossy()
                 .to_lowercase();
-            match file_extension {
+            match file_extension.as_str() {
                 "toml" => {
                     self.figment = self
                         .figment
@@ -104,6 +109,7 @@ impl Config {
                         .figment
                         .admerge(Yaml::file(filepath));
                 }
+                &_ => {}
             }
         }
 
@@ -129,22 +135,21 @@ impl Config {
     ) -> Self
     where
         I1: IntoIterator<Item = S>,
-        S: AsRef<str>,
+        S: AsRef<str> + Clone,
         I2: IntoIterator<Item = P>,
-        P: Into<PathBuf>,
+        <I2 as IntoIterator>::IntoIter: Clone,
+        P: Into<PathBuf> + Clone,
     {
         let filepath_stubs = filepath_stubs
+            .into_iter();
+        self = file_extensions
             .into_iter()
-            .map(Into::into);
-        file_extensions
-            .into_iter()
-            .map(|file_extension| file_extension.as_ref())
-            .cartesian_product(&filepath_stubs)
-            .map(|(file_extension, filepath_stub)| {
-                let filepath = filepath_stub;
-                filepath.set_extension(file_extension);
+            .cartesian_product(filepath_stubs)
+            .fold(self, |config, (file_extension, filepath_stub)| {
+                let mut filepath: PathBuf = filepath_stub.into();
+                filepath.set_extension(file_extension.as_ref());
 
-                self = self.with_overriding_file(filepath);
+                config.with_overriding_file(filepath)
             });
 
         self
@@ -157,8 +162,8 @@ impl Config {
     ) -> Self
     where
         I: IntoIterator<Item = S>,
-        S: AsRef<str>,
-        P: Into<PathBuf>,
+        S: AsRef<str> + Clone,
+        P: Into<PathBuf> + Clone,
     {
         self.with_overriding_filepath_stubs(file_extensions, iter::once(filepath_stub))
     }
@@ -253,6 +258,7 @@ impl Config {
 use std::{
     env,
     iter,
+    clone::Clone,
     path::{Path, PathBuf},
 };
 

@@ -17,7 +17,7 @@ where
         .context(crate::AppSnafu {})?;
 
     // Adjust output formatting if requested
-    adjust_output_formatting(&config.console_output_format, &mut logging_handle);
+    adjust_output_formatting(&config.console_output_format, &mut logging_handle)?;
 
     emit_welcome_messages();
 
@@ -268,7 +268,7 @@ pub trait GlobalArguments {
     }
 }
 
-impl<T:GlobalArguments> GlobalArguments for &T {
+impl<T: GlobalArguments> GlobalArguments for &T {
     fn config_filepath(&self) -> &Option<PathBuf> {
         (**self).config_filepath()
     }
@@ -386,11 +386,10 @@ pub mod cli_template {
 
     impl<L> GlobalArguments for GlobalArgs<L>
     where
-        L: clap_verbosity_flag::LogLevel
+        L: clap_verbosity_flag::LogLevel,
     {
         fn config_filepath(&self) -> &Option<PathBuf> {
-            &self
-                .config_file
+            &self.config_file
         }
 
         fn is_json(&self) -> bool {
@@ -421,7 +420,7 @@ pub mod cli_template {
 
     // region: IMPORTS
 
-    use std::{path::PathBuf};
+    use std::path::PathBuf;
 
     use clap::Args;
 

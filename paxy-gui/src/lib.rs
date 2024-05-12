@@ -28,7 +28,8 @@ pub enum Error {
 // region: IMPORTS
 
 use owo_colors::OwoColorize;
-use paxy::ui;
+
+use paxy::app::ui;
 use snafu::Snafu;
 
 // endregion: IMPORTS
@@ -49,8 +50,7 @@ mod gui_cli_template {
 
     /// Implement a trait that can extract standard global arguments from our
     /// own CLI template
-    impl ui::GlobalArguments for CliTemplate
-    {
+    impl ui::GlobalArguments for CliTemplate {
         fn config_filepath(&self) -> &Option<PathBuf> {
             self.global_args
                 .config_filepath()
@@ -92,7 +92,8 @@ mod gui_cli_template {
     use std::path::PathBuf;
 
     use clap::Parser;
-    use paxy::ui;
+
+    use paxy::app::ui;
 
     // endregion: IMPORTS
 }
