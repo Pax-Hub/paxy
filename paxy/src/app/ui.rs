@@ -213,18 +213,13 @@ impl ConsoleOutputFormat {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ConsoleOutputMode {
+    #[default]
     Regular,
     Plain,
     Json,
     Test,
-}
-
-impl Default for ConsoleOutputMode {
-    fn default() -> Self {
-        ConsoleOutputMode::Regular
-    }
 }
 
 pub trait GlobalArguments {

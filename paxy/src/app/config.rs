@@ -27,7 +27,7 @@ pub fn init_config<G: GlobalArguments>(
     config = config.with_overriding_files(&config_filepaths);
 
     // Merge configuration values from environment variables
-    config = config.with_overriding_env(&format!("{}_", *app::APP_NAME));
+    config = config.with_overriding_env(format!("{}_", *app::APP_NAME));
 
     // Merge configuration values from the CLI
     config = config.with_overriding_args(&console_global_arguments);
@@ -44,7 +44,7 @@ pub fn init_config<G: GlobalArguments>(
         .figment
         .admerge(("log_dirpath", &log_dirpath));
 
-    Ok(config.object()?)
+    config.object()
 }
 
 fn candidate_config_filepaths() -> Result<Vec<PathBuf>, Error> {
@@ -119,21 +119,11 @@ fn fallback_log_dirpath() -> Result<PathBuf, Error> {
         .to_owned())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigTemplate {
     pub config_filepaths: Vec<PathBuf>,
     pub log_dirpath: PathBuf,
     pub console_output_format: ui::ConsoleOutputFormat,
-}
-
-impl Default for ConfigTemplate {
-    fn default() -> Self {
-        Self {
-            config_filepaths: Vec::new(),
-            log_dirpath: PathBuf::default(),
-            console_output_format: ui::ConsoleOutputFormat::default(),
-        }
-    }
 }
 
 // Make `ConfigTemplate` a provider itself for composability.
