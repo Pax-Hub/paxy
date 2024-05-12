@@ -8,6 +8,15 @@ pub fn init_log(config: &config::ConfigTemplate) -> Result<Handle, Error> {
             .max_verbosity,
     );
 
+    // Turn off colors in the console streams if requested
+    if config
+        .console_output_format
+        .no_color
+    {
+        anstream::ColorChoice::Never.write_global();
+        owo_colors::set_override(false);
+    }
+
     // Obtain writers to various logging destinations and worker guards (for
     // keeping the streams alive)
     let (non_blocking_file_writer, _file_writer_guard) =
@@ -137,7 +146,7 @@ pub fn init_log(config: &config::ConfigTemplate) -> Result<Handle, Error> {
     tracing::subscriber::set_global_default(subscriber)
         .context(SetGlobalDefaultSubscriberSnafu {})?;
 
-    Ok(Handle {
+    let mut logging_handle = Handle {
         _switch_stdout_inner: Some(Box::new(switch_stdout)),
         _switch_stderr_inner: Some(Box::new(switch_stderr)),
         worker_guards: vec![
@@ -145,7 +154,23 @@ pub fn init_log(config: &config::ConfigTemplate) -> Result<Handle, Error> {
             _stdout_writer_guard,
             _stderr_writer_guard,
         ],
-    })
+    };
+
+    // Change the output mode if requested
+    match config
+        .console_output_format
+        .mode
+    {
+        ui::ConsoleOutputMode::Plain => logging_handle
+            .switch_to_plain()?,
+        ui::ConsoleOutputMode::Json => logging_handle
+            .switch_to_json()?,
+        ui::ConsoleOutputMode::Test => logging_handle
+            .switch_to_test()?,
+        _ => {}
+    };
+
+    Ok(logging_handle)
 }
 
 fn tracing_level_filter_from_log_level_filter(level_filter: log::LevelFilter) -> LevelFilter {
@@ -266,6 +291,6 @@ use tracing_subscriber::{
     Layer,
 };
 
-use crate::app::{self, config};
+use crate::app::{self, ui, config};
 
 // endregion: IMPORTS

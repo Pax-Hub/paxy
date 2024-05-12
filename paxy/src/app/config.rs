@@ -142,7 +142,9 @@ impl figment::Provider for ConfigTemplate {
         figment::Metadata::named("Config Object")
     }
 
-    fn data(&self) -> Result<figment::value::Map<figment::Profile, figment::value::Dict>, figment::Error> {
+    fn data(
+        &self,
+    ) -> Result<figment::value::Map<figment::Profile, figment::value::Dict>, figment::Error> {
         figment::providers::Serialized::defaults(ConfigTemplate::default()).data()
     }
 
@@ -159,7 +161,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            figment: Figment::from(ConfigTemplate::default())
+            figment: Figment::from(ConfigTemplate::default()),
         }
     }
 }

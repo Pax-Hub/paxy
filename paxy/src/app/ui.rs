@@ -11,13 +11,10 @@ where
         .context(app::ConfigSnafu {})
         .context(crate::AppSnafu)?;
 
-    // Begin logging
-    let mut logging_handle = logging::init_log(&config)
+    // Begin logging and outputting
+    let logging_handle = logging::init_log(&config)
         .context(app::LoggingSnafu {})
         .context(crate::AppSnafu {})?;
-
-    // Adjust output formatting if requested
-    adjust_output_formatting(&config.console_output_format, &mut logging_handle)?;
 
     emit_welcome_messages();
 
@@ -118,36 +115,6 @@ fn emit_test_messages() {
 
     tracing::info!(target:"JSON", "{} Testing: {}", console::Emoji("🧪", ""), "{\"JSON\": \"Target\"}");
     tracing::info!(target:"PLAIN", "{} Testing: Plain Target", console::Emoji("🧪", ""));
-}
-
-fn adjust_output_formatting(
-    internally_consistent_console_output_format: &ConsoleOutputFormat,
-    logging_handle: &mut logging::Handle,
-) -> Result<(), crate::Error> {
-    // Turn off colors if requested
-    if internally_consistent_console_output_format.no_color {
-        anstream::ColorChoice::Never.write_global();
-        owo_colors::set_override(false);
-    }
-
-    // Change output mode if requested
-    match internally_consistent_console_output_format.mode {
-        ConsoleOutputMode::Plain => logging_handle
-            .switch_to_plain()
-            .context(app::LoggingSnafu {})
-            .context(crate::AppSnafu {})?,
-        ConsoleOutputMode::Json => logging_handle
-            .switch_to_json()
-            .context(app::LoggingSnafu {})
-            .context(crate::AppSnafu {})?,
-        ConsoleOutputMode::Test => logging_handle
-            .switch_to_test()
-            .context(app::LoggingSnafu {})
-            .context(crate::AppSnafu {})?,
-        _ => {}
-    };
-
-    Ok(())
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
