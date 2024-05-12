@@ -1,3 +1,7 @@
+// TODO: Write code here
+
+// region: ERRORS
+
 #[derive(Debug, Snafu)]
 #[non_exhaustive]
 pub enum Error {
@@ -12,27 +16,23 @@ pub enum Error {
     },
 }
 
+// region: ERRORS
+
 // region: IMPORTS
 
 // use std::{fmt, str::FromStr};
 
 // use serde::{Deserialize, Serialize};
 // use serde_aux::prelude::*;
-use snafu::Snafu;
 // use speedy::{Readable, Writable};
+use snafu::Snafu;
 
 // endregion: IMPORTS
 
-// region: MODULES
+// region: EXTERNAL-SUBMODULES
 
 // pub mod some_module;
-
-// endregion: MODULES
-
-// region: RE-EXPORTS
-
-// #[allow(unused_imports)]
-// pub use some_module::*;
-
-// endregion: RE-EXPORTS
 mod config;
+
+// endregion: EXTERNAL-SUBMODULES
+

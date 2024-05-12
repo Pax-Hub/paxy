@@ -35,6 +35,8 @@ license = "MPL-2.0"
 [workspace.dependencies]
 
 paxy = { path = "paxy" }
+paxy-cli = {path = "paxy-cli"}
+paxy-gui = {path = "paxy-gui"}
 
 # Logging
 tracing = "0.1"

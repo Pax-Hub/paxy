@@ -24,6 +24,7 @@ pub fn ensure_path(path: Option<&PathBuf>) {
 }
 
 #[derive(Debug, Snafu)]
+#[snafu(visibility(pub(crate)))]
 #[non_exhaustive]
 pub enum Error {
     #[non_exhaustive]

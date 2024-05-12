@@ -2,13 +2,6 @@ lazy_static! {
     pub static ref APP_NAME: &'static str = "paxy";
 }
 
-// region: IMPORTS
-
-use lazy_static::lazy_static;
-use snafu::Snafu;
-
-// endregion: IMPORTS
-
 // region: ERRORS
 
 #[derive(Debug, Snafu)]
@@ -22,7 +15,7 @@ pub enum Error {
     },
 
     #[non_exhaustive]
-    #[snafu(display("in configuration: {source}"), visibility(pub))]
+    #[snafu(display("in the configuration: {source}"), visibility(pub))]
     Config {
         #[snafu(backtrace)]
         source: config::Error,
@@ -44,6 +37,13 @@ pub enum Error {
 }
 
 // endregion: ERRORS
+
+// region: IMPORTS
+
+use lazy_static::lazy_static;
+use snafu::Snafu;
+
+// endregion: IMPORTS
 
 // region: EXTERNAL-SUBMODULES
 

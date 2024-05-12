@@ -1,3 +1,9 @@
+pub fn run_install(
+    repository_install_arguments: ui::cli_template::RepositoryInstallArguments,
+) -> Result<(), Error> {
+    todo!()
+}
+
 #[allow(unused)]
 fn add_repo(repo: &str, name: &str) {
     let mut file = super::home!();
@@ -35,6 +41,7 @@ fn plugin(manifest: PathBuf) -> PathBuf {
 }
 
 #[derive(Debug, Snafu)]
+#[snafu(visibility(pub(crate)))]
 #[non_exhaustive]
 pub enum Error {
     #[non_exhaustive]
@@ -54,7 +61,8 @@ use git2::Repository;
 use log::{info, warn};
 use snafu::Snafu;
 
-use crate::actions::repository::ensure_path;
+use crate::action::repository::ensure_path;
+use crate::app::ui;
 
 // endregion: IMPORTS
 
