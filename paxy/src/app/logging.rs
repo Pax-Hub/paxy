@@ -249,7 +249,7 @@ pub enum LoggingMode {
 pub enum Error {
     #[non_exhaustive]
     #[snafu(
-        display("could not retreive the XDG base directories for the user"),
+        display("could not retrieve the XDG base directories for the user"),
         visibility(pub)
     )]
     RetreiveLoggingUserAppBaseDirectories {},

@@ -47,6 +47,8 @@ pub fn init_config<G: GlobalArguments>(
     // Initialize configuration with app-wide defaults
     let mut config = Config::new();
 
+    config.figment = config.figment.admerge(("config_filepaths", &candidate_config_filepaths));
+
     // Merge configuration values from global and local filepaths
     config = config.with_overriding_files(&candidate_config_filepaths);
 
@@ -57,6 +59,44 @@ pub fn init_config<G: GlobalArguments>(
     config = config.with_overriding_args(console_global_arguments);
 
     Ok((config.object()?, candidate_config_filepaths))
+}
+
+fn candidate_config_filepaths() -> Vec<PathBuf> {
+    let mut candidate_config_filepaths: Vec<PathBuf> = Vec::new();
+
+    // Global directories
+    #[cfg(target_family = "unix")]
+    candidate_config_filepaths.extend(["/etc/xdg".into(), "/etc".into()]);
+    #[cfg(target_os = "windows")]
+    candidate_config_filepath_stubs.extend([""]);
+
+    // Local directories
+    candidate_config_filepaths.push(
+        directories::BaseDirs::new()
+            .context(RetreiveConfigUserAppBaseDirectoriesSnafu {})?
+            .config_dir()
+            .to_path_buf(),
+    );
+
+    // Append filename to create filepath stubs
+    candidate_config_filepaths
+        .iter_mut()
+        .for_each(|f| f.push(*app::APP_NAME));
+
+    let lowercase_config_file_extensions = CONFIG_FILE_EXTENSIONS.iter().copied().map(str::to_string);
+    let uppercase_config_file_extensions = CONFIG_FILE_EXTENSIONS.iter()
+        .map(|extension| {
+            extension
+                .to_uppercase()
+        });
+
+    candidate_config_filepaths = candidate_config_filepaths
+        .into_iter()
+        .cartesian_product(lowercase_config_file_extensions.chain(uppercase_config_file_extensions))
+        .map(|(filepath_stub, extension)| filepath_stub.with_extension(extension))
+        .collect();
+
+    candidate_config_filepaths
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -284,14 +324,14 @@ use crate::app::ui;
 pub enum Error {
     #[non_exhaustive]
     #[snafu(
-        display("could not retreive the XDG base directories for the user"),
+        display("could not retrieve the XDG base directories for the user"),
         visibility(pub)
     )]
     RetreiveConfigUserAppBaseDirectories {},
 
     #[non_exhaustive]
     #[snafu(
-        display("could not retreive configuration information: {source}"),
+        display("could not retrieve configuration information: {source}"),
         visibility(pub)
     )]
     ExtractConfig { source: figment::Error },
