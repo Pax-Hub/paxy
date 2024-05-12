@@ -18,9 +18,9 @@ where
 
     emit_welcome_messages();
 
-    emit_diagnostic_messages(&config, &console_input);
+    emit_diagnostic_messages(&config);
 
-    emit_test_messages();
+    emit_test_messages(&config, &console_input);
 
     Ok((console_input, logging_handle.worker_guards))
 }
@@ -40,10 +40,18 @@ fn emit_welcome_messages() {
     );
 }
 
-fn emit_diagnostic_messages<C>(config: &ConfigTemplate, console_input: &C)
-where
-    C: clap::Parser + fmt::Debug,
-{
+fn emit_diagnostic_messages(config: &ConfigTemplate) {
+    tracing::trace!(
+        "{}  {} messages {}...",
+        console::Emoji("🔍", ""),
+        "Diagnostic"
+            .cyan()
+            .dimmed(),
+        "begin"
+            .green()
+            .dimmed(),
+    );
+
     tracing::debug!(
         "{}  The {} is {}... {}",
         console::Emoji("⚙️", ""),
@@ -74,16 +82,21 @@ where
     );
 
     tracing::trace!(
-        "{}  {} {:#?}",
-        console::Emoji("⌨️", ""),
-        "CLI input arguments:"
-            .magenta()
+        "{}  {} messages {}...",
+        console::Emoji("🔍", ""),
+        "Diagnostic"
+            .cyan()
             .dimmed(),
-        console_input.dimmed()
+        "end"
+            .green()
+            .dimmed(),
     );
 }
 
-fn emit_test_messages() {
+fn emit_test_messages<C>(config: &ConfigTemplate, console_input: &C)
+where
+    C: clap::Parser + fmt::Debug,
+{
     tracing::debug!(
         target:"TEST", "{}{}{}{}{}{}{}{}",
         "███".black(),
@@ -115,6 +128,26 @@ fn emit_test_messages() {
 
     tracing::info!(target:"JSON", "{} Testing: {}", console::Emoji("🧪", ""), "{\"JSON\": \"Target\"}");
     tracing::info!(target:"PLAIN", "{} Testing: Plain Target", console::Emoji("🧪", ""));
+
+    tracing::info!(
+        target:"TEST",
+        "{}  {} {:#?}",
+        console::Emoji("⌨️", ""),
+        "CLI input arguments:"
+            .magenta()
+            .dimmed(),
+        console_input.dimmed()
+    );
+
+    tracing::info!(
+        target:"TEST",
+        "{}  {} {:#?}",
+        console::Emoji("⌨️", ""),
+        "Config dump:"
+            .magenta()
+            .dimmed(),
+        config.dimmed()
+    );
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -161,12 +161,9 @@ pub fn init_log(config: &config::ConfigTemplate) -> Result<Handle, Error> {
         .console_output_format
         .mode
     {
-        ui::ConsoleOutputMode::Plain => logging_handle
-            .switch_to_plain()?,
-        ui::ConsoleOutputMode::Json => logging_handle
-            .switch_to_json()?,
-        ui::ConsoleOutputMode::Test => logging_handle
-            .switch_to_test()?,
+        ui::ConsoleOutputMode::Plain => logging_handle.switch_to_plain()?,
+        ui::ConsoleOutputMode::Json => logging_handle.switch_to_json()?,
+        ui::ConsoleOutputMode::Test => logging_handle.switch_to_test()?,
         _ => {}
     };
 
@@ -291,6 +288,6 @@ use tracing_subscriber::{
     Layer,
 };
 
-use crate::app::{self, ui, config};
+use crate::app::{self, config, ui};
 
 // endregion: IMPORTS
