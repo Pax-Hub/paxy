@@ -1,5 +1,6 @@
 lazy_static! {
-    pub static ref CONFIG_FILE_EXTENSIONS: &'static [&'static str] = &["toml", "json", "yaml", "yml"];
+    pub static ref CONFIG_FILE_EXTENSIONS: &'static [&'static str] =
+        &["toml", "json", "yaml", "yml"];
 }
 
 /// Initializes a layered configuration deriving values from the app-wide
@@ -9,69 +10,54 @@ lazy_static! {
 /// Values from only files with supported file extensions would be merged.
 pub fn init_config<G: GlobalArguments>(
     console_global_arguments: G,
-) -> Result<(ConfigTemplate, Vec<PathBuf>), Error> {
-    let mut candidate_config_filepaths: Vec<PathBuf> = Vec::new();
-
-    // Global directories
-    #[cfg(target_family = "unix")]
-    candidate_config_filepaths.extend(["/etc/xdg".into(), "/etc".into()]);
-    #[cfg(target_os = "windows")]
-    candidate_config_filepath_stubs.extend([""]);
-
-    // Local directories
-    candidate_config_filepaths.push(
-        directories::BaseDirs::new()
-            .context(RetreiveConfigUserAppBaseDirectoriesSnafu {})?
-            .config_dir()
-            .to_path_buf(),
-    );
-
-    // Append filename to create filepath stubs
-    candidate_config_filepaths
-        .iter_mut()
-        .for_each(|f| f.push(*app::APP_NAME));
-
-    let lowercase_config_file_extensions = CONFIG_FILE_EXTENSIONS.iter().copied().map(str::to_string);
-    let uppercase_config_file_extensions = CONFIG_FILE_EXTENSIONS.iter()
-        .map(|extension| {
-            extension
-                .to_uppercase()
-        });
-
-    candidate_config_filepaths = candidate_config_filepaths
-        .into_iter()
-        .cartesian_product(lowercase_config_file_extensions.chain(uppercase_config_file_extensions))
-        .map(|(filepath_stub, extension)| filepath_stub.with_extension(extension))
-        .collect();
-
+) -> Result<ConfigTemplate, Error> {
     // Initialize configuration with app-wide defaults
     let mut config = Config::new();
 
-    config.figment = config.figment.admerge(("config_filepaths", &candidate_config_filepaths));
+    // Update config filepaths in the config data structure. This is one way -
+    // The config filepaths are written to the data structure but not retreived
+    // from user-provided config files, except for a config file path that is
+    // received from the console arguments.
+    let config_filepaths = candidate_config_filepaths()?;
+    config.figment = config
+        .figment
+        .admerge(("config_filepaths", &config_filepaths));
 
     // Merge configuration values from global and local filepaths
-    config = config.with_overriding_files(&candidate_config_filepaths);
+    config = config.with_overriding_files(&config_filepaths);
 
     // Merge configuration values from environment variables
     config = config.with_overriding_env(&format!("{}_", *app::APP_NAME));
 
     // Merge configuration values from the CLI
-    config = config.with_overriding_args(console_global_arguments);
+    config = config.with_overriding_args(&console_global_arguments);
 
-    Ok((config.object()?, candidate_config_filepaths))
+    // Update log dirpaths in the config data structure. This is one way - The
+    // log dirpaths are written to the data structure but not retreived from
+    // user-provided config files.
+    let preferred_log_dirpath: Option<PathBuf> = config
+        .figment
+        .extract_inner("log_dirpath")
+        .ok();
+    let log_dirpath = candidate_log_dirpath(preferred_log_dirpath)?;
+    config.figment = config
+        .figment
+        .admerge(("log_dirpath", &log_dirpath));
+
+    Ok(config.object()?)
 }
 
-fn candidate_config_filepaths() -> Vec<PathBuf> {
-    let mut candidate_config_filepaths: Vec<PathBuf> = Vec::new();
+fn candidate_config_filepaths() -> Result<Vec<PathBuf>, Error> {
+    let mut config_filepaths: Vec<PathBuf> = Vec::new();
 
     // Global directories
     #[cfg(target_family = "unix")]
-    candidate_config_filepaths.extend(["/etc/xdg".into(), "/etc".into()]);
+    config_filepaths.extend(["/etc/xdg".into(), "/etc".into()]);
     #[cfg(target_os = "windows")]
     candidate_config_filepath_stubs.extend([""]);
 
     // Local directories
-    candidate_config_filepaths.push(
+    config_filepaths.push(
         directories::BaseDirs::new()
             .context(RetreiveConfigUserAppBaseDirectoriesSnafu {})?
             .config_dir()
@@ -79,24 +65,58 @@ fn candidate_config_filepaths() -> Vec<PathBuf> {
     );
 
     // Append filename to create filepath stubs
-    candidate_config_filepaths
+    config_filepaths
         .iter_mut()
         .for_each(|f| f.push(*app::APP_NAME));
 
-    let lowercase_config_file_extensions = CONFIG_FILE_EXTENSIONS.iter().copied().map(str::to_string);
-    let uppercase_config_file_extensions = CONFIG_FILE_EXTENSIONS.iter()
-        .map(|extension| {
-            extension
-                .to_uppercase()
-        });
+    let lowercase_config_file_extensions = CONFIG_FILE_EXTENSIONS
+        .iter()
+        .copied()
+        .map(str::to_string);
+    let uppercase_config_file_extensions = CONFIG_FILE_EXTENSIONS
+        .iter()
+        .map(|extension| extension.to_uppercase());
 
-    candidate_config_filepaths = candidate_config_filepaths
+    config_filepaths = config_filepaths
         .into_iter()
         .cartesian_product(lowercase_config_file_extensions.chain(uppercase_config_file_extensions))
         .map(|(filepath_stub, extension)| filepath_stub.with_extension(extension))
         .collect();
 
-    candidate_config_filepaths
+    Ok(config_filepaths)
+}
+
+fn candidate_log_dirpath(preferred_log_dirpath: Option<PathBuf>) -> Result<PathBuf, Error> {
+    if let Some(preferred_log_dirpath) = preferred_log_dirpath {
+        if !fs::metadata(&preferred_log_dirpath)
+            .map(|m| m.permissions())
+            .map(|p| p.readonly())
+            .unwrap_or(true)
+        {
+            Ok(preferred_log_dirpath)
+        } else {
+            Ok(fallback_log_dirpath()?)
+        }
+    } else {
+        Ok(fallback_log_dirpath()?)
+    }
+}
+
+fn fallback_log_dirpath() -> Result<PathBuf, Error> {
+    let xdg_app_dirs =
+        directories::BaseDirs::new().context(RetreiveLoggingUserAppBaseDirectoriesSnafu {})?;
+    fs::create_dir_all(xdg_app_dirs.data_dir()).context(CreateLogDirectorySnafu {
+        path: {
+            let mut state_dirpath = xdg_app_dirs
+                .data_dir()
+                .to_owned();
+            state_dirpath.push(*app::APP_NAME);
+            state_dirpath
+        },
+    })?;
+    Ok(xdg_app_dirs
+        .data_dir()
+        .to_owned())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -116,15 +136,37 @@ impl Default for ConfigTemplate {
     }
 }
 
+// Make `ConfigTemplate` a provider itself for composability.
+impl figment::Provider for ConfigTemplate {
+    fn metadata(&self) -> figment::Metadata {
+        figment::Metadata::named("Config Object")
+    }
+
+    fn data(&self) -> Result<figment::value::Map<figment::Profile, figment::value::Dict>, figment::Error> {
+        figment::providers::Serialized::defaults(ConfigTemplate::default()).data()
+    }
+
+    fn profile(&self) -> Option<figment::Profile> {
+        None
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Config {
     pub figment: Figment,
 }
 
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            figment: Figment::from(ConfigTemplate::default())
+        }
+    }
+}
+
 impl Config {
     pub fn new() -> Self {
-        Self {
-            figment: Figment::new(),
-        }
+        Config::default()
     }
 
     pub fn with_overriding_file<P: AsRef<Path>>(mut self, filepath: P) -> Self {
@@ -180,8 +222,7 @@ impl Config {
         <I2 as IntoIterator>::IntoIter: Clone,
         P: Into<PathBuf> + Clone,
     {
-        let filepath_stubs = filepath_stubs
-            .into_iter();
+        let filepath_stubs = filepath_stubs.into_iter();
         self = file_extensions
             .into_iter()
             .cartesian_product(filepath_stubs)
@@ -296,9 +337,10 @@ impl Config {
 // region: IMPORTS
 
 use std::{
-    env,
-    iter,
     clone::Clone,
+    env,
+    fs,
+    iter,
     path::{Path, PathBuf},
 };
 
@@ -328,6 +370,23 @@ pub enum Error {
         visibility(pub)
     )]
     RetreiveConfigUserAppBaseDirectories {},
+
+    #[non_exhaustive]
+    #[snafu(
+        display("could not retrieve the XDG base directories for the user"),
+        visibility(pub)
+    )]
+    RetreiveLoggingUserAppBaseDirectories {},
+
+    #[non_exhaustive]
+    #[snafu(
+        display("could not create the log directory at {:?}: {source}", path),
+        visibility(pub)
+    )]
+    CreateLogDirectory {
+        path: PathBuf,
+        source: std::io::Error,
+    },
 
     #[non_exhaustive]
     #[snafu(

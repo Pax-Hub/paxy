@@ -1,12 +1,7 @@
-pub fn init_log(config: &config::ConfigTemplate) -> Result<(Handle, PathBuf), Error> {
+pub fn init_log(config: &config::ConfigTemplate) -> Result<Handle, Error> {
     let log_filename = format!("{}.log", *app::APP_NAME);
-    let log_dirpath = obtain_log_dirpath(
-        config
-            .log_dirpath
-            .clone(),
-    )?;
     let log_file_appender =
-        tracing_appender::rolling::daily(log_dirpath.clone(), log_filename.clone());
+        tracing_appender::rolling::daily(&config.log_dirpath, log_filename.clone());
     let log_level_filter = tracing_level_filter_from_log_level_filter(
         config
             .console_output_format
@@ -142,51 +137,15 @@ pub fn init_log(config: &config::ConfigTemplate) -> Result<(Handle, PathBuf), Er
     tracing::subscriber::set_global_default(subscriber)
         .context(SetGlobalDefaultSubscriberSnafu {})?;
 
-    Ok((
-        Handle {
-            _switch_stdout_inner: Some(Box::new(switch_stdout)),
-            _switch_stderr_inner: Some(Box::new(switch_stderr)),
-            worker_guards: vec![
-                _file_writer_guard,
-                _stdout_writer_guard,
-                _stderr_writer_guard,
-            ],
-        },
-        {
-            let mut log_filepath = log_dirpath;
-            log_filepath.push(log_filename + "*");
-            log_filepath
-        },
-    ))
-}
-
-fn obtain_log_dirpath(preferred_log_dirpath: PathBuf) -> Result<PathBuf, Error> {
-    let obtain_fallback_log_dirpath = || {
-        let xdg_app_dirs =
-            directories::BaseDirs::new().context(RetreiveLoggingUserAppBaseDirectoriesSnafu {})?;
-        fs::create_dir_all(xdg_app_dirs.data_dir()).context(CreateLogDirectorySnafu {
-            path: {
-                let mut state_dirpath = xdg_app_dirs
-                    .data_dir()
-                    .to_owned();
-                state_dirpath.push(*app::APP_NAME);
-                state_dirpath
-            },
-        })?;
-        Ok(xdg_app_dirs
-            .data_dir()
-            .to_owned())
-    };
-
-    if !fs::metadata(&preferred_log_dirpath)
-        .map(|m| m.permissions())
-        .map(|p| p.readonly())
-        .unwrap_or(true)
-    {
-        Ok(preferred_log_dirpath)
-    } else {
-        Ok(obtain_fallback_log_dirpath()?)
-    }
+    Ok(Handle {
+        _switch_stdout_inner: Some(Box::new(switch_stdout)),
+        _switch_stderr_inner: Some(Box::new(switch_stderr)),
+        worker_guards: vec![
+            _file_writer_guard,
+            _stdout_writer_guard,
+            _stderr_writer_guard,
+        ],
+    })
 }
 
 fn tracing_level_filter_from_log_level_filter(level_filter: log::LevelFilter) -> LevelFilter {
@@ -249,23 +208,6 @@ pub enum LoggingMode {
 pub enum Error {
     #[non_exhaustive]
     #[snafu(
-        display("could not retrieve the XDG base directories for the user"),
-        visibility(pub)
-    )]
-    RetreiveLoggingUserAppBaseDirectories {},
-
-    #[non_exhaustive]
-    #[snafu(
-        display("could not create the log directory at {:?}: {source}", path),
-        visibility(pub)
-    )]
-    CreateLogDirectory {
-        path: PathBuf,
-        source: std::io::Error,
-    },
-
-    #[non_exhaustive]
-    #[snafu(
         display("could not set the global default tracing subscriber: {source}"),
         visibility(pub)
     )]
@@ -312,10 +254,8 @@ pub enum Error {
 
 // region: IMPORTS
 
-use std::{fs, path::PathBuf};
-
 use serde::{Deserialize, Serialize};
-use snafu::{OptionExt, ResultExt, Snafu};
+use snafu::{ResultExt, Snafu};
 use tracing::{Level, Metadata};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{

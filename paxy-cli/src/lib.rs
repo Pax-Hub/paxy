@@ -27,9 +27,8 @@ pub enum Error {
 
 // region: IMPORTS
 
-use paxy::app::ui;
-
 use owo_colors::OwoColorize;
+use paxy::app::ui;
 use snafu::Snafu;
 
 // endregion: IMPORTS
@@ -404,7 +403,6 @@ mod cli_template {
     use std::path::PathBuf;
 
     use clap::{Args, Parser, Subcommand};
-
     use paxy::app::ui;
 
     // endregion: IMPORTS

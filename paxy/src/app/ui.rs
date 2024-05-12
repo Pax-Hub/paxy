@@ -7,12 +7,12 @@ where
     let console_input = C::parse();
 
     // Obtain user configuration
-    let (config, config_filepaths) = config::init_config(&console_input)
+    let config = config::init_config(&console_input)
         .context(app::ConfigSnafu {})
         .context(crate::AppSnafu)?;
 
     // Begin logging
-    let (mut logging_handle, log_filepath) = logging::init_log(&config)
+    let mut logging_handle = logging::init_log(&config)
         .context(app::LoggingSnafu {})
         .context(crate::AppSnafu {})?;
 
@@ -21,7 +21,7 @@ where
 
     emit_welcome_messages();
 
-    emit_diagnostic_messages(config_filepaths, log_filepath, &console_input);
+    emit_diagnostic_messages(&config, &console_input);
 
     emit_test_messages();
 
@@ -43,11 +43,8 @@ fn emit_welcome_messages() {
     );
 }
 
-fn emit_diagnostic_messages<C>(
-    config_filepaths: Vec<PathBuf>,
-    log_filepath: PathBuf,
-    console_input: &C,
-) where
+fn emit_diagnostic_messages<C>(config: &ConfigTemplate, console_input: &C)
+where
     C: clap::Parser + fmt::Debug,
 {
     tracing::debug!(
@@ -69,14 +66,14 @@ fn emit_diagnostic_messages<C>(
         "{} {} {:?}",
         console::Emoji("📂", ""),
         "Config Filepath(s):".magenta(),
-        config_filepaths,
+        config.config_filepaths,
     );
 
     tracing::debug!(
         "{} {} {:?}",
         console::Emoji("📂", ""),
-        "Log Filepath:".magenta(),
-        log_filepath
+        "Log Directory Path:".magenta(),
+        config.log_dirpath
     );
 
     tracing::trace!(
@@ -434,6 +431,8 @@ pub mod cli_template {
 // region: RE-EXPORTS
 
 #[allow(unused_imports)]
-pub use cli_template::*; // Flatten the module heirarchy for easier access
+pub use cli_template::*;
+
+use super::config::ConfigTemplate; // Flatten the module heirarchy for easier access
 
 // endregion: RE-EXPORTS
