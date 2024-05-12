@@ -20,6 +20,7 @@ paxy = { workspace = true }
 
 # Logging
 tracing = { workspace = true }
+log = { workspace = true, features = ["serde"] }
 
 # Error handling
 snafu = {workspace = true}

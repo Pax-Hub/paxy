@@ -1,5 +1,12 @@
+//! Has the [`run_gui`] function and the commandline interface template
+//! [`gui_cli_template::CliTemplate`]
+
+/// Calls the [`ui::run_common::<C>`] function supplying it with the commandline
+///  interface template as a type. Any errors are thrown back to the calling
+/// function. A debug message is then displayed conveying that the program is
+/// being run in the GUI mode.
 pub fn run_gui() -> Result<(), paxy::Error> {
-    let (_cli_input, _worker_guards) = ui::run_common::<CliTemplate>()?;
+    let (_cli_input, _logging_worker_guards) = ui::run_common::<CliTemplate>()?;
 
     tracing::debug!(
         "Running in {} mode... {}",
@@ -15,20 +22,24 @@ pub fn run_gui() -> Result<(), paxy::Error> {
 pub enum Error {
     #[non_exhaustive]
     #[snafu(display(""), visibility(pub))]
-    GuiDummy {},
+    GuiDummy {}, // No errors implemented yet
 }
 
 // region: IMPORTS
 
 use owo_colors::OwoColorize;
-use paxy::ui;
+use paxy::app::ui;
 use snafu::Snafu;
 
 // endregion: IMPORTS
 
 // region: MODULES
 
+/// The commandline interface for the GUI program. Allows one to specify flags
+/// that control output on a console.
 mod gui_cli_template {
+
+    /// The base commandline template consists of global arguments
     #[derive(Parser, Debug)]
     #[command(version, author, about, args_conflicts_with_subcommands = true)]
     pub struct CliTemplate {
@@ -36,44 +47,42 @@ mod gui_cli_template {
         pub global_args: ui::cli_template::GlobalArgs<clap_verbosity_flag::InfoLevel>,
     }
 
+    /// Implement a trait that can extract standard global arguments from our
+    /// own CLI template
     impl ui::GlobalArguments for CliTemplate {
-        type L = clap_verbosity_flag::InfoLevel;
-
-        fn config_file(&self) -> &Option<PathBuf> {
-            &self
-                .global_args
-                .config_file
+        fn config_filepath(&self) -> &Option<PathBuf> {
+            self.global_args
+                .config_filepath()
         }
 
         fn is_json(&self) -> bool {
             self.global_args
-                .json_flag
+                .is_json()
         }
 
         fn is_plain(&self) -> bool {
             self.global_args
-                .plain_flag
+                .is_plain()
         }
 
         fn is_debug(&self) -> bool {
             self.global_args
-                .debug_flag
-        }
-
-        fn is_no_color(&self) -> bool {
-            self.global_args
-                .no_color_flag
+                .is_debug()
         }
 
         fn is_test(&self) -> bool {
             self.global_args
-                .test_flag
+                .is_test()
         }
 
-        fn verbosity(&self) -> &clap_verbosity_flag::Verbosity<Self::L> {
-            &self
-                .global_args
-                .verbose
+        fn is_no_color(&self) -> bool {
+            self.global_args
+                .is_no_color()
+        }
+
+        fn verbosity_filter(&self) -> log::LevelFilter {
+            self.global_args
+                .verbosity_filter()
         }
     }
 
@@ -82,7 +91,7 @@ mod gui_cli_template {
     use std::path::PathBuf;
 
     use clap::Parser;
-    use paxy::ui;
+    use paxy::app::ui;
 
     // endregion: IMPORTS
 }
@@ -91,6 +100,6 @@ mod gui_cli_template {
 
 // region: RE-EXPORTS
 
-pub use gui_cli_template::*;
+pub use gui_cli_template::*; // Flatten the module heirarchy for easier access
 
 // endregion: RE-EXPORTS

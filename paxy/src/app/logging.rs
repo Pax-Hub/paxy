@@ -1,12 +1,21 @@
-pub fn init_log(
-    preferred_log_dirpath: Option<PathBuf>,
-    preferred_log_level_filter: Option<LevelFilter>,
-) -> Result<(Handle, PathBuf), Error> {
+pub fn init_log(config: &config::ConfigTemplate) -> Result<Handle, Error> {
     let log_filename = format!("{}.log", *app::APP_NAME);
-    let log_dirpath = obtain_log_dirpath(preferred_log_dirpath)?;
     let log_file_appender =
-        tracing_appender::rolling::daily(log_dirpath.clone(), log_filename.clone());
-    let log_level_filter = preferred_log_level_filter.unwrap_or(LevelFilter::INFO);
+        tracing_appender::rolling::daily(&config.log_dirpath, log_filename.clone());
+    let log_level_filter = tracing_level_filter_from_log_level_filter(
+        config
+            .console_output_format
+            .max_verbosity,
+    );
+
+    // Turn off colors in the console streams if requested
+    if config
+        .console_output_format
+        .no_color
+    {
+        anstream::ColorChoice::Never.write_global();
+        owo_colors::set_override(false);
+    }
 
     // Obtain writers to various logging destinations and worker guards (for
     // keeping the streams alive)
@@ -137,55 +146,39 @@ pub fn init_log(
     tracing::subscriber::set_global_default(subscriber)
         .context(SetGlobalDefaultSubscriberSnafu {})?;
 
-    Ok((
-        Handle {
-            _switch_stdout_inner: Some(Box::new(switch_stdout)),
-            _switch_stderr_inner: Some(Box::new(switch_stderr)),
-            worker_guards: vec![
-                _file_writer_guard,
-                _stdout_writer_guard,
-                _stderr_writer_guard,
-            ],
-        },
-        {
-            let mut log_filepath = log_dirpath;
-            log_filepath.push(log_filename + "*");
-            log_filepath
-        },
-    ))
+    let mut logging_handle = Handle {
+        _switch_stdout_inner: Some(Box::new(switch_stdout)),
+        _switch_stderr_inner: Some(Box::new(switch_stderr)),
+        worker_guards: vec![
+            _file_writer_guard,
+            _stdout_writer_guard,
+            _stderr_writer_guard,
+        ],
+    };
+
+    // Change the output mode if requested
+    match config
+        .console_output_format
+        .mode
+    {
+        ui::ConsoleOutputMode::Plain => logging_handle.switch_to_plain()?,
+        ui::ConsoleOutputMode::Json => logging_handle.switch_to_json()?,
+        ui::ConsoleOutputMode::Test => logging_handle.switch_to_test()?,
+        _ => {}
+    };
+
+    Ok(logging_handle)
 }
 
-fn obtain_log_dirpath(preferred_log_dirpath: Option<PathBuf>) -> Result<PathBuf, Error> {
-    let obtain_fallback_log_dirpath = || {
-        let xdg_app_dirs =
-            directories::BaseDirs::new().context(RetreiveLoggingUserAppBaseDirectoriesSnafu {})?;
-        fs::create_dir_all(xdg_app_dirs.data_dir()).context(CreateLogDirectorySnafu {
-            path: {
-                let mut state_dirpath = xdg_app_dirs
-                    .data_dir()
-                    .to_owned();
-                state_dirpath.push(*app::APP_NAME);
-                state_dirpath
-            },
-        })?;
-        Ok(xdg_app_dirs
-            .data_dir()
-            .to_owned())
-    };
-    Ok(match preferred_log_dirpath {
-        Some(preferred_log_dirpath) => {
-            if !fs::metadata(&preferred_log_dirpath)
-                .map(|m| m.permissions())
-                .map(|p| p.readonly())
-                .unwrap_or(true)
-            {
-                preferred_log_dirpath
-            } else {
-                obtain_fallback_log_dirpath()?
-            }
-        }
-        None => obtain_fallback_log_dirpath()?,
-    })
+fn tracing_level_filter_from_log_level_filter(level_filter: log::LevelFilter) -> LevelFilter {
+    match level_filter {
+        log::LevelFilter::Off => LevelFilter::OFF,
+        log::LevelFilter::Error => LevelFilter::ERROR,
+        log::LevelFilter::Warn => LevelFilter::WARN,
+        log::LevelFilter::Info => LevelFilter::INFO,
+        log::LevelFilter::Debug => LevelFilter::DEBUG,
+        log::LevelFilter::Trace => LevelFilter::TRACE,
+    }
 }
 
 type OutputModeSwitchFunction = Box<dyn FnOnce(LoggingMode) -> Result<(), Error>>;
@@ -237,23 +230,6 @@ pub enum LoggingMode {
 pub enum Error {
     #[non_exhaustive]
     #[snafu(
-        display("could not retreive the XDG base directories for the user"),
-        visibility(pub)
-    )]
-    RetreiveLoggingUserAppBaseDirectories {},
-
-    #[non_exhaustive]
-    #[snafu(
-        display("could not create the log directory at {:?}: {source}", path),
-        visibility(pub)
-    )]
-    CreateLogDirectory {
-        path: PathBuf,
-        source: std::io::Error,
-    },
-
-    #[non_exhaustive]
-    #[snafu(
         display("could not set the global default tracing subscriber: {source}"),
         visibility(pub)
     )]
@@ -300,10 +276,8 @@ pub enum Error {
 
 // region: IMPORTS
 
-use std::{fs, path::PathBuf};
-
 use serde::{Deserialize, Serialize};
-use snafu::{OptionExt, ResultExt, Snafu};
+use snafu::{ResultExt, Snafu};
 use tracing::{Level, Metadata};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
@@ -314,6 +288,6 @@ use tracing_subscriber::{
     Layer,
 };
 
-use crate::app;
+use crate::app::{self, config, ui};
 
 // endregion: IMPORTS
