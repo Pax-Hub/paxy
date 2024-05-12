@@ -32,12 +32,23 @@ fn emit_welcome_messages() {
         "Paxy".bold(),
         "A package manager that gets out of your way".magenta()
     );
-    tracing::debug!(
-        "{}  {} {}",
-        console::Emoji("✉️", ""),
-        "shivanandvp".italic(),
-        "<pvshvp.oss@gmail.com, shivanandvp@rebornos.org>".italic()
-    );
+
+    let crate_authors = clap::crate_authors!("\n")
+        .split("\n")
+        .fold(String::from(""), |mut acc, author| {
+            acc.push_str(
+                console::Emoji("✉️", "")
+                    .to_string()
+                    .as_str(),
+            );
+            acc.push_str("  ");
+            acc.push_str(author);
+            acc.push_str("\n");
+
+            acc
+        });
+
+    tracing::debug!("{}", crate_authors.italic());
 }
 
 fn emit_diagnostic_messages(config: &ConfigTemplate) {
@@ -67,12 +78,44 @@ fn emit_diagnostic_messages(config: &ConfigTemplate) {
         console::Emoji("✅", ""),
     );
 
+    let config_filepaths = config
+        .config_filepaths
+        .iter()
+        .fold(String::from(""), |mut acc: String, config_filepath| {
+            if config_filepath.is_file() {
+                acc.push_str(
+                    config_filepath
+                        .to_string_lossy()
+                        .green()
+                        .to_string()
+                        .as_str(),
+                );
+                acc.push_str(", ");
+            } else {
+                acc.push_str(
+                    config_filepath
+                        .to_string_lossy()
+                        .dimmed()
+                        .to_string()
+                        .as_str(),
+                );
+                acc.push_str(
+                    ", ".dimmed()
+                        .to_string()
+                        .as_str(),
+                );
+            }
+
+            acc
+        });
+
     tracing::debug!(
-        "{} {} {:?}",
+        "{} {} [{}]",
         console::Emoji("📂", ""),
         "Config Filepath(s):".magenta(),
-        config.config_filepaths,
+        config_filepaths,
     );
+
 
     tracing::debug!(
         "{} {} {:?}",

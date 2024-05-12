@@ -103,20 +103,15 @@ fn candidate_log_dirpath(preferred_log_dirpath: Option<PathBuf>) -> Result<PathB
 }
 
 fn fallback_log_dirpath() -> Result<PathBuf, Error> {
-    let xdg_app_dirs =
-        directories::BaseDirs::new().context(RetreiveLoggingUserAppBaseDirectoriesSnafu {})?;
-    fs::create_dir_all(xdg_app_dirs.data_dir()).context(CreateLogDirectorySnafu {
-        path: {
-            let mut state_dirpath = xdg_app_dirs
-                .data_dir()
-                .to_owned();
-            state_dirpath.push(*app::APP_NAME);
-            state_dirpath
-        },
-    })?;
-    Ok(xdg_app_dirs
+    let mut log_dirpath = directories::BaseDirs::new()
+        .context(RetreiveLoggingUserAppBaseDirectoriesSnafu {})?
         .data_dir()
-        .to_owned())
+        .to_path_buf();
+    log_dirpath.push(*app::APP_NAME);
+    fs::create_dir_all(&log_dirpath).context(CreateLogDirectorySnafu {
+        path: log_dirpath.clone(),
+    })?;
+    Ok(log_dirpath)
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
