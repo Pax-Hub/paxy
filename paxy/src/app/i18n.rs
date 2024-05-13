@@ -1,10 +1,4 @@
-// TODO: The module code goes here
-
-// region: IMPORTS
-
-use snafu::Snafu;
-
-// endregion: IMPORTS
+// TODO: Add code here
 
 // region: ERRORS
 
@@ -17,3 +11,9 @@ pub enum Error {
 }
 
 // endregion: ERRORS
+
+// region: IMPORTS
+
+use snafu::Snafu;
+
+// endregion: IMPORTS

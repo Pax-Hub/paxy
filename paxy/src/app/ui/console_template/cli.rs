@@ -21,7 +21,7 @@
 )]
 pub struct CliTemplate {
     #[command(flatten)]
-    pub global_args: ui::cli_template::GlobalArgs<clap_verbosity_flag::InfoLevel>,
+    pub global_args: GlobalArgs<clap_verbosity_flag::InfoLevel>,
 
     #[command(subcommand)]
     pub entity: Option<EntitySubcommand>,
@@ -365,6 +365,7 @@ pub struct RepositoryDowngradeArguments {
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
-use paxy::app::ui::{self, cli_template::*};
+
+use crate::app::ui::{self, console_template::GlobalArgs};
 
 // endregion: IMPORTS

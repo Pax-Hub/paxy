@@ -6,7 +6,7 @@
 #[command(version, author, about, args_conflicts_with_subcommands = true)]
 pub struct CliTemplate {
     #[clap(flatten)]
-    pub global_args: ui::cli_template::GlobalArgs<clap_verbosity_flag::InfoLevel>,
+    pub global_args: GlobalArgs<clap_verbosity_flag::InfoLevel>,
 }
 
 /// Implement a trait that can extract standard global arguments from
@@ -53,6 +53,7 @@ impl ui::GlobalArguments for CliTemplate {
 use std::path::PathBuf;
 
 use clap::Parser;
-use paxy::app::ui;
+
+use crate::app::ui::{self, console_template::GlobalArgs};
 
 // endregion: IMPORTS

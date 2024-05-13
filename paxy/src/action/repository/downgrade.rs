@@ -1,8 +1,15 @@
-pub fn run_downgrade(
-    repository_downgrade_arguments: ui::cli_template::RepositoryDowngradeArguments,
+#[allow(unused)]
+pub fn handle_repository_downgrade_action(
+    repository_downgrade_arguments: RepositoryDowngradeArguments,
 ) -> Result<(), Error> {
-    todo!()
+    use crate::app::ui::console_template::cli::*;
+
+    todo!();
+
+    // Ok(())
 }
+
+// region: ERRORS
 
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub(crate)))]
@@ -13,10 +20,13 @@ pub enum Error {
     Dummy {},
 }
 
+// endregion: ERRORS
+
 // region: IMPORTS
 
-use snafu::Snafu;
+#[allow(unused)]
+use snafu::{ResultExt, Snafu};
 
-use crate::app::ui;
+use crate::app::ui::console_template::cli::RepositoryDowngradeArguments;
 
 // endregion: IMPORTS

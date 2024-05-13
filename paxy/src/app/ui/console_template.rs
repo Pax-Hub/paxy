@@ -1,5 +1,7 @@
-//! Common commandline interface template for global arguments, intended to be
-//! shared between the GUI and CLI programs.
+//! Templates to be used for commandline interface for both GUI and CLI modes.
+
+/// Common commandline interface template for global arguments, intended to be
+/// shared between the GUI and CLI programs.
 #[derive(Clone, Debug, Args)]
 #[command(next_display_order = usize::MAX - 100)]
 pub struct GlobalArgs<L>
@@ -93,14 +95,6 @@ where
     }
 }
 
-#[derive(Debug, Snafu)]
-#[non_exhaustive]
-pub enum Error {
-    #[non_exhaustive]
-    #[snafu(display(""), visibility(pub))]
-    GuiDummy {}, // No errors implemented yet
-}
-
 // region: IMPORTS
 
 // endregion: IMPORTS
@@ -113,13 +107,11 @@ pub mod gui;
 // endregion: MODULES
 
 // region: IMPORTS
+
 use std::path::PathBuf;
 
 use clap::Args;
-use owo_colors::OwoColorize;
-use paxy::app::ui;
-use snafu::Snafu;
 
-use super::GlobalArguments;
+use crate::app::ui::GlobalArguments;
 
 // endregion: IMPORTS

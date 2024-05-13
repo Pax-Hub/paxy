@@ -1,12 +1,12 @@
 //! Starts execution at the [`main`] function. Offloads the implemenation
 //! details to its corresponding library crate.
 
-/// Calls the [`crate::run_cli`] function and captures the returned
+/// Calls the [`paxy_cli::run_cli`] function and captures the returned
 /// [`Result`]. If there was an error, the error message chain is printed to the
 ///  standard error stream (`stderr`). The program then returns an `0` or `1`
 /// corresponding to "no error" or "error" based on the result.
 fn main() -> process::ExitCode {
-    let return_value = crate::run_cli();
+    let return_value = paxy_cli::run_cli();
     match return_value {
         Ok(_) => process::ExitCode::from(0),
         Err(err_value) => {

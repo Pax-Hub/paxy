@@ -1,8 +1,21 @@
-pub fn run_install(
-    package_install_arguments: ui::cli_template::PackageInstallArguments,
+#[allow(unused)]
+pub fn handle_package_install_action(
+    package_install_arguments: PackageInstallArguments,
 ) -> Result<(), Error> {
+    use crate::app::ui::console_template::cli::*;
+
+    todo!();
+
+    // Ok(())
+}
+
+#[allow(dead_code)]
+#[allow(unused_variables)]
+fn plugin(manifest: PathBuf) -> PathBuf {
     todo!()
 }
+
+// region: ERRORS
 
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub(crate)))]
@@ -13,17 +26,15 @@ pub enum Error {
     Dummy {},
 }
 
+// endregion: ERRORS
+
 // region: IMPORTS
 
 use std::path::PathBuf;
 
-use snafu::Snafu;
+#[allow(unused)]
+use snafu::{ResultExt, Snafu};
 
-use crate::app::ui;
+use crate::app::ui::console_template::cli::PackageInstallArguments;
 
 // endregion: IMPORTS
-#[allow(dead_code)]
-#[allow(unused_variables)]
-fn plugin(manifest: PathBuf) -> PathBuf {
-    todo!()
-}

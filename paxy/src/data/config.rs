@@ -23,7 +23,7 @@ impl Default for Config {
         };
         user.push(".paxy");
         user.push("pkgs");
-        let system = if cfg!(linux) {
+        let system = if cfg!(unix) {
             PathBuf::from("/")
         } else {
             PathBuf::from("")

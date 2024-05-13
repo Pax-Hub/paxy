@@ -1,3 +1,5 @@
+//! The core library of paxy
+
 // Returns a string representation of the type of the given object, which can
 // be displayed or further processed.
 pub fn type_of<T>(_: &T) -> &str {
@@ -10,6 +12,9 @@ pub fn type_of<T>(_: &T) -> &str {
 #[snafu(visibility(pub(crate)))]
 #[non_exhaustive]
 pub enum Error {
+    /// Indicates that the error is in the application which deals with UI,
+    /// logging, config, OS, etc., not in the various package or repository
+    /// actions that form the core functionality of paxy.
     #[non_exhaustive]
     #[snafu(display("in the app: {source}"), visibility(pub))]
     App {
@@ -17,6 +22,9 @@ pub enum Error {
         source: app::Error,
     },
 
+    /// Indicates that the error is in the package or repository actions that
+    /// form the core functionality of paxy, not in the application that
+    /// deals with UI, logging, config, OS, etc.
     #[non_exhaustive]
     #[snafu(display("in an action:{source}"), visibility(pub))]
     Action {
