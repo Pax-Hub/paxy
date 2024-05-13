@@ -1,4 +1,9 @@
+//! Handles configuration of the app through global and local settings files,
+//! through global and app-specific environment variables, and through console
+//! input.
+
 lazy_static! {
+    /// Global variable representing supported configuration file extensions
     pub static ref CONFIG_FILE_EXTENSIONS: &'static [&'static str] =
         &["toml", "json", "yaml", "yml"];
 }

@@ -1,3 +1,10 @@
+//! Handles both logging to file(s) and all messages displayed to the console.
+//! Even messages intended for the user are supplied via logging macros. The
+//! console output mode and the output verbosity level limit what goes to the
+//! console. The logging target sent to the macros for each logging message
+//! decides which output mode the message is intended to target.  
+
+/// Begins logging with the provided settings.
 pub fn init_log(config: &config::ConfigTemplate) -> Result<Handle, Error> {
     let log_filename = format!("{}.log", *app::APP_NAME);
     let log_file_appender =

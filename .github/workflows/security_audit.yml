@@ -6,6 +6,7 @@ on:
       - '.github/workflows/security_audit.yml' # Run when this workflow changes
       - '**/Cargo.toml' # Run when dependencies change
       - '**/Cargo.lock' # Run when dependencies change
+    branches: [main]
   pull_request:
     paths:
       - '.github/workflows/security_audit.yml' # Run when this workflow changes

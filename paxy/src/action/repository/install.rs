@@ -1,8 +1,19 @@
 #[allow(unused)]
+pub fn handle_repository_install_action(
+    repository_install_arguments: RepositoryInstallArguments,
+) -> Result<(), Error> {
+    use crate::app::ui::console_template::cli::*;
+
+    todo!();
+
+    // Ok(())
+}
+
+#[allow(unused)]
 fn add_repo(repo: &str, name: &str) {
-    let mut file = super::home!();
+    let mut file = repository::home!();
     file.push(".paxy");
-    ensure_path(None);
+    repository::ensure_path(None);
     file.push("repos.bson");
     let mut doc = if !file.is_file() {
         warn!("file not found. Creating");
@@ -24,7 +35,7 @@ fn add_repo(repo: &str, name: &str) {
     file.pop();
     file.push("repos");
     file.push(name);
-    ensure_path(Some(&file));
+    repository::ensure_path(Some(&file));
     Repository::clone(repo, file).unwrap();
 }
 
@@ -34,13 +45,18 @@ fn plugin(manifest: PathBuf) -> PathBuf {
     todo!()
 }
 
+// region: ERRORS
+
 #[derive(Debug, Snafu)]
+#[snafu(visibility(pub(crate)))]
 #[non_exhaustive]
 pub enum Error {
     #[non_exhaustive]
     #[snafu(display(""))]
     Dummy {},
 }
+
+// endregion: ERRORS
 
 // region: IMPORTS
 
@@ -52,9 +68,11 @@ use std::{
 use bson::{doc, Document};
 use git2::Repository;
 use log::{info, warn};
-use snafu::Snafu;
+#[allow(unused)]
+use snafu::{ResultExt, Snafu};
 
-use crate::actions::repository::ensure_path;
+use crate::action::repository;
+use crate::app::ui::console_template::cli::RepositoryInstallArguments;
 
 // endregion: IMPORTS
 

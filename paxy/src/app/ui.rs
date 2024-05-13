@@ -1,28 +1,12 @@
-#[tracing::instrument(level = "trace")]
-pub fn run_common<C>() -> Result<(C, Vec<WorkerGuard>), crate::Error>
+//! Objects pertaining to the UI.
+
+pub fn emit_init_messages<C>(config: &ConfigTemplate, console_input: &C)
 where
-    C: clap::Parser + GlobalArguments + fmt::Debug,
+    C: clap::Parser + fmt::Debug,
 {
-    // Obtain CLI arguments
-    let console_input = C::parse();
-
-    // Obtain user configuration
-    let config = config::init_config(&console_input)
-        .context(app::ConfigSnafu {})
-        .context(crate::AppSnafu)?;
-
-    // Begin logging and outputting
-    let logging_handle = logging::init_log(&config)
-        .context(app::LoggingSnafu {})
-        .context(crate::AppSnafu {})?;
-
     emit_welcome_messages();
-
-    emit_diagnostic_messages(&config);
-
-    emit_test_messages(&config, &console_input);
-
-    Ok((console_input, logging_handle.worker_guards))
+    emit_diagnostic_messages(config);
+    emit_test_messages(config, console_input);
 }
 
 fn emit_welcome_messages() {
@@ -43,7 +27,7 @@ fn emit_welcome_messages() {
             );
             acc.push_str("  ");
             acc.push_str(author);
-            acc.push_str("\n");
+            acc.push('\n');
 
             acc
         });
@@ -193,6 +177,7 @@ where
     );
 }
 
+/// Configurable settings that handle how the console output is displayed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsoleOutputFormat {
     pub mode: ConsoleOutputMode,
@@ -256,6 +241,13 @@ impl ConsoleOutputFormat {
     }
 }
 
+/// Represents the output mode of the app. The `Regular` for displaying all
+/// logging messages (up to the maximum verbosity set by the user) to the
+/// console. The `Plain` mode is for displaying just the main output of the app
+/// without any human-facing messages. The `Json` mode also displays the main
+/// output of the app, but in the `JSON` format. Both `Plain` and `JSON` modes
+/// are to be used to obtain pure scriptable and program-ready outputs without
+/// any polluting human messages.
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ConsoleOutputMode {
     #[default]
@@ -265,6 +257,8 @@ pub enum ConsoleOutputMode {
     Test,
 }
 
+/// A common interface for CLI templates to convey information about standard
+/// global arguments  
 pub trait GlobalArguments {
     fn config_filepath(&self) -> &Option<PathBuf>;
 
@@ -303,6 +297,8 @@ pub trait GlobalArguments {
     }
 }
 
+/// Blanket implementation of [`GlobalArguments`] interface for *references*
+/// of all objects that already implement `GlobalArguments`.
 impl<T: GlobalArguments> GlobalArguments for &T {
     fn config_filepath(&self) -> &Option<PathBuf> {
         (**self).config_filepath()
@@ -333,144 +329,19 @@ impl<T: GlobalArguments> GlobalArguments for &T {
     }
 }
 
-#[derive(Debug, Snafu)]
-#[non_exhaustive]
-pub enum Error {
-    #[non_exhaustive]
-    #[snafu(display(""))]
-    Dummy {},
-}
-
 // region: IMPORTS
 
-use core::fmt;
-use std::path::PathBuf;
+use std::{fmt, path::PathBuf};
 
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
-use snafu::{ResultExt, Snafu};
-use tracing_appender::non_blocking::WorkerGuard;
 
-use crate::app::{self, config, logging};
+use crate::app::config::ConfigTemplate;
 
 // endregion: IMPORTS
 
-// region: MODULES
+// region: EXTERNAL-SUBMODULES
 
-/// Common commandline interface template for global arguments, intended to be
-/// shared between the GUI and CLI programs.
-pub mod cli_template {
-    #[derive(Clone, Debug, Args)]
-    #[command(next_display_order = usize::MAX - 100)]
-    pub struct GlobalArgs<L>
-    where
-        L: clap_verbosity_flag::LogLevel,
-    {
-        #[arg(
-            long = "config",
-            short = 'c',
-            help = "Path to the configuration file to use.",
-            global = true,
-            display_order = usize::MAX - 6
-        )]
-        pub config_file: Option<PathBuf>,
+pub mod console_template;
 
-        #[arg(
-            long = "json",
-            help = "Output in the JSON format for machine readability and scripting purposes.",
-            global = true,
-            display_order = usize::MAX - 5
-        )]
-        pub json_flag: bool,
-
-        #[arg(
-            long = "plain",
-            help = "Output as plain text without extra information, for machine readability and scripting purposes.",
-            global = true,
-            display_order = usize::MAX - 4
-        )]
-        pub plain_flag: bool,
-
-        #[arg(
-            long = "debug",
-            help = "Output debug messages.",
-            global = true,
-            display_order = usize::MAX - 3
-        )]
-        pub debug_flag: bool,
-
-        #[arg(
-            long = "no-color",
-            help = "Disable output coloring.",
-            global = true,
-            display_order = usize::MAX - 2
-        )]
-        pub no_color_flag: bool,
-
-        #[arg(
-            long = "test",
-            help = "Avoid destructive modifications and show all output subject to the commandline filters. Useful for dry-runs and for developers.",
-            global = true,
-            display_order = usize::MAX - 1
-        )]
-        pub test_flag: bool,
-
-        #[command(flatten)]
-        pub verbosity: clap_verbosity_flag::Verbosity<L>,
-    }
-
-    impl<L> GlobalArguments for GlobalArgs<L>
-    where
-        L: clap_verbosity_flag::LogLevel,
-    {
-        fn config_filepath(&self) -> &Option<PathBuf> {
-            &self.config_file
-        }
-
-        fn is_json(&self) -> bool {
-            self.json_flag
-        }
-
-        fn is_plain(&self) -> bool {
-            self.plain_flag
-        }
-
-        fn is_debug(&self) -> bool {
-            self.debug_flag
-        }
-
-        fn is_test(&self) -> bool {
-            self.test_flag
-        }
-
-        fn is_no_color(&self) -> bool {
-            self.no_color_flag
-        }
-
-        fn verbosity_filter(&self) -> log::LevelFilter {
-            self.verbosity
-                .log_level_filter()
-        }
-    }
-
-    // region: IMPORTS
-
-    use std::path::PathBuf;
-
-    use clap::Args;
-
-    use super::GlobalArguments;
-
-    // endregion: IMPORTS
-}
-
-// endregion: MODULES
-
-// region: RE-EXPORTS
-
-#[allow(unused_imports)]
-pub use cli_template::*;
-
-use super::config::ConfigTemplate; // Flatten the module heirarchy for easier access
-
-// endregion: RE-EXPORTS
+// endregion: EXTERNAL-SUBMODULES
