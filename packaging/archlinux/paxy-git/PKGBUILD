@@ -5,7 +5,7 @@
 pkgver=0.0.1
 pkgrel=1
 pkgbase='paxy'
-pkgname=('paxy-cli-git' 'paxy-gui-git' 'paxy-db-git')
+pkgname=('paxy-cli-git' 'paxy-gui-git')
 arch=('x86_64')
 url="https://github.com/shivanandvp/paxy"
 makedepends=('git' 'cargo' 'gtk4' 'base-devel')
@@ -33,14 +33,7 @@ build() {
         cargo build \
             --release \
             --all-features \
-            --target-dir="target" \
-
-        cargo run \
-            --bin="paxy-cli" \
-            -- \
-            generate-database \
-            "$PROJECT_DIRECTORY/paxy-db/input-file.yaml" \
-            "$PROJECT_DIRECTORY/target/database.db"
+            --target-dir="target"
     )
 }
 
@@ -50,9 +43,6 @@ package_paxy-cli-git() {
     depends=()
     license=('MPL2') 
     conflicts=("paxy-cli" "paxy-cli-local" "paxy-gui" "paxy-gui-local" "paxy-gui-git")
-
-    # To bypass makepkg's dependency check during build-time
-    optdepends+=("paxy-db")
 
     (   
         cd "$PROJECT_DIRECTORY"
@@ -71,9 +61,6 @@ package_paxy-gui-git() {
     depends=('gtk4')
     license=('MPL2')
     conflicts=("paxy-gui" "paxy-gui-local" "paxy-cli" "paxy-cli-local" "paxy-cli-git")
-    
-    # To bypass makepkg's dependency check during build-time
-    optdepends+=("paxy-db")
 
     (   
         cd "$PROJECT_DIRECTORY"

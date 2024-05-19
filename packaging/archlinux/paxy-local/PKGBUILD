@@ -3,10 +3,10 @@
 # Maintainer: shivanandvp <pvshvp.oss@gmail.com, shivanandvp@rebornos.org>
 
 PKGVER_STUB=0.0.1
-pkgver=0.0.1.2023_08_31_04
+pkgver=0.0.1.2024_05_19_01
 pkgrel=1
 pkgbase='paxy'
-pkgname=('paxy-cli-local' 'paxy-gui-local' 'paxy-db-local')
+pkgname=('paxy-cli-local' 'paxy-gui-local')
 arch=('x86_64')
 url="https://github.com/shivanandvp/paxy"
 makedepends=('cargo' 'gtk4' 'base-devel')
@@ -14,7 +14,7 @@ source=()
 sha256sums=()
 
 prepare() {
-    export PROJECT_DIRECTORY="$(dirname -- "$(dirname -- "$(dirname -- "$(pwd)")")")"
+    export PROJECT_DIRECTORY="$(dirname -- "$(dirname -- "$(dirname -- "$(dirname -- "$(pwd)")")")")"
     export RESOURCE_DIRECTORY="$PROJECT_DIRECTORY/packaging/resources"
     export BUILD_DIRECTORY="$PROJECT_DIRECTORY/target"
 }
@@ -30,14 +30,7 @@ build() {
         cargo build \
             --release \
             --all-features \
-            --target-dir="target" \
-
-        cargo run \
-            --bin="paxy-cli" \
-            -- \
-            generate-database \
-            "$PROJECT_DIRECTORY/paxy-db/input-file.yaml" \
-            "$PROJECT_DIRECTORY/target/database.db"
+            --target-dir="target"
     )
 }
 
@@ -47,9 +40,6 @@ package_paxy-cli-local() {
     depends=()
     license=('MPL2') 
     conflicts=("paxy-cli" "paxy-cli-git" "paxy-gui" "paxy-gui-local" "paxy-gui-git")
-
-    # To bypass makepkg's dependency check during build-time
-    optdepends+=("paxy-db")
 
     (   
         cd "$PROJECT_DIRECTORY"
@@ -69,9 +59,6 @@ package_paxy-gui-local() {
     license=('MPL2')
     conflicts=("paxy-gui" "paxy-gui-git" "paxy-cli" "paxy-cli-local" "paxy-cli-git")
     
-    # To bypass makepkg's dependency check during build-time
-    optdepends+=("paxy-db")
-
     (   
         cd "$PROJECT_DIRECTORY"
 
