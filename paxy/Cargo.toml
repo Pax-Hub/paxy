@@ -41,7 +41,8 @@ speedy = { workspace = true }
 itertools = { workspace = true }
 
 # Internationalization
-fluent = { workspace = true }
+fluent-resmgr = { workspace = true }
+fluent-fallback = { workspace = true }
 
 # CLI
 clap = { workspace = true }

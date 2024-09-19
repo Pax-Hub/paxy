@@ -60,10 +60,11 @@ serde-aux = "4.5"
 serde_yaml = "0.9"
 tracing-serde = "0.1"
 speedy = "0.8"
-itertools = "0.12"
+itertools = "0.13"
 
 # Internationalization
-fluent = "0.16"
+fluent-resmgr = "0.0"
+fluent-fallback = "0.7"
 
 # CLI
 clap = { version = "4.5", features = ["derive", "wrap_help"] }
@@ -73,5 +74,5 @@ owo-colors = "4.0"
 console = "0.15"
 
 # GUI
-relm4 = "0.8"
-relm4-components = "0.8"
+relm4 = "0.9"
+relm4-components = "0.9"

@@ -26,7 +26,8 @@ log = { workspace = true, features = ["serde"] }
 snafu = {workspace = true}
 
 # Internationalization
-fluent = { workspace = true }
+fluent-resmgr = { workspace = true }
+fluent-fallback = { workspace = true }
 
 # CLI
 clap = { workspace = true, features = ["cargo", "env"] }
