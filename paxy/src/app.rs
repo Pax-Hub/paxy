@@ -24,6 +24,8 @@ where
     // Obtain user configuration
     let config = config::init_config(&console_input).context(ConfigSnafu {})?;
 
+    let i18n_handle = i18n::init_i18n(&config).context(I18nSnafu {})?;
+
     // Begin logging and outputting to console
     let logging_handle = logging::init_log(&config).context(LoggingSnafu {})?;
 
@@ -57,7 +59,7 @@ pub enum Error {
         display("in internationalization/regionalization/translation: {source}"),
         visibility(pub)
     )]
-    Internationalization {
+    I18n {
         #[snafu(backtrace)]
         source: i18n::Error,
     },
