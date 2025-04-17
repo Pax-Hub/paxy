@@ -63,8 +63,10 @@ speedy = "0.8"
 itertools = "0.13"
 
 # Internationalization
-fluent-resmgr = "0.0"
+fluent = "0.16"
+fluent-resmgr = { git = "https://github.com/pvshvp-oss/fluent-rs.git" } # fluent-resmgr = "0.0"
 fluent-fallback = "0.7"
+unic-langid = "0.9"
 
 # CLI
 clap = { version = "4.5", features = ["derive", "wrap_help"] }
